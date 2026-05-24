@@ -1,13 +1,19 @@
 # Basics
 
-Scriban is a small, fast templating language for .NET. A Scriban template is just
-text with two kinds of holes punched in it:
+Scriban is a small, fast templating language for .NET. A Scriban template is
+just text with `{{ ... }}` tags punched in it. The same `{{ ... }}` form is used
+for both **expressions** (which print their result) and **control flow**
+(`{{ if cond }}…{{ else }}…{{ end }}`, `{{ for x in items }}…{{ end }}`, and so
+on). Anything outside the tags is copied to the output literally.
 
-- **Expression tags** `{{ ... }}` evaluate something and print the result.
-- **Statement tags** `{% ... %}` run a control-flow block but print nothing of
-  their own.
+> Scriban also offers an opt-in **Liquid compatibility** mode that recognises
+> `{% ... %}` tags — but that's a separate parser entry point
+> (`Template.ParseLiquid`) and not how this course uses Scriban. Everywhere in
+> these lessons, the only delimiter you'll see is `{{ ... }}`.
 
-Anything outside the tags is copied to the output literally.
+To strip whitespace around a tag, add a dash on the side you want trimmed:
+`{{- expr -}}` removes whitespace and the surrounding newlines on both sides.
+You'll meet whitespace control again when we get to loops, where it matters most.
 
 ## Variables
 
