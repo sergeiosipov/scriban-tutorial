@@ -40,6 +40,12 @@ jobs:
         # `dotnet publish src/...` alone only restores the WASM project.
         run: dotnet restore ScribanTutorial.slnx
 
+      - name: Run xUnit tests
+        # Includes the parameterised ExerciseSolutionTests that re-runs every
+        # exercise's canonical solution against its data model. Gates the
+        # deploy on content correctness.
+        run: dotnet test tests/ScribanTutorial.Tests/ScribanTutorial.Tests.csproj --configuration Release --no-restore
+
       - name: Publish
         run: dotnet publish src/ScribanTutorial/ScribanTutorial.csproj -c Release -o publish
 

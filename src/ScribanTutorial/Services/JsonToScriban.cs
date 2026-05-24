@@ -18,7 +18,10 @@ internal static class JsonToScriban
         JsonValueKind.Object => BuildObject(el),
         JsonValueKind.Array  => BuildArray(el),
         JsonValueKind.String => el.GetString(),
-        JsonValueKind.Number => el.TryGetInt64(out var i) ? i : el.GetDouble(),
+        // The ternary unifies branches to a common type; with `long` and `double`
+        // arms that's `double`, which silently converts ints to floats. Box each
+        // branch explicitly so the integer path actually stays a long.
+        JsonValueKind.Number => el.TryGetInt64(out var i) ? (object)i : el.GetDouble(),
         JsonValueKind.True   => true,
         JsonValueKind.False  => false,
         JsonValueKind.Null   => null,

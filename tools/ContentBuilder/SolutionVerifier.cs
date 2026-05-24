@@ -93,7 +93,7 @@ internal static class SolutionVerifier
         JsonValueKind.Object => BuildObject(el),
         JsonValueKind.Array  => BuildArray(el),
         JsonValueKind.String => el.GetString(),
-        JsonValueKind.Number => el.TryGetInt64(out var i) ? i : el.GetDouble(),
+        JsonValueKind.Number => el.TryGetInt64(out var i) ? (object)i : el.GetDouble(),
         JsonValueKind.True   => true,
         JsonValueKind.False  => false,
         JsonValueKind.Null   => null,

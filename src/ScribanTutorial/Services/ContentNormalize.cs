@@ -12,8 +12,8 @@ public static class ContentNormalize
     /// Normalises a chunk of text for output comparison:
     /// <list type="bullet">
     /// <item>CRLF (Windows / authoring tool slip) collapsed to LF.</item>
-    /// <item>Trailing newline trimmed (most editors add one; the comparison
-    /// shouldn't care).</item>
+    /// <item>ALL trailing newlines trimmed (most editors add one; some files end
+    /// with several; the comparison shouldn't care either way).</item>
     /// </list>
     /// Everything else — interior whitespace, tabs, trailing spaces on a line —
     /// is significant.

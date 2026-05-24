@@ -65,12 +65,25 @@ what CI runs.
 └───────────────────────────────────────────────────────┘
 ```
 
+## Tests
+
+```powershell
+dotnet test
+```
+
+xUnit project under `tests/ScribanTutorial.Tests/`. The
+`ExerciseSolutionTests` class is data-driven from the manifest — every
+exercise's canonical solution is run against its data model and compared
+to the expected output. Add an exercise → it gets a test automatically.
+CI gates the deploy on `dotnet test` going green.
+
 ## Documentation
 
-- [`docs/AUTHORING_LESSONS.md`](docs/AUTHORING_LESSONS.md) — how non-developers add or edit a lesson.
+- [`docs/AUTHORING_LESSONS.md`](docs/AUTHORING_LESSONS.md) — how non-developers add or edit a lesson, with the full test-authoring flow.
 - [`docs/SECURITY.md`](docs/SECURITY.md) — threat model for running user-supplied templates in the browser.
 - [`docs/SCRIBAN_BEST_PRACTICES.md`](docs/SCRIBAN_BEST_PRACTICES.md) — the patterns lesson content should teach.
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — GitHub Pages deployment, base href, SPA routing.
+- [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) — Scriban TextMate grammar edge cases and other rough edges to be aware of.
 
 ## Specification
 
