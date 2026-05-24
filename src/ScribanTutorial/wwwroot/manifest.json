@@ -1,0 +1,41 @@
+{
+  "courseTitle": "Scriban Interactive Training",
+  "courseSubtitle": "A hands-on tour of the Scriban templating language",
+  "lessons": [
+    {
+      "id": "01-basics",
+      "title": "Basics",
+      "theoryPath": "lessons/01-basics/01-theory",
+      "exercises": [
+        { "id": "hello",         "path": "lessons/01-basics/02-exercises/hello" },
+        { "id": "member-access", "path": "lessons/01-basics/02-exercises/member-access" }
+      ]
+    },
+    {
+      "id": "02-filters",
+      "title": "Filters",
+      "theoryPath": "lessons/02-filters/01-theory",
+      "exercises": [
+        { "id": "upcase", "path": "lessons/02-filters/02-exercises/upcase" },
+        { "id": "math",   "path": "lessons/02-filters/02-exercises/math" }
+      ]
+    },
+    {
+      "id": "03-control-flow",
+      "title": "Control flow",
+      "theoryPath": "lessons/03-control-flow/01-theory",
+      "exercises": [
+        { "id": "list-loop",   "path": "lessons/03-control-flow/02-exercises/list-loop" },
+        { "id": "conditional", "path": "lessons/03-control-flow/02-exercises/conditional" }
+      ]
+    },
+    {
+      "id": "04-assembly",
+      "title": "Putting it together",
+      "theoryPath": "lessons/04-assembly/01-theory",
+      "exercises": [
+        { "id": "invoice", "path": "lessons/04-assembly/02-exercises/invoice" }
+      ]
+    }
+  ]
+}

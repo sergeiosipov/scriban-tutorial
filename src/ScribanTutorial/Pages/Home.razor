@@ -1,6 +1,44 @@
 @page "/"
+@inject ContentService Content
 
 <PageTitle>Scriban Interactive Training</PageTitle>
 
-<h1>Hello</h1>
-<p>Skeleton up. Stage 2 wires in the manifest.</p>
+@if (_manifest is null)
+{
+    <div class="home__loading">Loading…</div>
+}
+else
+{
+    <header class="home__header">
+        <h1>@_manifest.CourseTitle</h1>
+        <p class="home__subtitle">@_manifest.CourseSubtitle</p>
+    </header>
+    <ol class="home__lessons">
+        @foreach (var (lesson, index) in _manifest.Lessons.Select((l, i) => (l, i + 1)))
+        {
+            <li class="home__lesson">
+                <a class="home__lesson-link" href="@($"lesson/{lesson.Id}")">
+                    <span class="home__lesson-num">Lesson @index.ToString("D2")</span>
+                    <span class="home__lesson-title">@lesson.Title</span>
+                    <span class="home__lesson-count">@lesson.Exercises.Count exercise@(lesson.Exercises.Count == 1 ? "" : "s")</span>
+                </a>
+            </li>
+        }
+    </ol>
+}
+
+@code {
+    private Manifest? _manifest;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _manifest = await Content.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Home: failed to load manifest — {ex.Message}");
+        }
+    }
+}

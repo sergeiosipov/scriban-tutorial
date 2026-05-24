@@ -1,7 +1,48 @@
-@* Placeholder — replaced in Stage 2 with manifest-driven nav *@
+@inject ContentService Content
+@implements IDisposable
+
 <nav class="nav-menu">
     <div class="nav-menu__brand">
-        <div class="nav-menu__title">Scriban Tutorial</div>
-        <div class="nav-menu__subtitle">Loading…</div>
+        <div class="nav-menu__title">@(_manifest?.CourseTitle ?? "Scriban Tutorial")</div>
+        <div class="nav-menu__subtitle">@(_manifest?.CourseSubtitle ?? "Loading…")</div>
     </div>
+    @if (_manifest is not null)
+    {
+        <ul class="nav-menu__list">
+            <li class="nav-menu__item">
+                <NavLink class="nav-menu__link" href="" Match="NavLinkMatch.All">
+                    <span class="nav-menu__num">·</span>
+                    <span class="nav-menu__label">Course home</span>
+                </NavLink>
+            </li>
+            @foreach (var (lesson, index) in _manifest.Lessons.Select((l, i) => (l, i + 1)))
+            {
+                <li class="nav-menu__item">
+                    <NavLink class="nav-menu__link" href="@($"lesson/{lesson.Id}")">
+                        <span class="nav-menu__num">@index.ToString("D2")</span>
+                        <span class="nav-menu__label">@lesson.Title</span>
+                        <span class="nav-menu__progress" title="not started">○</span>
+                    </NavLink>
+                </li>
+            }
+        </ul>
+    }
 </nav>
+
+@code {
+    private Manifest? _manifest;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _manifest = await Content.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"NavMenu: failed to load manifest — {ex.Message}");
+        }
+    }
+
+    public void Dispose() { }
+}
