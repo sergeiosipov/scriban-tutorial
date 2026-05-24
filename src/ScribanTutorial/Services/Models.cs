@@ -16,6 +16,7 @@ public sealed record ExerciseEntry(string Id, string Path);
 public sealed record ExerciseContent(
     string DescriptionHtml,
     string DataModelJson,
+    string DataModelHtml,
     string Expected,
     string StarterTemplate,
     string Solution);

@@ -9,13 +9,33 @@
     --border: #e5e7eb;
     --sidebar-bg: #f6f7f9;
     --sidebar-border: #e2e5ea;
-    --code-bg: #f3f4f6;
+    --code-bg: #f6f7f9;
     --code-border: #e5e7eb;
     --pass: #16a34a;
     --fail: #dc2626;
     --shimmer-from: #e5e7eb;
     --shimmer-via: #f1f3f5;
     --shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04);
+
+    /* Syntax-highlight palette (VS Code Light+ inspired). Used by both
+       ContentBuilder's TextMate spans (<span class="hl-*">) and CodeMirror's
+       HighlightStyle. Changing a colour here updates theory blocks AND the
+       editor in lockstep. */
+    --syn-keyword:     #af00db;
+    --syn-atom:        #0000ff;
+    --syn-string:      #a31515;
+    --syn-number:      #098658;
+    --syn-comment:     #008000;
+    --syn-operator:    #1a1a1a;
+    --syn-brace:       #0000ff;
+    --syn-punctuation: #5a5a5a;
+    --syn-variable:    #001080;
+    --syn-property:    #001080;
+    --syn-type:        #267f99;
+    --syn-function:    #795e26;
+    --syn-tag:         #800000;
+    --syn-regexp:      #d16969;
+    --syn-escape:      #ee0000;
 }
 
 [data-theme="dark"] {
@@ -35,7 +55,41 @@
     --shimmer-from: #1f2733;
     --shimmer-via: #2a3140;
     --shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.30);
+
+    /* VS Code Dark+ inspired. */
+    --syn-keyword:     #c586c0;
+    --syn-atom:        #569cd6;
+    --syn-string:      #ce9178;
+    --syn-number:      #b5cea8;
+    --syn-comment:     #6a9955;
+    --syn-operator:    #d4d4d4;
+    --syn-brace:       #569cd6;
+    --syn-punctuation: #9aa0aa;
+    --syn-variable:    #9cdcfe;
+    --syn-property:    #9cdcfe;
+    --syn-type:        #4ec9b0;
+    --syn-function:    #dcdcaa;
+    --syn-tag:         #569cd6;
+    --syn-regexp:      #d16969;
+    --syn-escape:      #d7ba7d;
 }
+
+/* Shared highlight rules — colours come from --syn-* so they retheme automatically. */
+.hl-keyword     { color: var(--syn-keyword); }
+.hl-atom        { color: var(--syn-atom); }
+.hl-string      { color: var(--syn-string); }
+.hl-number      { color: var(--syn-number); }
+.hl-comment     { color: var(--syn-comment); font-style: italic; }
+.hl-operator    { color: var(--syn-operator); }
+.hl-brace       { color: var(--syn-brace); }
+.hl-punctuation { color: var(--syn-punctuation); }
+.hl-variable    { color: var(--syn-variable); }
+.hl-property    { color: var(--syn-property); }
+.hl-type        { color: var(--syn-type); }
+.hl-function    { color: var(--syn-function); }
+.hl-tag         { color: var(--syn-tag); }
+.hl-regexp      { color: var(--syn-regexp); }
+.hl-escape      { color: var(--syn-escape); }
 
 html, body {
     margin: 0;

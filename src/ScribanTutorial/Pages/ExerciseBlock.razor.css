@@ -94,6 +94,24 @@
     white-space: pre;
 }
 
+.exercise__panel-code ::deep pre {
+    margin: 0;
+    background: var(--code-bg, #f3f4f6);
+    border: 1px solid var(--code-border, #e5e7eb);
+    border-radius: 6px;
+    padding: 0.7rem 0.9rem;
+    overflow-x: auto;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    white-space: pre;
+}
+.exercise__panel-code ::deep code {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-family: 'Cascadia Code', 'Cascadia Mono', Consolas, monospace;
+}
+
 .exercise__pre--err {
     background: color-mix(in srgb, var(--fail) 12%, transparent);
     border-color: color-mix(in srgb, var(--fail) 35%, transparent);

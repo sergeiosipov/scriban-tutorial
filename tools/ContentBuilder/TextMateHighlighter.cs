@@ -2,29 +2,67 @@ using System.Text;
 using System.Web;
 using TextMateSharp.Grammars;
 using TextMateSharp.Registry;
-using TextMateSharp.Themes;
 
 namespace ContentBuilder;
 
+/// <summary>
+/// Tokenises code blocks with a TextMate grammar and emits <c>&lt;span class="hl-…"&gt;</c>
+/// wrappers. The actual colours live in CSS variables in <c>wwwroot/css/app.css</c>
+/// so that the same palette drives both the rendered theory HTML and the
+/// CodeMirror editor, and so dark / light switching is a one-attribute flip
+/// on <c>&lt;html data-theme&gt;</c> instead of a re-render of every code block.
+/// </summary>
 internal sealed class TextMateHighlighter
 {
     private readonly Registry _registry;
     private readonly RegistryOptions _options;
-    private readonly Theme _theme;
     private readonly IGrammar? _scribanGrammar;
 
-    public TextMateHighlighter(string scribanGrammarPath, string themeName)
+    // Order matters: longest / most-specific scope prefix first. The first
+    // matching scope on a token wins. Class names line up with .hl-* rules in
+    // wwwroot/css/app.css and the CodeMirror HighlightStyle in editor.js.
+    private static readonly (string Prefix, string Class)[] ScopeMap =
     {
-        var resolved = themeName.Equals("dark", StringComparison.OrdinalIgnoreCase)
-            ? ThemeName.DarkPlus
-            : ThemeName.LightPlus;
-        _options = new RegistryOptions(resolved);
+        ("comment",                       "hl-comment"),
+        ("string.quoted",                 "hl-string"),
+        ("string.template",               "hl-string"),
+        ("string.regexp",                 "hl-regexp"),
+        ("string",                        "hl-string"),
+        ("constant.character.escape",     "hl-escape"),
+        ("constant.numeric",              "hl-number"),
+        ("constant.language",             "hl-atom"),
+        ("constant",                      "hl-atom"),
+        ("keyword.control",               "hl-keyword"),
+        ("keyword.operator",              "hl-operator"),
+        ("keyword.other",                 "hl-keyword"),
+        ("keyword",                       "hl-keyword"),
+        ("storage",                       "hl-keyword"),
+        ("punctuation.section.embedded",  "hl-brace"),
+        ("punctuation.definition.string", "hl-string"),
+        ("punctuation",                   "hl-punctuation"),
+        ("support.type.property-name",    "hl-property"),
+        ("support.class",                 "hl-type"),
+        ("support.function",              "hl-function"),
+        ("support.type",                  "hl-type"),
+        ("entity.name.function",          "hl-function"),
+        ("entity.name.type",              "hl-type"),
+        ("entity.name.tag",               "hl-tag"),
+        ("variable.other.member",         "hl-property"),
+        ("variable.other",                "hl-variable"),
+        ("variable.parameter",            "hl-variable"),
+        ("variable",                      "hl-variable"),
+    };
+
+    public TextMateHighlighter(string scribanGrammarPath, string _ignoredThemeName)
+    {
+        // We still create a registry because LoadGrammar uses it, but the theme
+        // is unused in class-emission mode. Pin to LightPlus so scope resolution
+        // is deterministic.
+        _options = new RegistryOptions(ThemeName.LightPlus);
         _registry = new Registry(_options);
-        _theme = _registry.GetTheme();
 
         if (!File.Exists(scribanGrammarPath))
             throw new FileNotFoundException("Scriban grammar not found.", scribanGrammarPath);
-        // The grammar JSON's own "scopeName" supplies the registered scope.
         _scribanGrammar = _registry.LoadGrammarFromPathSync(scribanGrammarPath, 0, null);
     }
 
@@ -47,14 +85,14 @@ internal sealed class TextMateHighlighter
                 var endIndex = Math.Min(token.EndIndex, line.Length);
                 if (endIndex <= startIndex) continue;
                 var raw = line[startIndex..endIndex];
-                var color = ResolveColor(token.Scopes);
-                if (color is null)
+                var cls = ResolveClass(token.Scopes);
+                if (cls is null)
                 {
                     sb.Append(Escape(raw));
                 }
                 else
                 {
-                    sb.Append("<span style=\"color:").Append(color).Append("\">").Append(Escape(raw)).Append("</span>");
+                    sb.Append("<span class=\"").Append(cls).Append("\">").Append(Escape(raw)).Append("</span>");
                 }
             }
             if (li + 1 < lines.Length) sb.Append('\n');
@@ -74,14 +112,18 @@ internal sealed class TextMateHighlighter
         catch { return null; }
     }
 
-    private string? ResolveColor(IList<string> scopes)
+    private static string? ResolveClass(IList<string> scopes)
     {
-        var match = _theme.Match(scopes);
-        if (match is null) return null;
-        foreach (var rule in match)
+        // Scopes are listed from outermost (e.g. "source.scriban") to innermost
+        // (e.g. "string.quoted.double.scriban"). The innermost is the most
+        // specific, so iterate in reverse and pick the first map hit.
+        for (var i = scopes.Count - 1; i >= 0; i--)
         {
-            var color = _theme.GetColor(rule.foreground);
-            if (!string.IsNullOrEmpty(color)) return color;
+            var scope = scopes[i];
+            foreach (var (prefix, cls) in ScopeMap)
+            {
+                if (scope.StartsWith(prefix, StringComparison.Ordinal)) return cls;
+            }
         }
         return null;
     }

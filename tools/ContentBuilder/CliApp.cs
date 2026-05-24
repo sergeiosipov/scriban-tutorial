@@ -61,7 +61,9 @@ internal static class CliApp
 
             var highlighter = new TextMateHighlighter(grammar, theme);
             var renderer = new MarkdownRenderer(highlighter);
-            return BuildContent(input, renderer);
+            var mdExit = BuildContent(input, renderer);
+            if (mdExit != 0) return mdExit;
+            return BuildDataModelHtml(input, highlighter);
         }
         catch (Exception ex)
         {
@@ -103,6 +105,47 @@ internal static class CliApp
             }
         }
         Console.WriteLine($"ContentBuilder: scanned {mdFiles.Length} .md files, regenerated {regenerated}.");
+        return 0;
+    }
+
+    // Pretty-print every 02-datamodel.json into a 02-datamodel.html sibling,
+    // syntax-highlighted with the JSON grammar through TextMateSharp. The
+    // ExerciseBlock data panel renders this so its colours match the
+    // :::example JSON column instead of falling back to plain text.
+    private static int BuildDataModelHtml(string lessonsDir, TextMateHighlighter highlighter)
+    {
+        var jsonOpts = new System.Text.Json.JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        };
+        var dataFiles = Directory.EnumerateFiles(lessonsDir, "02-datamodel.json", SearchOption.AllDirectories).ToArray();
+        var regenerated = 0;
+        foreach (var json in dataFiles)
+        {
+            var html = Path.Combine(Path.GetDirectoryName(json)!, "02-datamodel.html");
+            if (File.Exists(html))
+            {
+                var jsonTime = File.GetLastWriteTimeUtc(json);
+                var htmlTime = File.GetLastWriteTimeUtc(html);
+                if (htmlTime >= jsonTime) continue;
+            }
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(json));
+                var pretty = System.Text.Json.JsonSerializer.Serialize(doc.RootElement, jsonOpts);
+                var inner = highlighter.Highlight(pretty, "json");
+                var output = "<pre><code class=\"language-json\">" + inner + "</code></pre>\n";
+                File.WriteAllText(html, output);
+                regenerated++;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"ContentBuilder: failed to render data model {json} — {ex.Message}");
+                return 1;
+            }
+        }
+        Console.WriteLine($"ContentBuilder: scanned {dataFiles.Length} data-model files, regenerated {regenerated}.");
         return 0;
     }
 

@@ -69,16 +69,18 @@ public sealed class ContentService
             var parts = await Task.WhenAll(
                 _http.GetStringAsync($"{basePath}/01-description.html", ct),
                 _http.GetStringAsync($"{basePath}/02-datamodel.json", ct),
+                _http.GetStringAsync($"{basePath}/02-datamodel.html", ct),
                 _http.GetStringAsync($"{basePath}/03-expected.txt", ct),
                 _http.GetStringAsync($"{basePath}/04-template.txt", ct),
                 _http.GetStringAsync($"{basePath}/05-solution.txt", ct));
 
             return (ex.Id, content: new ExerciseContent(
                 DescriptionHtml: parts[0],
-                DataModelJson: parts[1],
-                Expected: parts[2],
-                StarterTemplate: parts[3],
-                Solution: parts[4]));
+                DataModelJson:   parts[1],
+                DataModelHtml:   parts[2],
+                Expected:        parts[3],
+                StarterTemplate: parts[4],
+                Solution:        parts[5]));
         }));
 
         return new LessonContent(
