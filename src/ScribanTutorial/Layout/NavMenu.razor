@@ -1,4 +1,5 @@
 @inject ContentService Content
+@inject ProgressService Progress
 @implements IDisposable
 
 <nav class="nav-menu">
@@ -17,11 +18,13 @@
             </li>
             @foreach (var (lesson, index) in _manifest.Lessons.Select((l, i) => (l, i + 1)))
             {
+                var state = GetLessonState(lesson);
                 <li class="nav-menu__item">
                     <NavLink class="nav-menu__link" href="@($"lesson/{lesson.Id}")">
                         <span class="nav-menu__num">@index.ToString("D2")</span>
                         <span class="nav-menu__label">@lesson.Title</span>
-                        <span class="nav-menu__progress" title="not started">○</span>
+                        <span class="nav-menu__progress nav-menu__progress--@state.ToString().ToLowerInvariant()"
+                              title="@StateTitle(state)">@StateGlyph(state)</span>
                     </NavLink>
                 </li>
             }
@@ -31,12 +34,17 @@
 
 @code {
     private Manifest? _manifest;
+    private Dictionary<string, IReadOnlyDictionary<string, ExerciseProgress>> _progressByLesson = new();
+
+    enum LessonState { NotStarted, InProgress, Complete }
 
     protected override async Task OnInitializedAsync()
     {
+        Progress.Changed += OnProgressChanged;
         try
         {
             _manifest = await Content.InitializeAsync();
+            await RefreshProgress();
         }
         catch (Exception ex)
         {
@@ -44,5 +52,50 @@
         }
     }
 
-    public void Dispose() { }
+    private async Task RefreshProgress()
+    {
+        if (_manifest is null) return;
+        var fresh = new Dictionary<string, IReadOnlyDictionary<string, ExerciseProgress>>();
+        foreach (var lesson in _manifest.Lessons)
+            fresh[lesson.Id] = await Progress.GetAllForLessonAsync(lesson.Id);
+        _progressByLesson = fresh;
+    }
+
+    private void OnProgressChanged()
+    {
+        _ = InvokeAsync(async () =>
+        {
+            await RefreshProgress();
+            StateHasChanged();
+        });
+    }
+
+    private LessonState GetLessonState(LessonEntry lesson)
+    {
+        if (lesson.Exercises.Count == 0) return LessonState.NotStarted;
+        if (!_progressByLesson.TryGetValue(lesson.Id, out var lessonProgress) || lessonProgress.Count == 0)
+            return LessonState.NotStarted;
+        var passed = lessonProgress.Values.Count(p => p.Passed);
+        if (passed == lesson.Exercises.Count) return LessonState.Complete;
+        return LessonState.InProgress;
+    }
+
+    private static string StateGlyph(LessonState s) => s switch
+    {
+        LessonState.Complete => "●",
+        LessonState.InProgress => "◐",
+        _ => "○",
+    };
+
+    private static string StateTitle(LessonState s) => s switch
+    {
+        LessonState.Complete => "complete",
+        LessonState.InProgress => "in progress",
+        _ => "not started",
+    };
+
+    public void Dispose()
+    {
+        Progress.Changed -= OnProgressChanged;
+    }
 }

@@ -72,6 +72,11 @@
     line-height: 1;
 }
 
-.nav-menu__link.active .nav-menu__progress {
-    color: rgba(255, 255, 255, 0.85);
+.nav-menu__progress--complete   { color: var(--pass, #16a34a); }
+.nav-menu__progress--inprogress { color: var(--accent, #2563eb); }
+
+.nav-menu__link.active .nav-menu__progress,
+.nav-menu__link.active .nav-menu__progress--complete,
+.nav-menu__link.active .nav-menu__progress--inprogress {
+    color: rgba(255, 255, 255, 0.95);
 }

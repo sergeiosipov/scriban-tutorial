@@ -1,7 +1,11 @@
 @using System.Text.Json
 @using Scriban
 @using Scriban.Runtime
+@using DiffPlex.DiffBuilder
+@using DiffPlex.DiffBuilder.Model
 @inject JsonSerializerOptions JsonOpts
+@inject ProgressService Progress
+@implements IDisposable
 
 <section class="exercise" id="@($"exercise-{ExerciseId}")">
     <header class="exercise__header">
@@ -34,7 +38,13 @@
         </div>
     </div>
 
-    <label class="exercise__editor-label" for="@_editorId">Your template</label>
+    <label class="exercise__editor-label" for="@_editorId">
+        Your template
+        @if (_attempts > 0)
+        {
+            <span class="exercise__attempts">· @_attempts attempt@(_attempts == 1 ? "" : "s")</span>
+        }
+    </label>
     <textarea id="@_editorId"
               class="exercise__editor"
               spellcheck="false"
@@ -46,7 +56,19 @@
         <button class="exercise__btn exercise__btn--primary" @onclick="RunTemplate" disabled="@_running">
             @(_running ? "Running…" : "Submit code")
         </button>
+        <button class="exercise__btn" @onclick="ResetTemplate" disabled="@_running">Reset</button>
+        <button class="exercise__btn" @onclick="ToggleSolution" disabled="@_running">
+            @(_revealSolution ? "Hide solution" : "Show solution")
+        </button>
     </div>
+
+    @if (_revealSolution)
+    {
+        <div class="exercise__solution">
+            <div class="exercise__result-label">Solution</div>
+            <pre class="exercise__pre exercise__pre--solution"><code>@Content.Solution</code></pre>
+        </div>
+    }
 
     @if (_status == Status.Pass)
     {
@@ -67,6 +89,30 @@
                     <pre class="exercise__pre exercise__pre--err"><code>@_errors</code></pre>
                 </div>
             }
+            @if (_diff is not null)
+            {
+                <div class="exercise__diff">
+                    <div class="exercise__result-label">Diff (expected vs. actual)</div>
+                    <pre class="exercise__pre exercise__pre--diff"><code>@foreach (var line in _diff.Lines)
+{
+    var cls = line.Type switch
+    {
+        ChangeType.Inserted => "diff__line diff__line--ins",
+        ChangeType.Deleted  => "diff__line diff__line--del",
+        ChangeType.Modified => "diff__line diff__line--mod",
+        _                    => "diff__line",
+    };
+    var prefix = line.Type switch
+    {
+        ChangeType.Inserted => "+ ",
+        ChangeType.Deleted  => "- ",
+        ChangeType.Modified => "~ ",
+        _                    => "  ",
+    };
+    <span class="@cls">@(prefix)@(line.Text)<br /></span>
+}</code></pre>
+                </div>
+            }
         </div>
     }
 </section>
@@ -83,16 +129,35 @@
     private string _dataModelPretty = "";
     private string _output = "";
     private string? _errors;
+    private DiffPaneModel? _diff;
     private Status _status = Status.Idle;
     private bool _running;
     private bool _revealExpected;
+    private bool _revealSolution;
     private int _attempts;
+    private bool _restored;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         _editorId = $"editor-{LessonId}-{ExerciseId}";
         _userTemplate = Content.StarterTemplate;
         _dataModelPretty = PrettyJson(Content.DataModelJson);
+
+        try
+        {
+            var saved = await Progress.GetAsync(LessonId, ExerciseId);
+            if (saved is not null)
+            {
+                _userTemplate = saved.LastCode;
+                _attempts = saved.Attempts;
+                _status = saved.Passed ? Status.Pass : Status.Fail;
+                _restored = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"ExerciseBlock: progress restore failed for {ExerciseId} — {ex.Message}");
+        }
     }
 
     private string PrettyJson(string raw)
@@ -113,6 +178,7 @@
         _running = true;
         _status = Status.Idle;
         _errors = null;
+        _diff = null;
         _output = "";
         _attempts++;
         StateHasChanged();
@@ -143,9 +209,15 @@
 
             var actual = Normalize(_output);
             var expected = Normalize(Content.Expected);
-            _status = string.Equals(actual, expected, StringComparison.Ordinal)
-                ? Status.Pass
-                : Status.Fail;
+            if (string.Equals(actual, expected, StringComparison.Ordinal))
+            {
+                _status = Status.Pass;
+            }
+            else
+            {
+                _status = Status.Fail;
+                _diff = InlineDiffBuilder.Diff(expected, actual);
+            }
         }
         catch (Exception ex)
         {
@@ -155,16 +227,53 @@
         finally
         {
             _running = false;
+            await PersistAsync();
             StateHasChanged();
+        }
+    }
+
+    private async Task ResetTemplate()
+    {
+        _userTemplate = Content.StarterTemplate;
+        _status = Status.Idle;
+        _output = "";
+        _errors = null;
+        _diff = null;
+        _revealSolution = false;
+        // Reset clears the editor but keeps the persisted record so the sidebar
+        // indicator doesn't suddenly forget you ever touched the exercise.
+        await PersistAsync();
+    }
+
+    private void ToggleSolution() => _revealSolution = !_revealSolution;
+
+    private async Task PersistAsync()
+    {
+        try
+        {
+            await Progress.SaveAsync(
+                new ExerciseProgress(
+                    ExerciseId,
+                    _status == Status.Pass,
+                    _userTemplate,
+                    _attempts,
+                    DateTimeOffset.UtcNow),
+                LessonId);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"ExerciseBlock: persist failed for {ExerciseId} — {ex.Message}");
         }
     }
 
     private static string Normalize(string s) => s.Replace("\r\n", "\n").TrimEnd('\n');
 
-    private static string StatusLabel(Status s) => s switch
+    private string StatusLabel(Status s) => s switch
     {
         Status.Pass => "Passed",
         Status.Fail => "Failed",
-        _ => "Not run",
+        _ => _restored ? "Not run this session" : "Not run",
     };
+
+    public void Dispose() { }
 }
