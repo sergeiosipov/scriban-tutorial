@@ -1,0 +1,60 @@
+@page "/lesson/{LessonId}"
+@inject ContentService Content
+
+<PageTitle>@(_lesson?.Entry.Title ?? "Lesson") · Scriban Tutorial</PageTitle>
+
+@if (_error is not null)
+{
+    <article class="lesson lesson--error">
+        <h1>Lesson not found</h1>
+        <p>@_error</p>
+        <a href="">Back to the course index</a>
+    </article>
+}
+else if (_lesson is null)
+{
+    <div class="lesson__loading">Loading lesson…</div>
+}
+else
+{
+    <article class="lesson">
+        <header class="lesson__header">
+            <div class="lesson__eyebrow">Lesson</div>
+            <h1>@_lesson.Entry.Title</h1>
+        </header>
+        <TheoryBlock Html="@_lesson.TheoryHtml" />
+        @foreach (var ex in _lesson.Entry.Exercises)
+        {
+            <ExerciseBlock LessonId="@LessonId"
+                           ExerciseId="@ex.Id"
+                           Content="@_lesson.Exercises[ex.Id]" />
+        }
+    </article>
+}
+
+@code {
+    [Parameter] public string LessonId { get; set; } = "";
+
+    private LessonContent? _lesson;
+    private string? _error;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _lesson = null;
+        _error = null;
+        StateHasChanged();
+        try
+        {
+            _lesson = await Content.LoadLessonAsync(LessonId);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _error = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"LessonPage: failed to load lesson {LessonId} — {ex.Message}");
+            _error = $"Could not load the lesson content. ({ex.Message})";
+        }
+    }
+}

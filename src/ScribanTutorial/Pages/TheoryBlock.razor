@@ -1,0 +1,12 @@
+@* Renders pre-built HTML. Stage 6 starts shipping pre-highlighted code spans. *@
+
+<section class="theory">
+    <div class="theory__badge">Theory</div>
+    <div class="theory__body">
+        @((MarkupString)Html)
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public string Html { get; set; } = "";
+}

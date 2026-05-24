@@ -1,0 +1,170 @@
+@using System.Text.Json
+@using Scriban
+@using Scriban.Runtime
+@inject JsonSerializerOptions JsonOpts
+
+<section class="exercise" id="@($"exercise-{ExerciseId}")">
+    <header class="exercise__header">
+        <h2 class="exercise__title">@ExerciseId</h2>
+        <span class="exercise__badge exercise__badge--@_status.ToString().ToLowerInvariant()">
+            @StatusLabel(_status)
+        </span>
+    </header>
+
+    <div class="exercise__description">
+        @((MarkupString)Content.DescriptionHtml)
+    </div>
+
+    <div class="exercise__panels">
+        <div class="exercise__panel">
+            <div class="exercise__panel-label">Data model</div>
+            <pre class="exercise__pre"><code>@_dataModelPretty</code></pre>
+        </div>
+        <div class="exercise__panel">
+            <div class="exercise__panel-label">Expected output</div>
+            @if (_revealExpected)
+            {
+                <pre class="exercise__pre"><code>@Content.Expected</code></pre>
+                <button class="exercise__link" @onclick="() => _revealExpected = false">Hide</button>
+            }
+            else
+            {
+                <button class="exercise__link" @onclick="() => _revealExpected = true">Reveal</button>
+            }
+        </div>
+    </div>
+
+    <label class="exercise__editor-label" for="@_editorId">Your template</label>
+    <textarea id="@_editorId"
+              class="exercise__editor"
+              spellcheck="false"
+              rows="6"
+              @bind="_userTemplate"
+              @bind:event="oninput"></textarea>
+
+    <div class="exercise__actions">
+        <button class="exercise__btn exercise__btn--primary" @onclick="RunTemplate" disabled="@_running">
+            @(_running ? "Running…" : "Submit code")
+        </button>
+    </div>
+
+    @if (_status == Status.Pass)
+    {
+        <div class="exercise__result exercise__result--pass">
+            <div class="exercise__result-label">Output</div>
+            <pre class="exercise__pre"><code>@_output</code></pre>
+        </div>
+    }
+    else if (_status == Status.Fail)
+    {
+        <div class="exercise__result exercise__result--fail">
+            <div class="exercise__result-label">Output</div>
+            <pre class="exercise__pre"><code>@_output</code></pre>
+            @if (!string.IsNullOrEmpty(_errors))
+            {
+                <div class="exercise__errors">
+                    <div class="exercise__result-label">Parse / runtime errors</div>
+                    <pre class="exercise__pre exercise__pre--err"><code>@_errors</code></pre>
+                </div>
+            }
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public string LessonId { get; set; } = "";
+    [Parameter, EditorRequired] public string ExerciseId { get; set; } = "";
+    [Parameter, EditorRequired] public ExerciseContent Content { get; set; } = default!;
+
+    enum Status { Idle, Pass, Fail }
+
+    private string _editorId = "";
+    private string _userTemplate = "";
+    private string _dataModelPretty = "";
+    private string _output = "";
+    private string? _errors;
+    private Status _status = Status.Idle;
+    private bool _running;
+    private bool _revealExpected;
+    private int _attempts;
+
+    protected override void OnInitialized()
+    {
+        _editorId = $"editor-{LessonId}-{ExerciseId}";
+        _userTemplate = Content.StarterTemplate;
+        _dataModelPretty = PrettyJson(Content.DataModelJson);
+    }
+
+    private string PrettyJson(string raw)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(raw);
+            return JsonSerializer.Serialize(doc.RootElement, JsonOpts);
+        }
+        catch
+        {
+            return raw;
+        }
+    }
+
+    private async Task RunTemplate()
+    {
+        _running = true;
+        _status = Status.Idle;
+        _errors = null;
+        _output = "";
+        _attempts++;
+        StateHasChanged();
+
+        try
+        {
+            var template = Template.Parse(_userTemplate);
+            if (template.HasErrors)
+            {
+                _errors = string.Join("\n", template.Messages.Select(m => m.ToString()));
+                _status = Status.Fail;
+                return;
+            }
+
+            using var doc = JsonDocument.Parse(Content.DataModelJson);
+            var scriptObject = new ScriptObject();
+            JsonToScriban.Import(doc.RootElement, scriptObject);
+
+            var context = new TemplateContext
+            {
+                MemberRenamer = member => member.Name,
+                LoopLimit = 100_000,
+                RecursiveLimit = 100,
+            };
+            context.PushGlobal(scriptObject);
+
+            _output = await template.RenderAsync(context);
+
+            var actual = Normalize(_output);
+            var expected = Normalize(Content.Expected);
+            _status = string.Equals(actual, expected, StringComparison.Ordinal)
+                ? Status.Pass
+                : Status.Fail;
+        }
+        catch (Exception ex)
+        {
+            _errors = ex.Message;
+            _status = Status.Fail;
+        }
+        finally
+        {
+            _running = false;
+            StateHasChanged();
+        }
+    }
+
+    private static string Normalize(string s) => s.Replace("\r\n", "\n").TrimEnd('\n');
+
+    private static string StatusLabel(Status s) => s switch
+    {
+        Status.Pass => "Passed",
+        Status.Fail => "Failed",
+        _ => "Not run",
+    };
+}

@@ -1,0 +1,24 @@
+.lesson {
+    max-width: 900px;
+}
+
+.lesson__loading {
+    color: var(--muted, #6b7280);
+    padding: 1rem 0;
+}
+
+.lesson__header {
+    margin-bottom: 1.5rem;
+}
+
+.lesson__eyebrow {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted, #6b7280);
+    margin-bottom: 0.25rem;
+}
+
+.lesson--error h1 {
+    color: var(--fail, #dc2626);
+}

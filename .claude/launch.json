@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "scriban-tutorial",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/ScribanTutorial", "--no-build", "--urls", "http://localhost:5204"],
+      "port": 5204
+    }
+  ]
+}
