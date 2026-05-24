@@ -1,0 +1,108 @@
+:root {
+    --fg: #1a1a1a;
+    --bg: #ffffff;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --border: #e5e7eb;
+    --sidebar-bg: #f6f7f9;
+    --sidebar-border: #e2e5ea;
+    --code-bg: #f3f4f6;
+    --code-border: #e5e7eb;
+    --pass: #16a34a;
+    --fail: #dc2626;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    line-height: 1.5;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+}
+
+code, pre, .mono {
+    font-family: 'Cascadia Code', 'Cascadia Mono', Consolas, 'Courier New', monospace;
+    font-size: 0.92em;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+h1, h2, h3 { line-height: 1.25; margin: 0 0 0.6em 0; }
+h1 { font-size: 1.85rem; font-weight: 600; }
+h2 { font-size: 1.35rem; font-weight: 600; }
+h3 { font-size: 1.1rem; font-weight: 600; }
+
+h1:focus { outline: none; }
+
+/* Loading shell (skeleton placeholders shown before Blazor takes over #app) */
+.boot-shell {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+}
+
+.boot-shell__nav {
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--sidebar-border);
+    padding: 1.25rem 1rem;
+}
+
+.boot-shell__main {
+    padding: 2rem 2.5rem;
+}
+
+.boot-shell__brand-skel,
+.boot-shell__nav-skel,
+.boot-shell__title-skel,
+.boot-shell__body-skel {
+    background: linear-gradient(90deg, #e5e7eb 0%, #f1f3f5 50%, #e5e7eb 100%);
+    background-size: 200% 100%;
+    border-radius: 6px;
+    animation: boot-shimmer 1.6s ease-in-out infinite;
+}
+
+.boot-shell__brand-skel { height: 28px; width: 70%; margin-bottom: 1.25rem; }
+.boot-shell__nav-skel   { height: 36px; width: 100%; margin-bottom: 0.6rem; }
+.boot-shell__title-skel { height: 36px; width: 50%; margin-bottom: 1.5rem; }
+.boot-shell__body-skel  { height: 14px; width: 95%; margin-bottom: 0.6rem; }
+.boot-shell__body-skel:last-child { width: 80%; }
+
+@keyframes boot-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Blazor error UI */
+#blazor-error-ui {
+    color-scheme: light only;
+    background: #fff3cd;
+    border-top: 1px solid #ffe69c;
+    bottom: 0;
+    box-sizing: border-box;
+    display: none;
+    left: 0;
+    padding: 0.75rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
+
+.blazor-error-boundary {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+}
+.blazor-error-boundary::after { content: "An error has occurred."; }

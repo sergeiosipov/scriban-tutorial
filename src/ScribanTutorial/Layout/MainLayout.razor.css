@@ -1,0 +1,26 @@
+.page {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+}
+
+.page__sidebar {
+    background: var(--sidebar-bg, #f6f7f9);
+    border-right: 1px solid var(--sidebar-border, #e2e5ea);
+    overflow-y: auto;
+}
+
+.page__main {
+    padding: 2rem 2.5rem;
+    overflow-x: hidden;
+}
+
+@media (max-width: 720px) {
+    .page {
+        grid-template-columns: 1fr;
+    }
+    .page__sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--sidebar-border, #e2e5ea);
+    }
+}
