@@ -1,9 +1,10 @@
 @inject ContentService Content
 @inject ProgressService Progress
 @inject ThemeService Theme
+@inject IJSRuntime JS
 @implements IDisposable
 
-<nav class="nav-menu">
+<nav class="nav-menu" aria-label="Course navigation">
     <div class="nav-menu__brand">
         <div class="nav-menu__title-row">
             <div>
@@ -24,7 +25,7 @@
         <ul class="nav-menu__list">
             <li class="nav-menu__item">
                 <NavLink class="nav-menu__link" href="" Match="NavLinkMatch.All">
-                    <span class="nav-menu__num">·</span>
+                    <span class="nav-menu__num" aria-hidden="true">·</span>
                     <span class="nav-menu__label">Course home</span>
                 </NavLink>
             </li>
@@ -32,15 +33,26 @@
             {
                 var state = GetLessonState(lesson);
                 <li class="nav-menu__item">
-                    <NavLink class="nav-menu__link" href="@($"lesson/{lesson.Id}")">
-                        <span class="nav-menu__num">@index.ToString("D2")</span>
+                    <NavLink class="nav-menu__link"
+                             href="@($"lesson/{lesson.Id}")"
+                             aria-label="@($"Lesson {index}: {lesson.Title} ({StateTitle(state)})")">
+                        <span class="nav-menu__num" aria-hidden="true">@index.ToString("D2")</span>
                         <span class="nav-menu__label">@lesson.Title</span>
                         <span class="nav-menu__progress nav-menu__progress--@state.ToString().ToLowerInvariant()"
+                              aria-hidden="true"
                               title="@StateTitle(state)">@StateGlyph(state)</span>
                     </NavLink>
                 </li>
             }
         </ul>
+        <div class="nav-menu__footer">
+            <button type="button"
+                    class="nav-menu__reset"
+                    title="Erase all saved progress for every lesson"
+                    @onclick="ResetAllProgress">
+                Reset all progress
+            </button>
+        </div>
     }
 </nav>
 
@@ -90,6 +102,35 @@
     }
 
     private async Task ToggleTheme() => await Theme.ToggleAsync();
+
+    private async Task ResetAllProgress()
+    {
+        bool confirmed;
+        try
+        {
+            confirmed = await JS.InvokeAsync<bool>(
+                "confirm",
+                "Erase saved code and pass/fail state for every exercise? This cannot be undone.");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"NavMenu: confirm prompt failed — {ex.GetType().Name}");
+            return;
+        }
+        if (!confirmed) return;
+        try
+        {
+            await Progress.ResetAllAsync();
+            // ResetAllAsync raises Changed; OnProgressChanged refreshes the indicators.
+            // We also reload the current page so any open ExerciseBlock re-reads its
+            // restored state. Simpler than threading a "reset" signal through.
+            await JS.InvokeVoidAsync("location.reload");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"NavMenu: reset-all failed — {ex.GetType().Name}");
+        }
+    }
 
     private LessonState GetLessonState(LessonEntry lesson)
     {

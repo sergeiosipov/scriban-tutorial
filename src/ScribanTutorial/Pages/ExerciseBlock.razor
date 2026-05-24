@@ -6,13 +6,20 @@
 @inject JsonSerializerOptions JsonOpts
 @inject ProgressService Progress
 @inject ThemeService Theme
+@inject TemplateCache Templates
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
-<section class="exercise" id="@($"exercise-{ExerciseId}")">
+<section class="exercise"
+         id="@($"exercise-{ExerciseId}")"
+         aria-labelledby="@($"exercise-title-{ExerciseId}")"
+         aria-busy="@(_running ? "true" : "false")">
     <header class="exercise__header">
-        <h2 class="exercise__title">@ExerciseId</h2>
-        <span class="exercise__badge exercise__badge--@_status.ToString().ToLowerInvariant()">
+        <h2 class="exercise__title" id="@($"exercise-title-{ExerciseId}")">@ExerciseId</h2>
+        <span class="exercise__badge exercise__badge--@_status.ToString().ToLowerInvariant()"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true">
             @StatusLabel(_status)
         </span>
     </header>
@@ -40,14 +47,19 @@
         </div>
     </div>
 
-    <label class="exercise__editor-label" for="@_editorId">
+    <label class="exercise__editor-label" for="@_editorId" id="@($"editor-label-{ExerciseId}")">
         Your template
         @if (_attempts > 0)
         {
             <span class="exercise__attempts">· @_attempts attempt@(_attempts == 1 ? "" : "s")</span>
         }
     </label>
-    <div id="@_editorId" class="exercise__editor exercise__editor--cm"></div>
+    <div id="@_editorId"
+         class="exercise__editor exercise__editor--cm"
+         role="textbox"
+         aria-multiline="true"
+         aria-labelledby="@($"editor-label-{ExerciseId}")"
+         aria-label="@($"Scriban template editor for {ExerciseId}")"></div>
 
     <div class="exercise__actions">
         <button class="exercise__btn exercise__btn--primary" @onclick="RunTemplate" disabled="@_running">
@@ -144,6 +156,16 @@
         _userTemplate = Content.StarterTemplate;
         _dataModelPretty = PrettyJson(Content.DataModelJson);
         Theme.Changed += OnThemeChanged;
+
+        // Pre-parse the canonical solution in the background. Scriban parse can take
+        // a few hundred ms on WASM for non-trivial templates; doing it lazily here
+        // means a later "verify the solution still works" path (or a side-by-side
+        // run) is instant. Fire-and-forget; we don't await.
+        _ = Task.Run(() =>
+        {
+            try { Templates.GetOrParse($"solution:{LessonId}:{ExerciseId}", Content.Solution); }
+            catch { /* malformed solution would surface via --verify in CI */ }
+        });
 
         try
         {

@@ -107,3 +107,28 @@
 .nav-menu__link.active .nav-menu__progress--inprogress {
     color: rgba(255, 255, 255, 0.95);
 }
+
+.nav-menu__footer {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--sidebar-border, #e2e5ea);
+}
+
+.nav-menu__reset {
+    background: transparent;
+    border: 0;
+    padding: 0.35rem 0.6rem;
+    color: var(--muted, #6b7280);
+    font: inherit;
+    font-size: 0.78rem;
+    cursor: pointer;
+    border-radius: 4px;
+}
+.nav-menu__reset:hover {
+    color: var(--fail, #dc2626);
+    background: color-mix(in srgb, var(--fail) 8%, transparent);
+}
+.nav-menu__reset:focus-visible {
+    outline: 2px solid var(--accent, #2563eb);
+    outline-offset: 1px;
+}
