@@ -1,0 +1,1 @@
+{{ name }} — {{ if ??? }}in stock ({{ stock }}){{ else }}out of stock{{ end }}

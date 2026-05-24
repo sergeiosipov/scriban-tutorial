@@ -1,0 +1,7 @@
+Invoice for {{ customer }}
+------------------------
+{{- for line in lines }}
+{{ line.description }} (x{{ line.qty }}): ${{ line.subtotal }}
+{{- end }}
+------------------------
+Total: ${{ total }}

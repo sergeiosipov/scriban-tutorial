@@ -1,0 +1,8 @@
+{
+  "customer": "Ada Lovelace",
+  "lines": [
+    { "description": "widget", "qty": 2, "subtotal": 20 },
+    { "description": "gadget", "qty": 1, "subtotal": 25 }
+  ],
+  "total": 45
+}

@@ -11,15 +11,10 @@ on). Anything outside the tags is copied to the output literally.
 > (`Template.ParseLiquid`) and not how this course uses Scriban. Everywhere in
 > these lessons, the only delimiter you'll see is `{{ ... }}`.
 
-To strip whitespace around a tag, add a dash on the side you want trimmed:
-`{{- expr -}}` removes whitespace and the surrounding newlines on both sides.
-You'll meet whitespace control again when we get to loops, where it matters most.
-
 ## Variables
 
-Inside a template, you reference values from the **data model** by name. The data
-model is the JSON object the host application hands to the template engine. If
-the JSON looks like this:
+Inside a tag, you reference values from the **data model** by name. The data
+model is the JSON object the host hands to the engine. If the JSON is:
 
 ```json
 { "name": "Ada" }
@@ -50,10 +45,17 @@ Ada Lovelace
 Member access on a missing intermediate (e.g. `user.middle_name`) also yields
 the empty string — no exception, just nothing.
 
-## Identifiers
+## Whitespace control
 
-Identifiers are case-sensitive. Stick to snake_case in your JSON keys and reach
-for them the same way in your templates. That keeps lesson examples portable
-across hosts that may rename .NET property names.
+A bare `{{ tag }}` keeps the whitespace around it. Add a dash on either side to
+trim it: `{{- expr -}}` removes whitespace and one surrounding newline on the
+indicated side. We'll lean on this when we get to loops in lesson 03.
 
-Open the **Hello** exercise below to try it.
+## Identifiers and casing
+
+Identifiers are case-sensitive. Stick to `snake_case` in your JSON keys and
+reach for them the same way in your templates — that's the convention Scriban
+uses by default and the safest pattern across hosts that may rename .NET
+property names.
+
+Open the **Hello** and **Member access** exercises below to try it.
