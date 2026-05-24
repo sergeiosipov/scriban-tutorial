@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width" />
   <title>Scriban Interactive Training</title>
   <base href="/" />
+  <script>
+    // Apply the persisted theme synchronously, before any CSS or component renders,
+    // so the boot shell already shows the right colour scheme.
+    (function() {
+      try {
+        var t = localStorage.getItem('scriban-tutorial:theme');
+        if (t !== 'light' && t !== 'dark') {
+          t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) { /* localStorage unavailable — stick with default light */ }
+    })();
+  </script>
   <link rel="stylesheet" href="css/app.css" />
   <link rel="stylesheet" href="ScribanTutorial.styles.css" />
   <script type="importmap">

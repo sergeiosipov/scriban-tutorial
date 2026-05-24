@@ -1,11 +1,23 @@
 @inject ContentService Content
 @inject ProgressService Progress
+@inject ThemeService Theme
 @implements IDisposable
 
 <nav class="nav-menu">
     <div class="nav-menu__brand">
-        <div class="nav-menu__title">@(_manifest?.CourseTitle ?? "Scriban Tutorial")</div>
-        <div class="nav-menu__subtitle">@(_manifest?.CourseSubtitle ?? "Loading…")</div>
+        <div class="nav-menu__title-row">
+            <div>
+                <div class="nav-menu__title">@(_manifest?.CourseTitle ?? "Scriban Tutorial")</div>
+                <div class="nav-menu__subtitle">@(_manifest?.CourseSubtitle ?? "Loading…")</div>
+            </div>
+            <button class="nav-menu__theme"
+                    type="button"
+                    title="@(Theme.IsDark ? "Switch to light theme" : "Switch to dark theme")"
+                    aria-label="Toggle theme"
+                    @onclick="ToggleTheme">
+                @(Theme.IsDark ? "☼" : "☾")
+            </button>
+        </div>
     </div>
     @if (_manifest is not null)
     {
@@ -41,14 +53,16 @@
     protected override async Task OnInitializedAsync()
     {
         Progress.Changed += OnProgressChanged;
+        Theme.Changed += OnThemeChanged;
         try
         {
+            await Theme.InitializeAsync();
             _manifest = await Content.InitializeAsync();
             await RefreshProgress();
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"NavMenu: failed to load manifest — {ex.Message}");
+            Console.Error.WriteLine($"NavMenu: init failed — {ex.Message}");
         }
     }
 
@@ -69,6 +83,13 @@
             StateHasChanged();
         });
     }
+
+    private void OnThemeChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ToggleTheme() => await Theme.ToggleAsync();
 
     private LessonState GetLessonState(LessonEntry lesson)
     {
@@ -97,5 +118,6 @@
     public void Dispose()
     {
         Progress.Changed -= OnProgressChanged;
+        Theme.Changed -= OnThemeChanged;
     }
 }

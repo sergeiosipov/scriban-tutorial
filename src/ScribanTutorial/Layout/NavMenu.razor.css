@@ -8,6 +8,33 @@
     margin-bottom: 0.75rem;
 }
 
+.nav-menu__title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.nav-menu__theme {
+    background: transparent;
+    border: 1px solid var(--border, #e5e7eb);
+    color: var(--fg, #1a1a1a);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.nav-menu__theme:hover {
+    border-color: var(--accent, #2563eb);
+    color: var(--accent, #2563eb);
+}
+
 .nav-menu__title {
     font-size: 1.05rem;
     font-weight: 600;

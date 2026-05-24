@@ -5,6 +5,7 @@
 @using DiffPlex.DiffBuilder.Model
 @inject JsonSerializerOptions JsonOpts
 @inject ProgressService Progress
+@inject ThemeService Theme
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
@@ -142,6 +143,7 @@
         _editorId = $"editor-{LessonId}-{ExerciseId}";
         _userTemplate = Content.StarterTemplate;
         _dataModelPretty = PrettyJson(Content.DataModelJson);
+        Theme.Changed += OnThemeChanged;
 
         try
         {
@@ -167,13 +169,31 @@
         {
             _editorModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/editor.js");
             _dotnetRef = DotNetObjectReference.Create(this);
-            await _editorModule.InvokeVoidAsync("mount", _editorId, _userTemplate, _dotnetRef, /* isDark */ false);
+            await _editorModule.InvokeVoidAsync("mount", _editorId, _userTemplate, _dotnetRef, Theme.IsDark);
             _editorMounted = true;
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine($"ExerciseBlock: editor mount failed for {ExerciseId} — {ex.Message}");
         }
+    }
+
+    private void OnThemeChanged()
+    {
+        _ = InvokeAsync(async () =>
+        {
+            if (!_editorMounted || _editorModule is null) return;
+            try
+            {
+                // Re-mount with the matching highlight style. mount() destroys an
+                // existing view at the same elementId before creating a new one.
+                await _editorModule.InvokeVoidAsync("mount", _editorId, _userTemplate, _dotnetRef, Theme.IsDark);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"ExerciseBlock: theme re-mount failed — {ex.Message}");
+            }
+        });
     }
 
     [JSInvokable]
@@ -303,6 +323,7 @@
 
     public async ValueTask DisposeAsync()
     {
+        Theme.Changed -= OnThemeChanged;
         if (_editorMounted && _editorModule is not null)
         {
             try { await _editorModule.InvokeVoidAsync("destroy", _editorId); }
