@@ -33,15 +33,22 @@ the data model when output is unexpectedly blank.
 
 ## Member access
 
-Nested values use the dot operator. With this data:
+Nested values use the dot operator. Try it side-by-side:
 
+:::example
+```scriban
+{{ user.first_name }} {{ user.last_name }}
+```
 ```json
 { "user": { "first_name": "Ada", "last_name": "Lovelace" } }
 ```
+```text
+Ada Lovelace
+```
+:::
 
-…you can write `{{ user.first_name }} {{ user.last_name }}` to render the full
-name. Member access on a missing intermediate (e.g. `user.middle_name`) also
-yields the empty string — no exception, just nothing.
+Member access on a missing intermediate (e.g. `user.middle_name`) also yields
+the empty string — no exception, just nothing.
 
 ## Identifiers
 

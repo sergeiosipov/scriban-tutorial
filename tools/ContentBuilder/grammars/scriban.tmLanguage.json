@@ -1,0 +1,117 @@
+{
+  "name": "Scriban",
+  "scopeName": "source.scriban",
+  "fileTypes": ["scriban", "sbn"],
+  "patterns": [
+    { "include": "#raw-escape" },
+    { "include": "#statement" },
+    { "include": "#expression" }
+  ],
+  "repository": {
+    "raw-escape": {
+      "name": "string.raw.scriban",
+      "begin": "\\{%\\{",
+      "end": "\\}%\\}",
+      "beginCaptures": { "0": { "name": "punctuation.section.embedded.begin.scriban" } },
+      "endCaptures":   { "0": { "name": "punctuation.section.embedded.end.scriban" } }
+    },
+    "expression": {
+      "name": "meta.embedded.expression.scriban",
+      "begin": "\\{\\{-?",
+      "end": "-?\\}\\}",
+      "beginCaptures": { "0": { "name": "punctuation.section.embedded.begin.scriban" } },
+      "endCaptures":   { "0": { "name": "punctuation.section.embedded.end.scriban" } },
+      "patterns": [{ "include": "#code" }]
+    },
+    "statement": {
+      "name": "meta.embedded.statement.scriban",
+      "begin": "\\{%-?",
+      "end": "-?%\\}",
+      "beginCaptures": { "0": { "name": "punctuation.section.embedded.begin.scriban" } },
+      "endCaptures":   { "0": { "name": "punctuation.section.embedded.end.scriban" } },
+      "patterns": [{ "include": "#code" }]
+    },
+    "code": {
+      "patterns": [
+        { "include": "#comments" },
+        { "include": "#strings" },
+        { "include": "#numbers" },
+        { "include": "#keywords" },
+        { "include": "#atoms" },
+        { "include": "#operators" },
+        { "include": "#builtin-modules" },
+        { "include": "#function-call" },
+        { "include": "#member-access" },
+        { "include": "#identifier" },
+        { "include": "#punctuation" }
+      ]
+    },
+    "comments": {
+      "name": "comment.line.number-sign.scriban",
+      "match": "#.*$"
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.scriban",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            { "name": "constant.character.escape.scriban", "match": "\\\\." }
+          ]
+        },
+        {
+          "name": "string.quoted.single.scriban",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            { "name": "constant.character.escape.scriban", "match": "\\\\." }
+          ]
+        },
+        {
+          "name": "string.quoted.other.verbatim.scriban",
+          "match": "`[^`]*`"
+        }
+      ]
+    },
+    "numbers": {
+      "name": "constant.numeric.scriban",
+      "match": "\\b\\d+(\\.\\d+)?([eE][+-]?\\d+)?\\b"
+    },
+    "keywords": {
+      "name": "keyword.control.scriban",
+      "match": "(?<![A-Za-z0-9_])(if|else|end|for|in|while|break|continue|func|ret|case|when|with|do|wrap|include|import|readonly|capture|tablerow|this)(?![A-Za-z0-9_])"
+    },
+    "atoms": {
+      "name": "constant.language.scriban",
+      "match": "(?<![A-Za-z0-9_])(true|false|null|empty)(?![A-Za-z0-9_])"
+    },
+    "operators": {
+      "name": "keyword.operator.scriban",
+      "match": "(\\?\\?|\\?\\.|==|!=|<=|>=|&&|\\|\\||\\.\\.|<|>|!|\\||\\+|-|\\*|/|%|\\^|=|\\?|:)"
+    },
+    "builtin-modules": {
+      "name": "support.class.scriban",
+      "match": "(?<![A-Za-z0-9_])(string|array|object|math|date|regex|html|fs|timespan|json)(?=\\.)"
+    },
+    "function-call": {
+      "name": "entity.name.function.scriban",
+      "match": "(?<=\\.)[A-Za-z_][A-Za-z_0-9]*(?=\\s*\\()"
+    },
+    "member-access": {
+      "match": "(\\.)([A-Za-z_][A-Za-z_0-9]*)",
+      "captures": {
+        "1": { "name": "punctuation.accessor.scriban" },
+        "2": { "name": "variable.other.member.scriban" }
+      }
+    },
+    "identifier": {
+      "name": "variable.other.scriban",
+      "match": "[A-Za-z_][A-Za-z_0-9]*"
+    },
+    "punctuation": {
+      "name": "punctuation.scriban",
+      "match": "[\\[\\](){},;]"
+    }
+  }
+}

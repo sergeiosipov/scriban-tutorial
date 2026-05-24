@@ -10,10 +10,23 @@
 
   <ItemGroup>
     <PackageReference Include="DiffPlex" Version="1.9.0" />
-    <PackageReference Include="Markdig" Version="1.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.8" PrivateAssets="all" />
     <PackageReference Include="Scriban" Version="7.2.0" />
   </ItemGroup>
+
+  <!-- ContentBuilder runs before the Blazor build computes static web assets so
+       newly-generated .html siblings of the .md files get picked up. The tool
+       itself does the mtime staleness check; this target invokes it
+       unconditionally. dotnet run builds ContentBuilder on demand the first time. -->
+  <Target Name="BuildContent" BeforeTargets="ResolveStaticWebAssetsInputs;BeforeBuild">
+    <PropertyGroup>
+      <_ContentBuilderProject>$(MSBuildThisFileDirectory)..\..\tools\ContentBuilder\ContentBuilder.csproj</_ContentBuilderProject>
+      <_ContentBuilderGrammar>$(MSBuildThisFileDirectory)..\..\tools\ContentBuilder\grammars\scriban.tmLanguage.json</_ContentBuilderGrammar>
+      <_ContentBuilderInput>$(MSBuildThisFileDirectory)wwwroot\lessons</_ContentBuilderInput>
+    </PropertyGroup>
+    <Exec Command="dotnet run --project &quot;$(_ContentBuilderProject)&quot; -- --input &quot;$(_ContentBuilderInput)&quot; --grammar &quot;$(_ContentBuilderGrammar)&quot; --theme light"
+          ConsoleToMsBuild="true" />
+  </Target>
 
 </Project>
