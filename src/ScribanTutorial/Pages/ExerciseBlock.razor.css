@@ -141,6 +141,30 @@
     border-color: transparent;
 }
 
+/* CodeMirror container — the editor mounts inside this div. */
+.exercise__editor--cm {
+    padding: 0;
+    background: var(--bg, #fff);
+    overflow: hidden;
+}
+.exercise__editor--cm ::deep .cm-editor {
+    font-size: 0.92rem;
+    border-radius: 6px;
+    min-height: 6.5rem;
+}
+.exercise__editor--cm ::deep .cm-editor.cm-focused {
+    outline: 2px solid var(--accent, #2563eb);
+    outline-offset: -1px;
+}
+.exercise__editor--cm ::deep .cm-scroller {
+    font-family: 'Cascadia Code', 'Cascadia Mono', Consolas, monospace;
+    line-height: 1.55;
+}
+.exercise__editor--cm ::deep .cm-gutters {
+    background: var(--code-bg, #f3f4f6);
+    border-right: 1px solid var(--code-border, #e5e7eb);
+}
+
 .exercise__actions {
     margin-top: 0.75rem;
     display: flex;

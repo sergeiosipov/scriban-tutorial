@@ -5,7 +5,8 @@
 @using DiffPlex.DiffBuilder.Model
 @inject JsonSerializerOptions JsonOpts
 @inject ProgressService Progress
-@implements IDisposable
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 
 <section class="exercise" id="@($"exercise-{ExerciseId}")">
     <header class="exercise__header">
@@ -45,12 +46,7 @@
             <span class="exercise__attempts">· @_attempts attempt@(_attempts == 1 ? "" : "s")</span>
         }
     </label>
-    <textarea id="@_editorId"
-              class="exercise__editor"
-              spellcheck="false"
-              rows="6"
-              @bind="_userTemplate"
-              @bind:event="oninput"></textarea>
+    <div id="@_editorId" class="exercise__editor exercise__editor--cm"></div>
 
     <div class="exercise__actions">
         <button class="exercise__btn exercise__btn--primary" @onclick="RunTemplate" disabled="@_running">
@@ -137,6 +133,10 @@
     private int _attempts;
     private bool _restored;
 
+    private IJSObjectReference? _editorModule;
+    private DotNetObjectReference<ExerciseBlock>? _dotnetRef;
+    private bool _editorMounted;
+
     protected override async Task OnInitializedAsync()
     {
         _editorId = $"editor-{LessonId}-{ExerciseId}";
@@ -158,6 +158,29 @@
         {
             Console.Error.WriteLine($"ExerciseBlock: progress restore failed for {ExerciseId} — {ex.Message}");
         }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _editorMounted) return;
+        try
+        {
+            _editorModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/editor.js");
+            _dotnetRef = DotNetObjectReference.Create(this);
+            await _editorModule.InvokeVoidAsync("mount", _editorId, _userTemplate, _dotnetRef, /* isDark */ false);
+            _editorMounted = true;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"ExerciseBlock: editor mount failed for {ExerciseId} — {ex.Message}");
+        }
+    }
+
+    [JSInvokable]
+    public Task OnEditorChange(string text)
+    {
+        _userTemplate = text;
+        return Task.CompletedTask;
     }
 
     private string PrettyJson(string raw)
@@ -240,8 +263,11 @@
         _errors = null;
         _diff = null;
         _revealSolution = false;
-        // Reset clears the editor but keeps the persisted record so the sidebar
-        // indicator doesn't suddenly forget you ever touched the exercise.
+        if (_editorMounted && _editorModule is not null)
+        {
+            try { await _editorModule.InvokeVoidAsync("setValue", _editorId, _userTemplate); }
+            catch (Exception ex) { Console.Error.WriteLine($"ExerciseBlock: editor setValue failed — {ex.Message}"); }
+        }
         await PersistAsync();
     }
 
@@ -275,5 +301,17 @@
         _ => _restored ? "Not run this session" : "Not run",
     };
 
-    public void Dispose() { }
+    public async ValueTask DisposeAsync()
+    {
+        if (_editorMounted && _editorModule is not null)
+        {
+            try { await _editorModule.InvokeVoidAsync("destroy", _editorId); }
+            catch { /* navigation race is fine */ }
+        }
+        if (_editorModule is not null)
+        {
+            try { await _editorModule.DisposeAsync(); } catch { /* best effort */ }
+        }
+        _dotnetRef?.Dispose();
+    }
 }
