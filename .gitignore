@@ -6,6 +6,7 @@ publish/
 *.suo
 .vs/
 .vscode/
+.claude/
 
 # Rider / Resharper
 .idea/

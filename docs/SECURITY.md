@@ -1,0 +1,110 @@
+# Security
+
+## Threat model
+
+This app **evaluates user-supplied Scriban templates in the user's own
+browser**. The "attacker" is the user; the victim is the same user's browser
+tab. Standard server-side template-injection threats don't apply — there's no
+server. But the local execution model has its own concerns.
+
+## 1. CPU / memory denial of service via malicious templates
+
+A user can deliberately or accidentally write a template that consumes
+unbounded resources:
+
+```scriban
+{{ for i in 1..999999999 }}{{ i }}{{ end }}
+```
+
+```scriban
+{{ func loop; loop; ret; end; loop }}
+```
+
+```scriban
+{{ "x" | string.append "x" | string.append "x" | ... }}   # produces 2^N bytes
+```
+
+**Mitigations baked into the runner** (see `Pages/ExerciseBlock.razor`):
+
+- `TemplateContext.LoopLimit = 100_000` — Scriban throws after this many
+  loop iterations.
+- `TemplateContext.RecursiveLimit = 100` — caps recursion depth.
+- Total render time is naturally capped by the browser tab's CPU budget. A
+  runaway template freezes only that tab; other tabs and the OS are fine.
+
+### Known upstream limitation
+
+Scriban's recursive-descent parser can throw `StackOverflowException` on
+deeply nested expressions (e.g. `((((((…))))))` thousands deep). On .NET, a
+`StackOverflowException` is **not catchable** — it tears down the WASM
+runtime. The user has to reload the tab. This is a Scriban limitation, not
+something we can mitigate. Acceptable because this is single-user
+local-browser execution.
+
+## 2. Cross-site scripting (XSS)
+
+The app puts two kinds of content into the DOM:
+
+- **Theory HTML** — rendered through `@((MarkupString)Html)`. Markdig output
+  is HTML; if a `.md` file contained `<script>`, it would execute. **Mitigation:**
+  every `.md` is author-controlled and committed to the repo. PRs are reviewed.
+  We are not rendering user input.
+- **JSON data-model display** — rendered as text inside `<pre><code>`. Blazor's
+  `@expression` HTML-escapes by default. Safe.
+- **The user's template** — never inserted into the DOM. Only fed to Scriban
+  and to the CodeMirror editor.
+
+The `JavaScriptEncoder.UnsafeRelaxedJsonEscaping` we use to pretty-print the
+data-model panel is safe **in this context**: the JSON becomes text inside a
+`<pre>` element, not embedded in `<script>` or HTML attributes. If a future
+change moves JSON into an HTML attribute or a `<script>` block, switch back to
+the default encoder.
+
+## 3. `localStorage` privacy
+
+User progress is stored under keys `scriban-tutorial:progress:*` and the theme
+under `scriban-tutorial:theme`. These are visible to any other JavaScript on
+the same origin. Acceptable because:
+
+- No PII, no credentials.
+- The app is the only thing served from this origin.
+- A user can clear progress with `localStorage.clear()` from DevTools, or via
+  the standard browser "clear site data" flow.
+
+## 4. Third-party JavaScript (CodeMirror)
+
+CodeMirror 6 and its transitive dependencies are vendored locally under
+`wwwroot/lib/codemirror/`, not loaded from a CDN. There's no supply-chain risk
+at runtime. Updates require a deliberate re-vendoring step — see the script
+block in the Stage 7 commit that introduced the directory, and the pinned
+versions in `wwwroot/lib/codemirror/VERSION.txt`.
+
+## 5. Dependency hygiene
+
+Run `dotnet list package --vulnerable` quarterly. Current pins:
+
+| Package | Version |
+|---|---|
+| Scriban | 7.2.0 |
+| Markdig | 1.2.0 (ContentBuilder only — no longer in the WASM bundle) |
+| DiffPlex | 1.9.0 |
+| TextMateSharp | 2.0.3 (ContentBuilder only) |
+| TextMateSharp.Grammars | 2.0.3 (ContentBuilder only) |
+
+## 6. If you ever deploy this as a multi-user service
+
+Don't, without these changes:
+
+- Render Scriban server-side or in a sandboxed worker with hard time and
+  memory limits enforced by the host (not by Scriban).
+- Cap input size at the gateway (e.g. 4 KB templates, 8 KB data models).
+- Rate-limit per IP.
+- Disable `EnableRelaxedTargetAccess`, `EnableRelaxedMemberAccess`,
+  `EnableRelaxedFunctionAccess`, `EnableRelaxedIndexerAccess` on
+  `TemplateContext`.
+- Be careful about which built-in modules you push into the context — `fs`
+  and `regex` in particular are attack surface if you ever evaluate untrusted
+  templates with broader context.
+
+The current configuration is appropriate **only** for the single-user
+local-browser execution model.

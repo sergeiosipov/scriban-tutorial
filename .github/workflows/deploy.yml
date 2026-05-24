@@ -1,0 +1,60 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install wasm-tools workload
+        run: dotnet workload install wasm-tools
+
+      - name: Publish
+        run: dotnet publish src/ScribanTutorial/ScribanTutorial.csproj -c Release -o publish
+
+      - name: Rewrite base href in index.html
+        uses: SteveSandersonMS/ghaction-rewrite-base-href@v1
+        with:
+          html_path: publish/wwwroot/index.html
+          base_href: /${{ github.event.repository.name }}/
+
+      - name: Rewrite base href in 404.html
+        uses: SteveSandersonMS/ghaction-rewrite-base-href@v1
+        with:
+          html_path: publish/wwwroot/404.html
+          base_href: /${{ github.event.repository.name }}/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: publish/wwwroot
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
