@@ -19,6 +19,13 @@ A client-side, zero-installation, browser-based interactive training course for 
 
 ## 0.5. Implementation stages
 
+> **Spec update (2026-05-24):** The .NET 10 SDK's `dotnet new sln` now produces a
+> **`.slnx`** file (modern XML solution format) by default, not the legacy `.sln`.
+> Everywhere this spec refers to `ScribanTutorial.sln` (§4 file tree, §0.7 publish
+> command, prose), substitute `ScribanTutorial.slnx`. `dotnet build`,
+> `dotnet sln add`, and `dotnet publish` accept either. The project uses
+> `ScribanTutorial.slnx`.
+
 **Project root and Git setup (do this before Stage 1):**
 
 This project is built **directly in the current working directory** (not a nested subfolder). The directory is already initialized as a Git working tree pointing at `https://github.com/sergeiosipov/scriban-tutorial.git` — verify with `git remote -v` before starting. If the remote is missing, add it:
@@ -58,6 +65,22 @@ Build the empty solution and project structure, no features yet.
 
 **Gate check:** `dotnet build` succeeds with zero warnings. `dotnet run` serves the placeholder at `http://localhost:xxxx`. Loading shell renders within 100 ms. Open it in Edge to confirm.
 
+> **Spec update (2026-05-24, Stage 2 ↔ Stage 3 manifest sync):** This spec wants
+> the Stage 2 manifest to list **all four lessons** *and* the full Stage-4 exercise
+> roster up front (§5 example), while `ContentService.LoadLessonAsync` (Stage 3)
+> fetches all exercise files for a lesson eagerly. If the manifest references
+> exercises that don't exist on disk yet, Stage 3's lesson page 404s on lesson 01
+> the moment any of its other exercises are unauthored.
+>
+> The build follows the spec exception: list only exercises that exist. Stage 3
+> ships `01-basics` with `[hello]`; the other lessons keep their entry with an
+> empty `exercises: []` plus a placeholder `01-theory.md`. The full manifest is
+> restored when Stage 4 (content authoring) runs.
+>
+> A future spec revision could either (a) make `FetchLessonAsync` tolerant of
+> missing exercise files, or (b) defer authoring the manifest entries until the
+> matching files land. Option (b) is what the current build does.
+
 ### Stage 2 — Manifest + ContentService + NavMenu (≈45 min)
 
 Wire up content discovery, no rendering of lesson content yet.
@@ -86,6 +109,25 @@ Get one lesson rendering without any highlighting or fancy markup.
 **Gate check:** Navigate to `/lesson/01-basics`. Theory renders. The `hello` exercise loads its starter. Typing `Hello, {{ name }}!` and submitting shows green. Typing nonsense shows red. URL routing works (back/forward buttons).
 
 ### Stage 4 — Full course content (≈1 hour)
+
+> **Spec update (2026-05-24, stage order):** Stage 4 is **deferred until after
+> Stage 8** in the current build, on user direction. Reasons:
+>
+> 1. Stage 6 ships `ContentBuilder --verify`. With that available, every
+>    `05-solution.txt` can be machine-checked against `03-expected.txt`
+>    before being committed — much higher confidence than hand-verification.
+> 2. Stage 7 ships the CodeMirror editor. Authoring exercises against the final
+>    UX (real syntax highlighting, real submission flow) catches papercuts that
+>    a plain textarea hides.
+> 3. The Stage 3 placeholder content (`01-basics/01-theory.md` plus the `hello`
+>    exercise) contains a **Liquid-vs-Scriban confusion**: it claims Scriban
+>    statement tags are `{% ... %}`, which is Liquid syntax. In Scriban,
+>    **both expressions and statement blocks use `{{ ... }}`** (e.g.,
+>    `{{ if x }}...{{ end }}`). The Stage 4-deferred pass will rewrite the
+>    theory against the authoritative reference at
+>    <https://scriban.github.io/docs/language/>.
+>
+> Effective stage order: **1 → 2 → 3 → 5 → 6 → 7 → 8 → 4 → 9 → 10**.
 
 Author the remaining seven exercises and three theory files. Pure content work, no code changes.
 
@@ -756,6 +798,14 @@ public sealed class TemplateCache
 ---
 
 ## 7. Program.cs
+
+> **Spec update (2026-05-24, DI scopes):** This snippet registers `HttpClient` as
+> **scoped** and `ContentService` as **singleton**. .NET 10's DI container has
+> strict scope validation on by default and refuses to construct a singleton that
+> consumes a scoped dependency (`ScopedInSingletonException`). Blazor WASM only
+> has a single scope per tab anyway, so the build registers `HttpClient` as
+> **singleton** instead. Replace `AddScoped(sp => new HttpClient { ... })` with
+> `AddSingleton(sp => new HttpClient { ... })`.
 
 ```csharp
 using System.Text.Encodings.Web;
