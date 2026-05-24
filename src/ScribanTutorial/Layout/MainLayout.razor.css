@@ -7,11 +7,12 @@
 .page__sidebar {
     background: var(--sidebar-bg, #f6f7f9);
     border-right: 1px solid var(--sidebar-border, #e2e5ea);
-    overflow-y: auto;
+    /* Always full viewport height, scrollable in itself if the lesson list
+       outgrows the screen. position:sticky pins it as the main pane scrolls. */
     position: sticky;
     top: 0;
-    align-self: start;
-    max-height: 100vh;
+    height: 100vh;
+    overflow-y: auto;
 }
 
 .page__main {
@@ -39,7 +40,9 @@
     }
     .page__sidebar {
         position: static;
+        height: auto;
         max-height: none;
+        overflow-y: visible;
         border-right: none;
         border-bottom: 1px solid var(--sidebar-border, #e2e5ea);
     }

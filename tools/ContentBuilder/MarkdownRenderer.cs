@@ -101,9 +101,14 @@ internal sealed class MarkdownRenderer
             }
 
             renderer.Write("<div class=\"example\">\n");
-            WritePanel(renderer, "Template", templateBlock, "in", "scriban");
+            // Order matches the visual layout: data spans the full top row,
+            // template and output sit side-by-side beneath it. When the data
+            // block is absent, template + output naturally take row 1 on their
+            // own. On narrow viewports the CSS collapses all three to a single
+            // column in this same DOM order.
             if (dataBlock is not null)
                 WritePanel(renderer, "Data", dataBlock, "data", "json");
+            WritePanel(renderer, "Template", templateBlock, "in", "scriban");
             WritePanel(renderer, "Output", outputBlock, "out", "text");
             renderer.Write("</div>\n");
         }

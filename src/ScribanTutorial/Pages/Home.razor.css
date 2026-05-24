@@ -1,10 +1,16 @@
 .home__header {
     margin-bottom: 2rem;
+    text-align: left;
+}
+
+.home__header h1 {
+    font-size: 2.1rem;
+    margin-bottom: 0.4rem;
 }
 
 .home__subtitle {
     color: var(--muted, #6b7280);
-    font-size: 1rem;
+    font-size: 1.05rem;
     margin: 0;
 }
 
@@ -14,22 +20,25 @@
     padding: 0;
     display: grid;
     grid-template-columns: 1fr;
-    gap: 0.6rem;
-    max-width: 640px;
+    gap: 0.75rem;
+    /* Fill the article column so the page doesn't look like it's lost in
+       white space at desktop widths. */
+    width: 100%;
 }
 
 .home__lesson { margin: 0; }
 
 .home__lesson-link {
     display: grid;
-    grid-template-columns: 110px 1fr auto;
-    gap: 1rem;
-    align-items: baseline;
-    padding: 0.85rem 1rem;
+    grid-template-columns: 130px 1fr auto;
+    gap: 1.25rem;
+    align-items: center;
+    padding: 1.1rem 1.4rem;
     border: 1px solid var(--border, #e5e7eb);
-    border-radius: 8px;
+    border-radius: 10px;
     color: var(--fg, #1a1a1a);
     text-decoration: none;
+    background: var(--bg, #fff);
     box-shadow: var(--shadow);
     transition: transform 80ms ease, box-shadow 80ms ease, border-color 80ms ease;
 }
@@ -38,26 +47,40 @@
     border-color: var(--accent, #2563eb);
     text-decoration: none;
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .home__lesson-num {
     font-size: 0.78rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.07em;
     color: var(--muted, #6b7280);
+    font-weight: 500;
 }
 
 .home__lesson-title {
-    font-size: 1.05rem;
+    font-size: 1.15rem;
     font-weight: 600;
 }
 
 .home__lesson-count {
-    font-size: 0.82rem;
+    font-size: 0.85rem;
     color: var(--muted, #6b7280);
+    white-space: nowrap;
 }
 
 .home__loading {
     color: var(--muted, #6b7280);
     padding: 1rem 0;
+}
+
+@media (max-width: 640px) {
+    .home__lesson-link {
+        grid-template-columns: 1fr;
+        gap: 0.3rem;
+        padding: 1rem 1.1rem;
+    }
+    .home__lesson-count {
+        font-size: 0.8rem;
+    }
 }

@@ -1,5 +1,8 @@
 .nav-menu {
     padding: 1.25rem 1rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
 }
 
 .nav-menu__brand {
@@ -52,11 +55,15 @@
     list-style: none;
     margin: 0;
     padding: 0;
+    flex: 1;
 }
 
 .nav-menu__item { margin: 0; }
 
-.nav-menu__link {
+/* The <a> rendered by <NavLink> is a Blazor component child — Blazor's CSS
+   isolation can't reach it from a plain class selector, so we go through
+   ::deep. Same applies to .active below. */
+.nav-menu__item ::deep .nav-menu__link {
     display: flex;
     align-items: center;
     gap: 0.6rem;
@@ -68,48 +75,54 @@
     line-height: 1.2;
 }
 
-.nav-menu__link:hover {
-    background: rgba(0, 0, 0, 0.04);
+.nav-menu__item ::deep .nav-menu__link:hover {
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    color: var(--fg, #1a1a1a);
     text-decoration: none;
 }
 
-.nav-menu__link.active {
+.nav-menu__item ::deep .nav-menu__link.active {
     background: var(--accent, #2563eb);
     color: #fff;
 }
 
-.nav-menu__num {
+.nav-menu__item ::deep .nav-menu__link.active:hover {
+    background: var(--accent-hover, #1d4ed8);
+    color: #fff;
+}
+
+.nav-menu__item ::deep .nav-menu__num {
     font-variant-numeric: tabular-nums;
     font-size: 0.78rem;
     color: var(--muted, #6b7280);
     min-width: 1.6rem;
 }
 
-.nav-menu__link.active .nav-menu__num {
-    color: rgba(255, 255, 255, 0.8);
+.nav-menu__item ::deep .nav-menu__link.active .nav-menu__num {
+    color: rgba(255, 255, 255, 0.85);
 }
 
-.nav-menu__label {
+.nav-menu__item ::deep .nav-menu__label {
     flex: 1;
 }
 
-.nav-menu__progress {
+.nav-menu__item ::deep .nav-menu__progress {
     font-size: 0.95rem;
     color: var(--muted, #6b7280);
     line-height: 1;
 }
 
-.nav-menu__progress--complete   { color: var(--pass, #16a34a); }
-.nav-menu__progress--inprogress { color: var(--accent, #2563eb); }
+.nav-menu__item ::deep .nav-menu__progress--complete   { color: var(--pass, #16a34a); }
+.nav-menu__item ::deep .nav-menu__progress--inprogress { color: var(--accent, #2563eb); }
 
-.nav-menu__link.active .nav-menu__progress,
-.nav-menu__link.active .nav-menu__progress--complete,
-.nav-menu__link.active .nav-menu__progress--inprogress {
+.nav-menu__item ::deep .nav-menu__link.active .nav-menu__progress,
+.nav-menu__item ::deep .nav-menu__link.active .nav-menu__progress--complete,
+.nav-menu__item ::deep .nav-menu__link.active .nav-menu__progress--inprogress {
     color: rgba(255, 255, 255, 0.95);
 }
 
 .nav-menu__footer {
-    margin-top: 1rem;
+    margin-top: auto;
     padding-top: 0.75rem;
     border-top: 1px solid var(--sidebar-border, #e2e5ea);
 }
