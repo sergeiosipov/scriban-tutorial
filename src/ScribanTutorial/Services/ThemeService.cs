@@ -2,10 +2,11 @@ using Microsoft.JSInterop;
 
 namespace ScribanTutorial.Services;
 
-public sealed class ThemeService
+public sealed class ThemeService : IAsyncDisposable
 {
-    private const string StorageKey = "scriban-tutorial:theme";
     private readonly IJSRuntime _js;
+    private IJSObjectReference? _module;
+    private readonly SemaphoreSlim _moduleGate = new(1, 1);
     private string _current = "light";
     private bool _initialized;
 
@@ -16,15 +17,31 @@ public sealed class ThemeService
     public string Current => _current;
     public bool IsDark => _current == "dark";
 
+    private async ValueTask<IJSObjectReference> ModuleAsync()
+    {
+        if (_module is not null) return _module;
+        await _moduleGate.WaitAsync();
+        try
+        {
+            _module ??= await _js.InvokeAsync<IJSObjectReference>("import", "./js/theme.js");
+            return _module;
+        }
+        finally
+        {
+            _moduleGate.Release();
+        }
+    }
+
     public async Task InitializeAsync()
     {
         if (_initialized) return;
         try
         {
-            // The boot-time inline script already set <html data-theme>. Read it back
-            // so the service state matches what the user sees.
-            var attr = await _js.InvokeAsync<string?>("eval",
-                "document.documentElement.getAttribute('data-theme')");
+            // The boot-time inline script in index.html already set <html data-theme>.
+            // Read it back through the theme.js module so the service state matches
+            // what the user already sees.
+            var module = await ModuleAsync();
+            var attr = await module.InvokeAsync<string?>("getCurrent");
             if (!string.IsNullOrEmpty(attr) && (attr == "light" || attr == "dark"))
                 _current = attr;
         }
@@ -48,14 +65,21 @@ public sealed class ThemeService
         _current = theme;
         try
         {
-            await _js.InvokeVoidAsync("eval",
-                $"document.documentElement.setAttribute('data-theme', '{theme}');" +
-                $" localStorage.setItem('{StorageKey}', '{theme}');");
+            var module = await ModuleAsync();
+            await module.InvokeVoidAsync("setCurrent", theme);
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine($"ThemeService: persist failed — {ex.Message}");
         }
         Changed?.Invoke();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is not null)
+        {
+            try { await _module.DisposeAsync(); } catch { /* best effort */ }
+        }
     }
 }

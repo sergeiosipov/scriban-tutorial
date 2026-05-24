@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Scriban;
 using Scriban.Runtime;
+using ScribanTutorial.Services;
 
 namespace ContentBuilder;
 
@@ -62,8 +63,8 @@ internal static class SolutionVerifier
             return 1;
         }
 
-        var actual = Normalize(output);
-        var want   = Normalize(expected);
+        var actual = ContentNormalize.Normalize(output);
+        var want   = ContentNormalize.Normalize(expected);
         if (string.Equals(actual, want, StringComparison.Ordinal))
         {
             Console.WriteLine($"--verify OK ({exerciseDir})");
@@ -78,8 +79,6 @@ internal static class SolutionVerifier
         Console.Error.WriteLine("----------------");
         return 1;
     }
-
-    private static string Normalize(string s) => s.Replace("\r\n", "\n").TrimEnd('\n');
 
     private static void ImportJson(JsonElement root, ScriptObject target)
     {

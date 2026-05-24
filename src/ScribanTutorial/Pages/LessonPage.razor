@@ -1,5 +1,6 @@
 @page "/lesson/{LessonId}"
 @inject ContentService Content
+@implements IDisposable
 
 <PageTitle>@(_lesson?.Entry.Title ?? "Lesson") · Scriban Tutorial</PageTitle>
 
@@ -13,7 +14,7 @@
 }
 else if (_lesson is null)
 {
-    <div class="lesson__loading">Loading lesson…</div>
+    <div class="lesson__loading" role="status" aria-live="polite">Loading lesson…</div>
 }
 else
 {
@@ -37,15 +38,26 @@ else
 
     private LessonContent? _lesson;
     private string? _error;
+    private CancellationTokenSource? _cts;
 
     protected override async Task OnParametersSetAsync()
     {
+        // Cancel any in-flight load if the user navigates between lessons quickly.
+        _cts?.Cancel();
+        _cts?.Dispose();
+        _cts = new CancellationTokenSource();
+        var ct = _cts.Token;
+
         _lesson = null;
         _error = null;
         StateHasChanged();
         try
         {
-            _lesson = await Content.LoadLessonAsync(LessonId);
+            _lesson = await Content.LoadLessonAsync(LessonId, ct);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            // User left this lesson; the next OnParametersSetAsync owns the UI now.
         }
         catch (KeyNotFoundException ex)
         {
@@ -53,8 +65,14 @@ else
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"LessonPage: failed to load lesson {LessonId} — {ex.Message}");
-            _error = $"Could not load the lesson content. ({ex.Message})";
+            Console.Error.WriteLine($"LessonPage: load failed for lesson '{LessonId}' ({ex.GetType().Name})");
+            _error = "Could not load the lesson content. Try reloading.";
         }
+    }
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
     }
 }

@@ -33,38 +33,45 @@ public sealed class ContentService
         }
     }
 
-    public async Task<LessonContent> LoadLessonAsync(string lessonId)
+    public async Task<LessonContent> LoadLessonAsync(string lessonId, CancellationToken ct = default)
     {
         await InitializeAsync();
-        await _gate.WaitAsync();
+
+        // Hold the gate just long enough to look up or stash the task, then let go.
+        // The actual fetch is awaited outside the gate so a request for lesson B
+        // doesn't queue behind lesson A's in-flight network round-trip.
+        Task<LessonContent> task;
+        await _gate.WaitAsync(ct);
         try
         {
-            if (_lessonTasks.TryGetValue(lessonId, out var existing)) return await existing;
-            var entry = Manifest!.Lessons.FirstOrDefault(l => l.Id == lessonId)
-                ?? throw new KeyNotFoundException($"lesson not found: {lessonId}");
-            var task = FetchLessonAsync(entry);
-            _lessonTasks[lessonId] = task;
-            return await task;
+            if (!_lessonTasks.TryGetValue(lessonId, out task!))
+            {
+                var entry = Manifest!.Lessons.FirstOrDefault(l => l.Id == lessonId)
+                    ?? throw new KeyNotFoundException($"lesson not found: {lessonId}");
+                task = FetchLessonAsync(entry, ct);
+                _lessonTasks[lessonId] = task;
+            }
         }
         finally
         {
             _gate.Release();
         }
+        return await task.WaitAsync(ct);
     }
 
-    private async Task<LessonContent> FetchLessonAsync(LessonEntry entry)
+    private async Task<LessonContent> FetchLessonAsync(LessonEntry entry, CancellationToken ct)
     {
-        var theoryHtml = await _http.GetStringAsync($"{entry.TheoryPath}.html");
+        var theoryHtml = await _http.GetStringAsync($"{entry.TheoryPath}.html", ct);
 
         var exercisePairs = await Task.WhenAll(entry.Exercises.Select(async ex =>
         {
             var basePath = ex.Path;
             var parts = await Task.WhenAll(
-                _http.GetStringAsync($"{basePath}/01-description.html"),
-                _http.GetStringAsync($"{basePath}/02-datamodel.json"),
-                _http.GetStringAsync($"{basePath}/03-expected.txt"),
-                _http.GetStringAsync($"{basePath}/04-template.txt"),
-                _http.GetStringAsync($"{basePath}/05-solution.txt"));
+                _http.GetStringAsync($"{basePath}/01-description.html", ct),
+                _http.GetStringAsync($"{basePath}/02-datamodel.json", ct),
+                _http.GetStringAsync($"{basePath}/03-expected.txt", ct),
+                _http.GetStringAsync($"{basePath}/04-template.txt", ct),
+                _http.GetStringAsync($"{basePath}/05-solution.txt", ct));
 
             return (ex.Id, content: new ExerciseContent(
                 DescriptionHtml: parts[0],

@@ -1,11 +1,30 @@
 <Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        <ErrorBoundary>
+            <ChildContent>
+                <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+                <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+            </ChildContent>
+            <ErrorContent Context="ex">
+                <LayoutView Layout="@typeof(MainLayout)">
+                    <article class="lesson lesson--error">
+                        <h1>Something broke on this page</h1>
+                        <p>The lesson view failed to render. The sidebar still works — pick another lesson, or reload the page to recover.</p>
+                        <details>
+                            <summary>Technical detail</summary>
+                            <pre><code>@ex.GetType().Name: @ex.Message</code></pre>
+                        </details>
+                    </article>
+                </LayoutView>
+            </ErrorContent>
+        </ErrorBoundary>
     </Found>
     <NotFound>
         <LayoutView Layout="@typeof(MainLayout)">
-            <p>Lesson not found.</p>
+            <article class="lesson lesson--error">
+                <h1>Page not found</h1>
+                <p>That URL doesn't match a lesson. <a href="">Back to the course home</a>.</p>
+            </article>
         </LayoutView>
     </NotFound>
 </Router>

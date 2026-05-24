@@ -250,8 +250,8 @@
 
             _output = await template.RenderAsync(context);
 
-            var actual = Normalize(_output);
-            var expected = Normalize(Content.Expected);
+            var actual = ContentNormalize.Normalize(_output);
+            var expected = ContentNormalize.Normalize(Content.Expected);
             if (string.Equals(actual, expected, StringComparison.Ordinal))
             {
                 _status = Status.Pass;
@@ -311,8 +311,6 @@
             Console.Error.WriteLine($"ExerciseBlock: persist failed for {ExerciseId} — {ex.Message}");
         }
     }
-
-    private static string Normalize(string s) => s.Replace("\r\n", "\n").TrimEnd('\n');
 
     private string StatusLabel(Status s) => s switch
     {

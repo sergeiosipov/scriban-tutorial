@@ -16,4 +16,11 @@
     <PackageReference Include="TextMateSharp.Grammars" Version="2.0.3" />
   </ItemGroup>
 
+  <!-- Share the single source of truth for output-comparison normalisation
+       with the WASM project. Linked so a change in either pair-edits both. -->
+  <ItemGroup>
+    <Compile Include="..\..\src\ScribanTutorial\Services\ContentNormalize.cs"
+             Link="Shared\ContentNormalize.cs" />
+  </ItemGroup>
+
 </Project>
