@@ -28,6 +28,12 @@ jobs:
       - name: Install wasm-tools workload
         run: dotnet workload install wasm-tools
 
+      - name: Restore (solution)
+        # Restore the whole solution so ContentBuilder's obj/project.assets.json
+        # exists by the time the WASM publish triggers the BuildContent target.
+        # `dotnet publish src/...` alone only restores the WASM project.
+        run: dotnet restore ScribanTutorial.slnx
+
       - name: Publish
         run: dotnet publish src/ScribanTutorial/ScribanTutorial.csproj -c Release -o publish
 
