@@ -56,12 +56,48 @@
 </article>
 
 @code {
+    // Recipe example. Uses nested objects, arrays of objects, a boolean
+    // conditional, a numeric expression, for.last for separator handling, the
+    // for.index loop variable, and string.pad_right for column alignment.
+    // Enough to demonstrate most of what the four lessons teach in one shot.
     private const string DefaultData = """
         {
-          "name": "Ada"
+          "name": "Roasted carrots with cumin",
+          "vegetarian": true,
+          "servings": 4,
+          "tags": ["side", "easy", "30-minute"],
+          "ingredients": [
+            { "amount": "500g",  "item": "carrots",       "optional": false },
+            { "amount": "2 tbsp", "item": "olive oil",     "optional": false },
+            { "amount": "1 tsp",  "item": "salt",          "optional": false },
+            { "amount": "1 tsp",  "item": "cumin seeds",   "optional": false },
+            { "amount": "1 tbsp", "item": "fresh parsley", "optional": true  }
+          ],
+          "steps": [
+            "Preheat the oven to 200°C (fan).",
+            "Peel and slice the carrots into 1-cm sticks.",
+            "Toss with oil, salt, and cumin in a roasting tray.",
+            "Roast for 25 minutes, stirring once halfway.",
+            "Scatter with parsley and serve."
+          ]
         }
         """;
-    private const string DefaultTemplate = "Hello, {{ name }}!";
+
+    private const string DefaultTemplate = """
+        # {{ name }}
+        {{ if vegetarian }}(vegetarian) · {{ end }}Serves {{ servings }}
+        Tags:{{ for tag in tags }} {{ tag }}{{ if !for.last }},{{ end }}{{ end }}
+
+        ## Ingredients
+        {{- for ing in ingredients }}
+        - {{ ing.amount | string.pad_right 8 }} {{ ing.item }}{{ if ing.optional }} (optional){{ end }}
+        {{- end }}
+
+        ## Method
+        {{- for step in steps }}
+        {{ for.index + 1 }}. {{ step }}
+        {{- end }}
+        """;
 
     private readonly string _dataEditorId = "playground-data";
     private readonly string _templateEditorId = "playground-template";
@@ -90,16 +126,14 @@
         {
             _editorModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/editor.js");
             _dotnetRef = DotNetObjectReference.Create(this);
-            // Data model editor: plain editor (no Scriban grammar). A future pass
-            // could add a JSON StreamLanguage; for now syntax-highlighting JSON
-            // isn't critical for the playground.
+            // autoFit:false because Playground panels are a fixed 350-px-tall box
+            // — the editor fills that via flex, not via a JS-measured height.
             await _editorModule.InvokeVoidAsync(
                 "mount", _dataEditorId, _data, _dotnetRef,
-                new { callbackMethod = "OnDataChange" });
-            // Template editor: full Scriban grammar.
+                new { callbackMethod = "OnDataChange", autoFit = false });
             await _editorModule.InvokeVoidAsync(
                 "mount", _templateEditorId, _template, _dotnetRef,
-                new { language = "scriban", callbackMethod = "OnTemplateChange" });
+                new { language = "scriban", callbackMethod = "OnTemplateChange", autoFit = false });
             _mounted = true;
         }
         catch (Exception ex)

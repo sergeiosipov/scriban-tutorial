@@ -9,14 +9,16 @@
     max-width: 720px;
 }
 
-/* Each pane sizes to its content (capped by --pane-default-cap) and has its
-   own resize handle, matching the exercise / example layout. */
+/* On the Playground each pane defaults to the full --pane-default-cap (350px)
+   instead of content-fit, because this page IS the workspace — the user is
+   meant to live in these editors. Resize handle stays so individual panes
+   can grow; min-height is the same 350 so we never shrink below the default. */
 .playground__panel {
     display: flex;
     flex-direction: column;
     min-width: 0;
-    min-height: var(--pane-min-height);
-    height: min(var(--pane-default-cap), max-content);
+    height: var(--pane-default-cap);
+    min-height: var(--pane-default-cap);
     resize: vertical;
     overflow: hidden;
     margin-bottom: 0.75rem;

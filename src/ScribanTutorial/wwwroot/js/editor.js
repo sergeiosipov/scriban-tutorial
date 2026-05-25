@@ -37,6 +37,10 @@ const EDITOR_MIN_HEIGHT_PX = 80;
 //                used by the Playground for its JSON data-model field.
 //   - callbackMethod: name of the [JSInvokable] method on dotnetRef to call when
 //                     the document changes (defaults to "OnEditorChange").
+//   - autoFit:    true (default) → JS measures content after layout and sets
+//                 parent.style.height to fit (clamped 80 → 350). false → the
+//                 parent's CSS height wins (used by the Playground, where each
+//                 pane is a fixed 350 box that the editor fills via flex).
 export function mount(elementId, initial, dotnetRef, options) {
   const parent = document.getElementById(elementId);
   if (!parent) {
@@ -69,11 +73,15 @@ export function mount(elementId, initial, dotnetRef, options) {
   // CodeMirror has laid out, measure its scrollHeight and set the container
   // to fit-content-up-to-cap. After that the user can drag the corner to
   // resize freely (CSS resize:vertical sets inline height on drag, which
-  // overrides our initial set).
-  requestAnimationFrame(() => {
-    try { fitEditorHeight(parent, view); }
-    catch (e) { console.error("editor.js: fitEditorHeight failed:", e); }
-  });
+  // overrides our initial set). Opt-out via autoFit: false for callers
+  // (Playground) where the parent already has a CSS height the editor
+  // should fill via flex.
+  if (opts.autoFit !== false) {
+    requestAnimationFrame(() => {
+      try { fitEditorHeight(parent, view); }
+      catch (e) { console.error("editor.js: fitEditorHeight failed:", e); }
+    });
+  }
 }
 
 function fitEditorHeight(parent, view) {
