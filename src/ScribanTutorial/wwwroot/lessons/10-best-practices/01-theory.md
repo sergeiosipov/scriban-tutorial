@@ -124,10 +124,28 @@ The parens around `(object.keys totals)` matter — a bare
 trips on the zero-argument `object.keys` call. Same reason
 `(array.size x) > 0` needs its parens.
 
+## Regex when text doesn't fit a structured model
+
+When the data arrives as a free-form string (a log line, a user-typed
+message, a CSV cell), the structured `for` + member-access toolkit
+doesn't reach. `regex.*` does. `regex.replace text pattern replacement`
+is the workhorse — pass a verbatim backtick pattern so the backslashes
+don't double up:
+
+```scriban
+{{ log | regex.replace `\d+\.\d+\.\d+\.\d+` "[redacted]" }}
+```
+
+For matching (rather than replacing), `regex.match` returns the first
+match; `regex.split` slices the input on a pattern (you saw that one
+back in lesson 03's verbatim-string exercise).
+
+The full filter list is at <https://scriban.github.io/docs/built-ins/>.
+
 ## The capstones
 
-The exercises below pull everything together. There are three flavours,
-in order of difficulty:
+The exercises below pull everything together. There are four, in rough
+order of difficulty:
 
 1. **`invoice`** — data-model fields and member access only; subtotals
    and the grand total arrive pre-computed.
@@ -137,6 +155,8 @@ in order of difficulty:
 3. **`transaction-rollup`** — group-by aggregation: four fund
    transactions are filtered by status and merged by
    fund+direction into one line per group.
+4. **`regex-redact`** — strip IPv4 addresses out of a log line with
+   `regex.replace` and a verbatim pattern.
 
-If you can read all three without squinting, you're ready to write
+If you can read all four without squinting, you're ready to write
 Scriban for real.
