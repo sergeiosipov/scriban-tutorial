@@ -119,6 +119,7 @@
 
     private CodeEditorHandle? _editor;
     private DotNetObjectReference<ExerciseBlock>? _dotnetRef;
+    private bool _disposed;
 
     protected override async Task OnInitializedAsync()
     {
@@ -144,13 +145,26 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _editor is not null) return;
+        if (!firstRender || _editor is not null || _disposed) return;
         try
         {
             _editor = new CodeEditorHandle(JS);
             _dotnetRef = DotNetObjectReference.Create(this);
+            // MountAsync awaits twice (module import, then mount call). The
+            // user can navigate away between those awaits — DisposeAsync then
+            // disposes _dotnetRef, and the resumed JS-interop serialiser
+            // throws ObjectDisposedException trying to send the dead ref.
+            // The pre-await disposed-check skips the call when we already
+            // know we're gone; the catch handles the same race when the
+            // dispose lands inside the awaited interop.
+            if (_disposed) return;
             await _editor.MountAsync(_editorId, _userTemplate, _dotnetRef,
                 new { language = "scriban", callbackMethod = "OnEditorChange" });
+        }
+        catch (ObjectDisposedException)
+        {
+            // Navigation race — DisposeAsync ran mid-mount. Not an error;
+            // there's no page left to mount into.
         }
         catch (Exception ex)
         {
@@ -253,6 +267,10 @@
 
     public async ValueTask DisposeAsync()
     {
+        // Flip the flag before the awaits so an in-flight OnAfterRenderAsync
+        // resuming between its own awaits can bail before invoking JS interop
+        // with a soon-to-be-disposed DotNetObjectReference.
+        _disposed = true;
         if (_editor is not null) await _editor.DisposeAsync();
         _dotnetRef?.Dispose();
     }
