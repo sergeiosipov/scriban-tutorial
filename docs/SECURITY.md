@@ -52,9 +52,16 @@ local-browser execution.
 The app puts two kinds of content into the DOM:
 
 - **Theory HTML** — rendered through `@((MarkupString)Html)`. Markdig output
-  is HTML; if a `.md` file contained `<script>`, it would execute. **Mitigation:**
-  every `.md` is author-controlled and committed to the repo. PRs are reviewed.
-  We are not rendering user input.
+  is HTML; left to itself, a `.md` file containing `<script>` would execute.
+  **Mitigations** (defence-in-depth):
+  1. Every `.md` is author-controlled and PR-reviewed.
+  2. [`MarkdownRenderer.Render`](../tools/ContentBuilder/MarkdownRenderer.cs)
+     passes the Markdig output through `Ganss.Xss.HtmlSanitizer` at build
+     time, stripping `<script>`, `<iframe>`, `<object>`, `<embed>`, `on*=`
+     handlers, and `javascript:` URLs. So even if a malicious snippet slipped
+     past review, it never reaches the deployed `.html`.
+     [`ContentBuilderTests.MarkdownRenderer_strips_dangerous_html_from_author_content`](../tests/ScribanTutorial.Tests/ContentBuilderTests.cs)
+     gates this.
 - **JSON data-model display** — rendered as text inside `<pre><code>`. Blazor's
   `@expression` HTML-escapes by default. Safe.
 - **The user's template** — never inserted into the DOM. Only fed to Scriban

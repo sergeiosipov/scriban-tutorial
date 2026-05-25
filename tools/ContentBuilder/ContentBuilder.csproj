@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="HtmlSanitizer" Version="9.0.892" />
     <PackageReference Include="Markdig" Version="1.2.0" />
     <PackageReference Include="Scriban" Version="7.2.0" />
     <PackageReference Include="TextMateSharp" Version="2.0.3" />

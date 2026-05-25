@@ -1,4 +1,5 @@
 using System.Web;
+using Ganss.Xss;
 using Markdig;
 using Markdig.Extensions.CustomContainers;
 using Markdig.Renderers;
@@ -11,6 +12,7 @@ internal sealed class MarkdownRenderer
 {
     private readonly TextMateHighlighter _highlighter;
     private readonly MarkdownPipeline _pipeline;
+    private readonly HtmlSanitizer _sanitizer;
 
     public MarkdownRenderer(TextMateHighlighter highlighter)
     {
@@ -22,6 +24,7 @@ internal sealed class MarkdownRenderer
             .UseCustomContainers()
             .UseGenericAttributes()
             .Build();
+        _sanitizer = BuildSanitizer();
     }
 
     public string Render(string markdown)
@@ -39,7 +42,27 @@ internal sealed class MarkdownRenderer
         var document = Markdown.Parse(markdown, _pipeline);
         renderer.Render(document);
         writer.Flush();
-        return writer.ToString();
+        // Sanitize the Markdig output. The content under wwwroot/lessons/ is
+        // author-controlled and PR-reviewed, but Markdig passes inline HTML
+        // through verbatim — so a malicious <script>, on*= attribute, or
+        // javascript: URL slipping through review would execute via the
+        // @((MarkupString)Html) cast in TheoryBlock/ExerciseBlock. Sanitizing
+        // at build time makes the defence structural instead of procedural.
+        return _sanitizer.Sanitize(writer.ToString());
+    }
+
+    private static HtmlSanitizer BuildSanitizer()
+    {
+        var s = new HtmlSanitizer();
+        // Keep highlight-token wrappers our code emits.
+        s.AllowedTags.Add("span");
+        s.AllowedTags.Add("pre");
+        s.AllowedTags.Add("code");
+        s.AllowedTags.Add("div");
+        // Allow the class attribute for .hl-* / .language-* / .example__col--*
+        // wrappers; AllowedAttributes already permits id, href on links, etc.
+        s.AllowedAttributes.Add("class");
+        return s;
     }
 
     private sealed class HighlightingCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>

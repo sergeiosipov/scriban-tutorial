@@ -74,4 +74,37 @@ public class ContentBuilderTests
         Assert.Contains("hl-operator", html);
         Assert.Contains("hl-type", html);
     }
+
+    [Fact]
+    public void MarkdownRenderer_strips_dangerous_html_from_author_content()
+    {
+        // Defence-in-depth: content under wwwroot/lessons/ is author-controlled
+        // and PR-reviewed, but Markdig passes inline HTML through verbatim. A
+        // malicious script tag, on*= handler, iframe, or javascript: URL slipping
+        // past review would otherwise execute through @((MarkupString)Html).
+        const string markdown = """
+            # Heading
+
+            <script>window.pwned = true</script>
+
+            <a href="javascript:alert(1)">click</a>
+
+            <p onclick="alert('xss')">hover</p>
+
+            <iframe src="https://evil.example/"></iframe>
+
+            <p>Safe paragraph stays.</p>
+            """;
+
+        var renderer = new MarkdownRenderer(NewHighlighter());
+        var html = renderer.Render(markdown);
+
+        Assert.DoesNotContain("<script", html, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("window.pwned", html);
+        Assert.DoesNotContain("javascript:", html, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("onclick", html, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("<iframe", html, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Safe paragraph stays.", html);
+        Assert.Contains("<h1", html);
+    }
 }
