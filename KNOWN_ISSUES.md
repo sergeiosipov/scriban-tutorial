@@ -18,8 +18,10 @@ deferred or excluded):
   templates.
 - `include` / `include_join` — depend on a host-configured template
   loader that this WASM tutorial doesn't ship.
-- `regex.*` filters beyond a passing example in lesson 03 (verbatim
-  strings) and the gotcha list in lesson 10.
+- `regex.*` filters beyond a passing example in lesson 03 (the
+  `string-verbatim` exercise uses `regex.split` as a vehicle for
+  teaching backtick strings) and a one-row mention in lesson 08's
+  "Built-in filter modules" table.
 
 These are listed here, not on the rendered Course coverage page, because
 adding them would require host-side configuration that this single-user
