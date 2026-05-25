@@ -31,10 +31,6 @@ that won't tokenise the way you might expect:
   (unary minus on a value, with strip markers) tokenises the inner `-x` as
   an operator-then-variable rather than a unary-minus expression. Cosmetic
   only — Scriban itself parses it fine; the grammar just under-classifies.
-- **Liquid mode tags `{% ... %}`.** Present in the grammar in case a future
-  lesson teaches it, but the course doesn't currently use Liquid syntax and
-  the highlighter's class mapping for those tags hasn't been tested against
-  real Liquid content.
 
 If you want to harden any of these, the grammar lives in
 `tools/ContentBuilder/grammars/scriban.tmLanguage.json`. The class mapping

@@ -4,7 +4,6 @@
   "fileTypes": ["scriban", "sbn"],
   "patterns": [
     { "include": "#raw-escape" },
-    { "include": "#statement" },
     { "include": "#expression" }
   ],
   "repository": {
@@ -19,14 +18,6 @@
       "name": "meta.embedded.expression.scriban",
       "begin": "\\{\\{-?",
       "end": "-?\\}\\}",
-      "beginCaptures": { "0": { "name": "punctuation.section.embedded.begin.scriban" } },
-      "endCaptures":   { "0": { "name": "punctuation.section.embedded.end.scriban" } },
-      "patterns": [{ "include": "#code" }]
-    },
-    "statement": {
-      "name": "meta.embedded.statement.scriban",
-      "begin": "\\{%-?",
-      "end": "-?%\\}",
       "beginCaptures": { "0": { "name": "punctuation.section.embedded.begin.scriban" } },
       "endCaptures":   { "0": { "name": "punctuation.section.embedded.end.scriban" } },
       "patterns": [{ "include": "#code" }]
