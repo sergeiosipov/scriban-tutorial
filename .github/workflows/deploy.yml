@@ -3,6 +3,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -45,6 +47,21 @@ jobs:
         # `dotnet publish src/...` alone only restores the WASM project.
         run: dotnet restore ScribanTutorial.slnx
 
+      - name: Check for vulnerable NuGet packages
+        # `dotnet list package --vulnerable` always exits 0 — it just prints
+        # what it found. To gate the build we grep the output for the marker
+        # text the command emits when a vulnerability is reported. Includes
+        # transitive deps so a CVE in something we don't directly reference
+        # still trips the build.
+        run: |
+          set -euo pipefail
+          output=$(dotnet list ScribanTutorial.slnx package --vulnerable --include-transitive 2>&1)
+          echo "$output"
+          if echo "$output" | grep -q "has the following vulnerable"; then
+            echo "::error::Vulnerable NuGet packages detected — see log above."
+            exit 1
+          fi
+
       - name: Build WASM project (fires the BuildContent MSBuild target)
         # Regenerates .html and bundle.json siblings under wwwroot/lessons
         # via the BuildContent target. BuildTargetTest asserts those siblings
@@ -58,27 +75,37 @@ jobs:
         # deploy on content correctness.
         run: dotnet test tests/ScribanTutorial.Tests/ScribanTutorial.Tests.csproj --configuration Release --no-restore
 
+      # The publish + rewrite + upload steps are deploy-only — skipped on
+      # pull_request runs so PR CI fails fast on broken tests instead of
+      # spending another ~2 minutes producing an artifact that will never
+      # be uploaded.
       - name: Publish
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: dotnet publish src/ScribanTutorial/ScribanTutorial.csproj -c Release -o publish
 
       - name: Rewrite base href in index.html
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: SteveSandersonMS/ghaction-rewrite-base-href@5b54862a8831e012d4f1a8b2660894415fdde8ec # v1
         with:
           html_path: publish/wwwroot/index.html
           base_href: /${{ github.event.repository.name }}/
 
       - name: Rewrite base href in 404.html
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: SteveSandersonMS/ghaction-rewrite-base-href@5b54862a8831e012d4f1a8b2660894415fdde8ec # v1
         with:
           html_path: publish/wwwroot/404.html
           base_href: /${{ github.event.repository.name }}/
 
       - name: Upload Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
           path: publish/wwwroot
 
   deploy:
+    # Deploy only on direct pushes to main, not on PR builds.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:

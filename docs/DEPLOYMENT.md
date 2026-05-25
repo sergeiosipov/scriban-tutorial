@@ -2,7 +2,9 @@
 
 The site is hosted on **GitHub Pages** at
 <https://sergeiosipov.github.io/scriban-tutorial/>. CI builds and publishes on
-every push to `main`.
+every push to `main`. Pull requests run the same build + test + vulnerability
+gate but skip the publish / deploy steps, so a broken PR is caught before merge
+without spending the publish budget.
 
 ## How the pipeline works
 
