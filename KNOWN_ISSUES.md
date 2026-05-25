@@ -7,17 +7,14 @@ aware of before opening a related PR.
 
 Per-edge tests live in
 [`ContentBuilderTests`](tests/ScribanTutorial.Tests/ContentBuilderTests.cs).
-Each test pins the current grammar behaviour for one historical edge — fix
-the grammar **and** update the test in the same PR if you change behaviour
-intentionally; a silent regression breaks the test.
+Each test pins the current grammar behaviour for one edge — fix the grammar
+**and** update the test in the same PR if you change behaviour intentionally;
+a silent regression breaks the test.
 
-Closed-out edges and the test that locks each one in:
+Intentional edges contributors should know about:
 
 | Edge | Status | Test |
 |---|---|---|
-| Multi-line string literals inside `{{ ... }}` | Works correctly across newlines | `Grammar_handles_strings_spanning_multiple_lines_inside_a_tag` |
-| `"hello ${name}"` interpolation | Fixed via `interpolation` rule + `${ ... }` breakout inside double-quoted strings | `Grammar_breaks_out_of_string_for_dollar_brace_interpolation` |
-| `regex.match` / `string.upcase` / other builtin functions | Fixed via `builtin-call` rule — the X in `builtin.X` is now classified as a function call | `Grammar_treats_verbatim_string_argument_as_a_string` |
 | `# foo }} bar` comment "eats" closing `}}` | Intentional — matches Scriban's own parser (`#` is comment-to-EOL, even past `}}`). Workaround: put the comment on its own line. Highlighter matching parser behaviour is correct; "fixing" it would visually suggest the tag closes when it actually doesn't. | `Grammar_treats_hash_comment_as_comment_to_end_of_line` |
 | `{{- -x -}}` unary minus tokenised as operator+variable | Intentional — same treatment as VS Code, Sublime, every mainstream editor. Disambiguating unary vs binary would require a Lezer parser rewrite for cosmetic-only benefit. | `Grammar_classifies_minus_inside_whitespace_control_as_operator` |
 | Liquid `{% ... %}` statement tags | Removed (course doesn't teach Liquid; restore the `statement` rule if a future lesson covers it) | — |

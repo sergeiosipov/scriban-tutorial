@@ -1,5 +1,8 @@
 # Security
 
+The current configuration is appropriate **only** for the single-user
+local-browser execution model.
+
 ## Threat model
 
 This app **evaluates user-supplied Scriban templates in the user's own
@@ -114,20 +117,3 @@ Current pins:
 | TextMateSharp | 2.0.3 | ContentBuilder + tests (build-time only) |
 | TextMateSharp.Grammars | 2.0.3 | ContentBuilder + tests (build-time only) |
 
-## 6. If you ever deploy this as a multi-user service
-
-Don't, without these changes:
-
-- Render Scriban server-side or in a sandboxed worker with hard time and
-  memory limits enforced by the host (not by Scriban).
-- Cap input size at the gateway (e.g. 4 KB templates, 8 KB data models).
-- Rate-limit per IP.
-- Disable `EnableRelaxedTargetAccess`, `EnableRelaxedMemberAccess`,
-  `EnableRelaxedFunctionAccess`, `EnableRelaxedIndexerAccess` on
-  `TemplateContext`.
-- Be careful about which built-in modules you push into the context — `fs`
-  and `regex` in particular are attack surface if you ever evaluate untrusted
-  templates with broader context.
-
-The current configuration is appropriate **only** for the single-user
-local-browser execution model.
