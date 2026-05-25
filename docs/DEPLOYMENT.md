@@ -8,20 +8,32 @@ every push to `main`.
 
 `.github/workflows/deploy.yml` does:
 
-1. `actions/checkout@v4` — clone the repo.
-2. `actions/setup-dotnet@v4` — install the .NET 10 SDK.
+1. `actions/checkout` — clone the repo.
+2. `actions/setup-dotnet` — install the .NET 10 SDK.
 3. `dotnet workload install wasm-tools` — required for the WASM publish.
-4. `dotnet publish src/ScribanTutorial/ScribanTutorial.csproj -c Release -o publish`
+4. `dotnet restore ScribanTutorial.slnx` — restore the whole solution so the
+   ContentBuilder project's `obj/` is populated before publish triggers the
+   `BuildContent` MSBuild target.
+5. `dotnet build src/ScribanTutorial/...` — fires `BuildContent` so the
+   `.html` and `bundle.json` siblings exist before tests run.
+6. `dotnet test tests/ScribanTutorial.Tests/...` — gates the deploy on
+   `ExerciseSolutionTests` (every canonical solution renders to expected),
+   plus the build-target and content-builder smoke tests.
+7. `dotnet publish src/ScribanTutorial/ScribanTutorial.csproj -c Release -o publish`
    — produces `publish/wwwroot/` with the WASM bundle, the `_framework/`
    directory, the static lesson assets (including the pre-rendered
    `lessons/**/*.html`), `index.html`, `404.html`, and `.nojekyll`.
-5. **`SteveSandersonMS/ghaction-rewrite-base-href`** rewrites
+8. **`SteveSandersonMS/ghaction-rewrite-base-href`** rewrites
    `<base href="/" />` to `<base href="/scriban-tutorial/" />` in both
    `index.html` and `404.html`. This is the linchpin: GitHub Pages serves the
    site under a subpath, and Blazor's runtime, asset paths, and SPA routing
    all need the base href to match.
-6. `actions/upload-pages-artifact@v3` packages `publish/wwwroot/`.
-7. `actions/deploy-pages@v4` publishes.
+9. `actions/upload-pages-artifact` packages `publish/wwwroot/`.
+10. `actions/deploy-pages` publishes.
+
+Every third-party action above is pinned to a full commit SHA (with the
+human-readable `# v4` tag in a comment). [Dependabot](../.github/dependabot.yml)
+watches the actions and opens a PR when an upstream tag moves to a new SHA.
 
 Total run time on a clean cache: ~3–5 minutes. With warm package cache: 1–2.
 

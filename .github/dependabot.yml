@@ -1,0 +1,19 @@
+# Dependabot keeps the SHA-pinned GitHub Actions in
+# .github/workflows/*.yml current. When upstream tags (e.g. actions/checkout@v4)
+# move to a new commit, Dependabot opens a PR bumping the pin and updating the
+# `# v4` tag comment alongside it. Review and merge as you would any other
+# dependency bump.
+#
+# NuGet package updates are deliberately NOT enabled here — pins live in the
+# .csproj files and are reviewed manually (see docs/SECURITY.md §5). If you
+# want automated NuGet bumps too, add a `nuget` ecosystem block below.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci
+      include: scope
