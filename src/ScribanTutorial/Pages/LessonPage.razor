@@ -24,9 +24,15 @@ else
             <h1>@_lesson.Entry.Title</h1>
         </header>
         <TheoryBlock Html="@_lesson.TheoryHtml" />
+        @* @key forces a fresh ExerciseBlock instance when LessonId changes.
+           Without it, Blazor diffs by position and reuses the lesson 01 hello
+           block for the first slot of every subsequent lesson — carrying its
+           OnInitializedAsync-loaded progress (template, attempts, status) into
+           upcase, list-loop, invoice, etc. *@
         @foreach (var ex in _lesson.Exercises)
         {
-            <ExerciseBlock LessonId="@LessonId"
+            <ExerciseBlock @key="(LessonId, ex.Id)"
+                           LessonId="@LessonId"
                            ExerciseId="@ex.Id"
                            Content="@ex.Content" />
         }
