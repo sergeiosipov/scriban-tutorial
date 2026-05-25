@@ -1,9 +1,5 @@
 ### Sum
 
-Print the sum of `a` and `b`. Expected:
-
-```text
-The total is 17.
-```
+Print a sentence stating the sum of `a` and `b`.
 
 The data has two whole-number fields; combine them with the right operator.

@@ -61,9 +61,9 @@ Don't rename them.
 
    | File | Required | What goes in it |
    |---|---|---|
-   | `01-description.md` | yes | What the exercise asks. Markdown. Should include a `text` block showing the expected output so learners don't need to click "Reveal expected". |
+   | `01-description.md` | yes | What the exercise asks. Markdown. **Do not paste the expected output here** — that lives in `03-expected.txt` and renders in the Expected output panel. Describing the shape ("render a bulleted list", "print a sentence") is fine; reproducing the bytes is duplication that goes stale. |
    | `02-datamodel.json` | yes | JSON object the engine binds to. Top-level MUST be an object, not an array. |
-   | `03-expected.txt` | yes | Byte-exact expected output. CRLF is collapsed to LF and trailing newlines are trimmed before comparison; everything else is significant. |
+   | `03-expected.txt` | yes | Byte-exact expected output. CRLF is collapsed to LF and trailing newlines are trimmed before comparison; everything else is significant. The Expected output panel always shows this — descriptions should not repeat it. |
    | `04-template.txt` | yes | Starter template. Use `???` for the placeholder(s) the learner needs to fill in. |
    | `05-solution.txt` | yes | The canonical, known-good solution. Verified automatically by the test suite. |
 
