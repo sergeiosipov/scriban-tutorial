@@ -82,24 +82,7 @@
     {
         <div class="exercise__result exercise__result--fail">
             <div class="exercise__result-label">Diff (expected vs. actual)</div>
-            <pre class="exercise__pre exercise__pre--diff"><code>@foreach (var line in _diff.Lines)
-{
-    var cls = line.Type switch
-    {
-        ChangeType.Inserted => "diff__line diff__line--ins",
-        ChangeType.Deleted  => "diff__line diff__line--del",
-        ChangeType.Modified => "diff__line diff__line--mod",
-        _                    => "diff__line",
-    };
-    var prefix = line.Type switch
-    {
-        ChangeType.Inserted => "+ ",
-        ChangeType.Deleted  => "- ",
-        ChangeType.Modified => "~ ",
-        _                    => "  ",
-    };
-    <span class="@cls">@(prefix)@(line.Text)<br /></span>
-}</code></pre>
+            <DiffView Diff="@_diff" />
         </div>
     }
     else if (_status == Status.Fail && !string.IsNullOrEmpty(_errors))

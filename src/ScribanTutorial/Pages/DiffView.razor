@@ -1,0 +1,24 @@
+@using DiffPlex.DiffBuilder.Model
+
+<pre class="diff"><code>@foreach (var line in Diff.Lines)
+{
+    var cls = line.Type switch
+    {
+        ChangeType.Inserted => "diff__line diff__line--ins",
+        ChangeType.Deleted  => "diff__line diff__line--del",
+        ChangeType.Modified => "diff__line diff__line--mod",
+        _                    => "diff__line",
+    };
+    var prefix = line.Type switch
+    {
+        ChangeType.Inserted => "+ ",
+        ChangeType.Deleted  => "- ",
+        ChangeType.Modified => "~ ",
+        _                    => "  ",
+    };
+    <span class="@cls">@(prefix)@(line.Text)<br /></span>
+}</code></pre>
+
+@code {
+    [Parameter, EditorRequired] public DiffPaneModel Diff { get; set; } = default!;
+}

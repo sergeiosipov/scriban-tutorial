@@ -1,0 +1,45 @@
+.diff {
+    margin: 0;
+    background: var(--code-bg, #f3f4f6);
+    border: 1px solid var(--code-border, #e5e7eb);
+    border-radius: 6px;
+    padding: 0.7rem 0.9rem;
+    overflow: auto;
+    font-size: var(--code-font-size);
+    font-family: var(--code-font-family);
+    line-height: var(--code-line-height);
+    white-space: pre;
+    min-width: 0;
+    min-height: 0;
+    /* Cap the height so a runaway template's diff doesn't push the page down
+       a hundred screens. Internal scroll. */
+    max-height: var(--pane-default-cap);
+}
+
+/* Diff line highlights — colour only the actual text (a tag-style chip),
+   not the full row. The <br /> inside each span breaks the line; the spans
+   themselves stay inline so the colour-mix background hugs the content. */
+.diff .diff__line--ins,
+.diff .diff__line--del,
+.diff .diff__line--mod {
+    display: inline;
+    padding: 0 0.35em;
+    border-radius: 3px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
+.diff .diff__line--ins {
+    background: color-mix(in srgb, var(--pass) 20%, transparent);
+    color: var(--pass);
+}
+
+.diff .diff__line--del {
+    background: color-mix(in srgb, var(--fail) 20%, transparent);
+    color: var(--fail);
+}
+
+.diff .diff__line--mod {
+    background: color-mix(in srgb, #f59e0b 18%, transparent);
+    color: #f59e0b;
+}
