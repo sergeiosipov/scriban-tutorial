@@ -3,6 +3,24 @@
 Tracked rough edges that don't block the build but a contributor should be
 aware of before opening a related PR.
 
+## Course coverage
+
+The `:::example` blocks and exercises cover a working subset of Scriban —
+expressions, member access, pipe filters, arithmetic, `if`/`else`, `for`,
+ranges, basic whitespace control, and a real-world combining example.
+Topics intentionally **not yet** covered, queued for follow-up lessons:
+
+- `case` / `when` pattern matching.
+- `capture` for storing rendered output in a variable.
+- `func name; ...; end` user-defined functions.
+- `with object; ...; end` implicit member access blocks.
+- `wrap` content wrappers.
+- `tablerow` grid layouts.
+- `regex.*` filters beyond a passing mention.
+
+A `Future lessons` checklist lives at the bottom of
+`docs/SCRIBAN_BEST_PRACTICES.md`.
+
 ## Scriban TextMate grammar — `tools/ContentBuilder/grammars/scriban.tmLanguage.json`
 
 Per-edge tests live in
@@ -23,40 +41,7 @@ The grammar JSON lives at `tools/ContentBuilder/grammars/scriban.tmLanguage.json
 The scope→`.hl-*` class mapping is in
 [`TextMateHighlighter.cs`](tools/ContentBuilder/TextMateHighlighter.cs).
 
-## Course coverage
-
-The `:::example` blocks and exercises cover a working subset of Scriban —
-expressions, member access, pipe filters, arithmetic, `if`/`else`, `for`,
-ranges, basic whitespace control, and a real-world combining example.
-Topics intentionally **not yet** covered, queued for follow-up lessons:
-
-- `case` / `when` pattern matching.
-- `capture` for storing rendered output in a variable.
-- `func name; ...; end` user-defined functions.
-- `with object; ...; end` implicit member access blocks.
-- `wrap` content wrappers.
-- `tablerow` grid layouts.
-- `regex.*` filters beyond a passing mention.
-
-A `Future lessons` checklist lives at the bottom of
-`docs/SCRIBAN_BEST_PRACTICES.md`.
-
-## CodeMirror vendoring
-
-Vendored under `src/ScribanTutorial/wwwroot/lib/codemirror/` as 11 ESM files
-resolved through an importmap in `index.html`. Bumps are scripted via
-`tools/Vendor-CodeMirror.ps1` — edit the `$packages` table with the new
-version pin, run the script, update `wwwroot/lib/codemirror/VERSION.txt`
-to match, and commit the bumped files + VERSION.txt in one PR. The script
-reports a SHA-256 prefix per file so two runs on a clean checkout can be
-diff-compared. The `codemirror` umbrella package is intentionally *not*
-vendored: its `basicSetup` would drag in `@codemirror/search`,
-`@codemirror/autocomplete`, and `@codemirror/lint`, none of which this app
-uses. Extensions are composed by hand in `wwwroot/js/editor.js`.
-
-## GitHub Pages CDN
-
-Pages serves through a CDN that occasionally takes 2–5 minutes after a
-successful deploy to propagate. If the workflow run is green but the site
-still shows old content, hard-refresh (Ctrl+F5) and wait. This is documented
-in `docs/DEPLOYMENT.md` so users don't think their deploy is broken.
+> Project-mechanics notes that used to live here (CodeMirror vendoring,
+> GitHub Pages CDN cache) have moved to
+> [`docs/AUTHORING_LESSONS.md`](docs/AUTHORING_LESSONS.md#project-mechanics) —
+> they're contributor concerns, not learner-visible gotchas.
