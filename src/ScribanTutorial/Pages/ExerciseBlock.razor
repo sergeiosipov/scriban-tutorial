@@ -112,9 +112,8 @@
     private int _attempts;
     private bool _restored;
 
-    private IJSObjectReference? _editorModule;
+    private CodeEditorHandle? _editor;
     private DotNetObjectReference<ExerciseBlock>? _dotnetRef;
-    private bool _editorMounted;
 
     protected override async Task OnInitializedAsync()
     {
@@ -140,19 +139,13 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _editorMounted) return;
+        if (!firstRender || _editor is not null) return;
         try
         {
-            _editorModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/editor.js");
+            _editor = new CodeEditorHandle(JS);
             _dotnetRef = DotNetObjectReference.Create(this);
-            // Scriban grammar on, default OnEditorChange callback.
-            await _editorModule.InvokeVoidAsync(
-                "mount",
-                _editorId,
-                _userTemplate,
-                _dotnetRef,
+            await _editor.MountAsync(_editorId, _userTemplate, _dotnetRef,
                 new { language = "scriban", callbackMethod = "OnEditorChange" });
-            _editorMounted = true;
         }
         catch (Exception ex)
         {
@@ -217,9 +210,9 @@
         _errors = null;
         _diff = null;
         _revealSolution = false;
-        if (_editorMounted && _editorModule is not null)
+        if (_editor is not null)
         {
-            try { await _editorModule.InvokeVoidAsync("setValue", _editorId, _userTemplate); }
+            try { await _editor.SetValueAsync(_editorId, _userTemplate); }
             catch (Exception ex) { Console.Error.WriteLine($"ExerciseBlock: editor setValue failed — {ex.Message}"); }
         }
         await PersistAsync();
@@ -255,15 +248,7 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (_editorMounted && _editorModule is not null)
-        {
-            try { await _editorModule.InvokeVoidAsync("destroy", _editorId); }
-            catch { /* navigation race is fine */ }
-        }
-        if (_editorModule is not null)
-        {
-            try { await _editorModule.DisposeAsync(); } catch { /* best effort */ }
-        }
+        if (_editor is not null) await _editor.DisposeAsync();
         _dotnetRef?.Dispose();
     }
 }

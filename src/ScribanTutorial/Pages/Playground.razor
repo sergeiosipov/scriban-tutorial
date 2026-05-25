@@ -120,9 +120,8 @@
     private string _output = "";
     private string? _errors;
 
-    private IJSObjectReference? _editorModule;
+    private CodeEditorHandle? _editor;
     private DotNetObjectReference<Playground>? _dotnetRef;
-    private bool _mounted;
 
     private PageNav.NavTarget? _prev;
     private PageNav.NavTarget? _next;
@@ -152,18 +151,15 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _mounted) return;
+        if (!firstRender || _editor is not null) return;
         try
         {
-            _editorModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/editor.js");
+            _editor = new CodeEditorHandle(JS);
             _dotnetRef = DotNetObjectReference.Create(this);
-            await _editorModule.InvokeVoidAsync(
-                "mount", _dataEditorId, _data, _dotnetRef,
+            await _editor.MountAsync(_dataEditorId, _data, _dotnetRef,
                 new { language = "json", callbackMethod = "OnDataChange", autoFit = false });
-            await _editorModule.InvokeVoidAsync(
-                "mount", _templateEditorId, _template, _dotnetRef,
+            await _editor.MountAsync(_templateEditorId, _template, _dotnetRef,
                 new { language = "scriban", callbackMethod = "OnTemplateChange", autoFit = false });
-            _mounted = true;
         }
         catch (Exception ex)
         {
@@ -205,12 +201,12 @@
         _data = DefaultData;
         _template = DefaultTemplate;
         Render();
-        if (_mounted && _editorModule is not null)
+        if (_editor is not null)
         {
             try
             {
-                await _editorModule.InvokeVoidAsync("setValue", _dataEditorId, _data);
-                await _editorModule.InvokeVoidAsync("setValue", _templateEditorId, _template);
+                await _editor.SetValueAsync(_dataEditorId, _data);
+                await _editor.SetValueAsync(_templateEditorId, _template);
             }
             catch (Exception ex)
             {
@@ -221,15 +217,7 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (_mounted && _editorModule is not null)
-        {
-            try { await _editorModule.InvokeVoidAsync("destroy", _dataEditorId); } catch { }
-            try { await _editorModule.InvokeVoidAsync("destroy", _templateEditorId); } catch { }
-        }
-        if (_editorModule is not null)
-        {
-            try { await _editorModule.DisposeAsync(); } catch { }
-        }
+        if (_editor is not null) await _editor.DisposeAsync();
         _dotnetRef?.Dispose();
     }
 }
