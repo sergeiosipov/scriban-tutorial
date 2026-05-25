@@ -88,21 +88,31 @@ the same origin. Acceptable because:
 
 CodeMirror 6 and its transitive dependencies are vendored locally under
 `wwwroot/lib/codemirror/`, not loaded from a CDN. There's no supply-chain risk
-at runtime. Updates require a deliberate re-vendoring step — see the script
-block in the Stage 7 commit that introduced the directory, and the pinned
-versions in `wwwroot/lib/codemirror/VERSION.txt`.
+at runtime. Updates require a deliberate re-vendoring step — see the
+"CodeMirror vendoring" section of [`../KNOWN_ISSUES.md`](../KNOWN_ISSUES.md)
+and the pinned versions in
+[`wwwroot/lib/codemirror/VERSION.txt`](../src/ScribanTutorial/wwwroot/lib/codemirror/VERSION.txt).
 
 ## 5. Dependency hygiene
 
-Run `dotnet list package --vulnerable` quarterly. Current pins:
+CI fails on any vulnerable NuGet (direct or transitive) via a
+`dotnet list package --vulnerable --include-transitive` step in
+[`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml). The same
+gate runs on every PR before merge.
+[Dependabot](../.github/dependabot.yml) watches the github-actions ecosystem
+weekly so action SHA bumps land as PRs; NuGet bumps stay manual so a
+breaking-API jump can't auto-merge.
 
-| Package | Version |
-|---|---|
-| Scriban | 7.2.0 |
-| Markdig | 1.2.0 (ContentBuilder only — no longer in the WASM bundle) |
-| DiffPlex | 1.9.0 |
-| TextMateSharp | 2.0.3 (ContentBuilder only) |
-| TextMateSharp.Grammars | 2.0.3 (ContentBuilder only) |
+Current pins:
+
+| Package | Version | Where |
+|---|---|---|
+| Scriban | 7.2.0 | WASM runtime + ContentBuilder + tests |
+| DiffPlex | 1.9.0 | WASM runtime |
+| Markdig | 1.2.0 | ContentBuilder + tests (build-time only) |
+| HtmlSanitizer (Ganss.Xss) | 9.0.892 | ContentBuilder + tests (build-time only) |
+| TextMateSharp | 2.0.3 | ContentBuilder + tests (build-time only) |
+| TextMateSharp.Grammars | 2.0.3 | ContentBuilder + tests (build-time only) |
 
 ## 6. If you ever deploy this as a multi-user service
 

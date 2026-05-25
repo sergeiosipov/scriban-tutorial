@@ -47,6 +47,11 @@ Numeric prefixes are part of the filename. They:
 
 Don't rename them.
 
+ContentBuilder also writes generated siblings into each lesson and exercise
+directory at build time: `*.html` for every `.md`, `02-datamodel.html`,
+and a `bundle.json` collecting all six runtime inputs in one fetch. These
+are gitignored — don't commit them.
+
 ---
 
 ## Add a new exercise (quick)
@@ -178,6 +183,17 @@ Fenced blocks with a language hint get syntax highlighted at build time:
 Supported language hints: `scriban` (highlights via the custom grammar),
 `json`, `text` (no highlighting — verbatim with HTML escaping). Other
 language hints fall through to TextMateSharp's bundled grammars if present.
+
+### Inline HTML is sanitised
+
+Markdig passes raw HTML in your `.md` through to the output, but ContentBuilder
+runs the result through an HTML sanitizer before writing the `.html`. That
+strips `<script>`, `<iframe>`, `<object>`, `<embed>`, `on*=` handlers, and
+`javascript:` URLs. The `<span class="hl-*">` highlight wrappers and the
+`<pre><code class="language-*">` blocks the renderer emits are explicitly
+allowed and stay intact. If you need a tag that isn't on the allow-list,
+extend `MarkdownRenderer.BuildSanitizer` in `tools/ContentBuilder/` rather
+than working around it in the markdown.
 
 ### `:::example` side-by-side panels
 

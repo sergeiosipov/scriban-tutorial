@@ -39,8 +39,11 @@ that won't tokenise the way you might expect:
 If you want to harden any of these, the grammar lives in
 `tools/ContentBuilder/grammars/scriban.tmLanguage.json`. The class mapping
 that turns scopes into `.hl-*` CSS classes is in `TextMateHighlighter.cs`.
-Tests for grammar correctness are not yet wired — visual inspection of the
-generated `.html` is the current verification path.
+A single smoke test in
+[`ContentBuilderTests.TextMateHighlighter_emits_expected_classes_for_a_simple_scriban_snippet`](tests/ScribanTutorial.Tests/ContentBuilderTests.cs)
+catches the worst regression (no `hl-brace` / `hl-variable` / `hl-operator` /
+`hl-type` at all). Extending that test with cases for each edge above is the
+natural next step when someone touches the grammar.
 
 ## Course coverage
 
