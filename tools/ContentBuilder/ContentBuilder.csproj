@@ -17,10 +17,13 @@
   </ItemGroup>
 
   <!-- Share the single source of truth for output-comparison normalisation
-       with the WASM project. Linked so a change in either pair-edits both. -->
+       and JSON → Scriban conversion with the WASM project. Linked so a change
+       in either pair-edits both. -->
   <ItemGroup>
     <Compile Include="..\..\src\ScribanTutorial\Services\ContentNormalize.cs"
              Link="Shared\ContentNormalize.cs" />
+    <Compile Include="..\..\src\ScribanTutorial\Services\JsonToScriban.cs"
+             Link="Shared\JsonToScriban.cs" />
   </ItemGroup>
 
 </Project>
