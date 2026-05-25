@@ -35,6 +35,27 @@
 .reference__intro p:first-child { margin-top: 0; }
 .reference__intro p:last-child { margin-bottom: 0; }
 
+.reference__intro-h {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 1.5em 0 0.4em 0;
+}
+
+.reference__intro ol {
+    margin: 0.7em 0;
+    padding-left: 1.4em;
+}
+
+.reference__intro ol li {
+    margin: 0.5em 0;
+}
+
+.reference__intro-foot {
+    margin-top: 1.5em;
+    color: var(--muted, #6b7280);
+    font-size: 0.95em;
+}
+
 .reference__intro code {
     background: var(--code-bg, #f3f4f6);
     border: 1px solid var(--code-border, #e5e7eb);

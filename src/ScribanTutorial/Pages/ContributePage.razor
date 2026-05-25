@@ -25,12 +25,95 @@ else
         </header>
         <section class="reference__intro">
             <p>
-                The course content lives as plain Markdown / JSON / text files
-                under <code>wwwroot/lessons/</code>. No C# required to add or
-                edit a lesson — only the conventions and the build-time
-                verification tools, both of which are documented below. Edits
-                land on the live site through the same CI pipeline that gates
-                every other change.
+                Everything you read in a lesson — the explanations, the
+                exercises, the expected outputs — is a plain text file in
+                the project's GitHub repository. You don't need to be a
+                programmer to edit one. You don't need to install anything.
+                You don't even need to leave the browser.
+            </p>
+            <h2 class="reference__intro-h">Where the content lives</h2>
+            <p>
+                The repository is at
+                <a href="https://github.com/sergeiosipov/scriban-tutorial"
+                   target="_blank" rel="noopener">github.com/sergeiosipov/scriban-tutorial</a>.
+                The course content lives in this folder:
+            </p>
+            <p>
+                <a href="https://github.com/sergeiosipov/scriban-tutorial/tree/main/src/ScribanTutorial/wwwroot/lessons"
+                   target="_blank" rel="noopener"><code>src/ScribanTutorial/wwwroot/lessons/</code></a>
+            </p>
+            <p>
+                Inside, every lesson is a numbered folder (e.g.
+                <code>01-basics/</code>). Inside each lesson folder you'll
+                find a <code>01-theory.md</code> file (the prose at the top
+                of the page) and an <code>02-exercises/</code> folder
+                containing one sub-folder per exercise. Each exercise is
+                five small files: a description, a JSON data model, the
+                expected output, a starter template, and a known-good
+                solution. The "File layout" section below has a diagram.
+            </p>
+            <h2 class="reference__intro-h">How to edit a file (no install required)</h2>
+            <ol>
+                <li>
+                    Sign in to GitHub (free account; create one if you don't
+                    have it). Then open the file you want to change on
+                    github.com — for example,
+                    <a href="https://github.com/sergeiosipov/scriban-tutorial/blob/main/src/ScribanTutorial/wwwroot/lessons/01-basics/01-theory.md"
+                       target="_blank" rel="noopener">the theory file for lesson 01</a>.
+                </li>
+                <li>
+                    Click the pencil icon (<strong>✎ Edit this file</strong>)
+                    at the top-right of the file view. GitHub will tell you
+                    "You need to fork this repository to propose changes."
+                    Click <strong>Fork this repository</strong> — it's a
+                    one-click copy of the project into your own account.
+                </li>
+                <li>
+                    Edit the text in the box. Markdown is what you see in
+                    the lesson — headings start with <code>#</code>, lists
+                    start with <code>-</code>, code blocks are fenced with
+                    triple backticks. The "Theory markdown conventions"
+                    section below has the full cheat-sheet.
+                </li>
+                <li>
+                    Scroll down and click <strong>Commit changes…</strong>.
+                    A small dialog asks for a short description ("Fix typo
+                    in lesson 03" is fine) and which branch to commit to —
+                    accept the default (<em>"Create a new branch…"</em>).
+                </li>
+                <li>
+                    Click <strong>Propose changes</strong>, then
+                    <strong>Create pull request</strong>. That's it — you've
+                    submitted your edit.
+                </li>
+            </ol>
+            <h2 class="reference__intro-h">What happens next</h2>
+            <p>
+                A pull request (PR) is a request to merge your edits into the
+                live project. As soon as you open one, GitHub Actions runs
+                the build and the test suite automatically; you'll see a
+                green check (or a red cross) within a couple of minutes
+                right on the PR page. The maintainer reviews the PR, may
+                ask for small changes (just click <strong>✎ Edit</strong> on
+                the file in your branch to update it), then merges it. The
+                merge auto-deploys to the live site within ~5 minutes.
+            </p>
+            <h2 class="reference__intro-h">If you also want to run it locally</h2>
+            <p>
+                Not required — the GitHub web flow above is enough for prose
+                and exercise edits. But if you'd like to preview your
+                changes before submitting, install the .NET 10 SDK, clone
+                the repository, and run <code>dotnet run</code> from the
+                <code>src/ScribanTutorial</code> directory. The README has
+                the full setup. Local <code>dotnet test</code> runs the
+                same checks CI does on your PR, so you can iterate without
+                round-tripping through GitHub.
+            </p>
+            <p class="reference__intro-foot">
+                The reference below is the maintainer's authoring guide —
+                more detail than most edits need, but it's where the
+                file-format rules, the verification commands, and the
+                common pitfalls all live.
             </p>
         </section>
         <section class="reference__section" id="authoring">
