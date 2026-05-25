@@ -19,7 +19,6 @@ builder.Services.AddSingleton(sp => new HttpClient
 
 builder.Services.AddSingleton<ContentService>();
 builder.Services.AddSingleton<ProgressService>();
-builder.Services.AddSingleton<TemplateCache>();
 builder.Services.AddSingleton<ThemeService>();
 
 builder.Services.AddSingleton(new JsonSerializerOptions

@@ -1,7 +1,6 @@
 @using DiffPlex.DiffBuilder
 @using DiffPlex.DiffBuilder.Model
 @inject ProgressService Progress
-@inject TemplateCache Templates
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
@@ -138,16 +137,6 @@
     {
         _editorId = $"editor-{LessonId}-{ExerciseId}";
         _userTemplate = Content.StarterTemplate;
-
-        // Pre-parse the canonical solution in the background. Scriban parse can take
-        // a few hundred ms on WASM for non-trivial templates; doing it lazily here
-        // means a later "verify the solution still works" path (or a side-by-side
-        // run) is instant. Fire-and-forget; we don't await.
-        _ = Task.Run(() =>
-        {
-            try { Templates.GetOrParse($"solution:{LessonId}:{ExerciseId}", Content.Solution); }
-            catch { /* malformed solution would surface via --verify in CI */ }
-        });
 
         try
         {

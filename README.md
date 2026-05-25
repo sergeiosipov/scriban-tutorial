@@ -54,8 +54,7 @@ what CI runs.
 │  Singletons                                           │
 │    ├─ ContentService  — manifest + lazy lesson load   │
 │    ├─ ProgressService — localStorage via JS interop   │
-│    ├─ ThemeService    — light / dark, persisted       │
-│    └─ TemplateCache   — pre-parsed Scriban templates  │
+│    └─ ThemeService    — light / dark, persisted       │
 │                                                       │
 │  ExerciseBlock                                        │
 │    ├─ CodeMirror 6 editor (Scriban stream parser)     │
