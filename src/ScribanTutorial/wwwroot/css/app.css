@@ -17,6 +17,15 @@
     --shimmer-via: #f1f3f5;
     --shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04);
 
+    /* One source of truth for every code surface — data model panel, expected
+       output, template editor, example panels, diff. Keeps font sizes
+       consistent. */
+    --code-font-size: 0.9rem;
+    --code-line-height: 1.55;
+    --code-font-family: 'Cascadia Code', 'Cascadia Mono', Consolas, 'Courier New', monospace;
+    --pane-default-height: 350px;
+    --pane-min-height: 120px;
+
     /* Syntax-highlight palette (VS Code Light+ inspired). Used by both
        ContentBuilder's TextMate spans (<span class="hl-*">) and CodeMirror's
        HighlightStyle. Changing a colour here updates theory blocks AND the
@@ -190,23 +199,21 @@ h1:focus { outline: none; }
 /* :::example container, emitted by ContentBuilder.
    Layout target:
      - wide (>= 720px):   row 1 = data (full width)
-                          row 2 = template | output
-     - narrow:            data → template → output stacked
-   If a particular example has no data block, template and output just sit on
-   row 1 side-by-side (or stacked on narrow). */
+                          row 2 = template + output side-by-side, SHARED height
+                                  (one resize affordance on the row, both panes fill it)
+     - narrow:            data → template → output stacked; each independently
+                          resizable.
+   If a particular example has no data block, template + output just sit on
+   row 1 by themselves (or stacked on narrow). */
 .example {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: 0.75rem;
     margin: 1.25rem 0;
     padding: 0.85rem;
     border: 1px solid var(--border, #e5e7eb);
     border-radius: 10px;
     background: var(--code-bg, #f3f4f6);
-}
-
-.example__col--data {
-    grid-column: 1 / -1;
 }
 
 .example__col {
@@ -229,25 +236,70 @@ h1:focus { outline: none; }
     border: 1px solid var(--code-border, #e5e7eb);
     border-radius: 6px;
     padding: 0.7rem 0.85rem;
-    font-size: 0.85rem;
-    line-height: 1.55;
-    overflow-x: auto;
+    font-size: var(--code-font-size);
+    line-height: var(--code-line-height);
+    font-family: var(--code-font-family);
+    overflow: auto;
     flex: 1;
     white-space: pre;
+    margin: 0;
 }
 
 .example__col code {
     background: none;
     border: none;
     padding: 0;
-    font-family: 'Cascadia Code', 'Cascadia Mono', Consolas, monospace;
+    font-family: var(--code-font-family);
+    font-size: var(--code-font-size);
+}
+
+/* Wide: data is its own resizable pane; template+output share a resizable row. */
+.example__col--data {
+    height: var(--pane-default-height);
+    min-height: var(--pane-min-height);
+    max-height: 75vh;
+    resize: vertical;
+    overflow: hidden;
+}
+.example__col--data pre {
+    height: 100%;
+}
+
+.example__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.75rem;
+    height: var(--pane-default-height);
+    min-height: var(--pane-min-height);
+    max-height: 75vh;
+    resize: vertical;
+    overflow: hidden;
+}
+.example__row > .example__col {
+    overflow: hidden;
+    min-height: 0;
+}
+.example__row > .example__col pre {
+    height: 100%;
 }
 
 @media (max-width: 720px) {
-    .example {
-        grid-template-columns: minmax(0, 1fr);
+    /* Narrow: drop the shared-resize row, give each pane its own resize. */
+    .example__row {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        min-height: 0;
+        max-height: none;
+        resize: none;
+        overflow: visible;
     }
+    .example__row > .example__col,
     .example__col--data {
-        grid-column: 1;
+        height: 240px;
+        min-height: var(--pane-min-height);
+        max-height: 75vh;
+        resize: vertical;
+        overflow: hidden;
     }
 }

@@ -101,15 +101,16 @@ internal sealed class MarkdownRenderer
             }
 
             renderer.Write("<div class=\"example\">\n");
-            // Order matches the visual layout: data spans the full top row,
-            // template and output sit side-by-side beneath it. When the data
-            // block is absent, template + output naturally take row 1 on their
-            // own. On narrow viewports the CSS collapses all three to a single
-            // column in this same DOM order.
+            // Data column is its own row spanning the full width. Template +
+            // Output sit in an .example__row sub-container so the CSS can share
+            // their height with a single resize handle on the row when wide,
+            // and split them onto independent rows when narrow.
             if (dataBlock is not null)
                 WritePanel(renderer, "Data", dataBlock, "data", "json");
+            renderer.Write("  <div class=\"example__row\">\n");
             WritePanel(renderer, "Template", templateBlock, "in", "scriban");
             WritePanel(renderer, "Output", outputBlock, "out", "text");
+            renderer.Write("  </div>\n");
             renderer.Write("</div>\n");
         }
 
@@ -125,10 +126,34 @@ internal sealed class MarkdownRenderer
             {
                 var lang = block.Info?.Trim() ?? defaultLang;
                 var raw = HighlightingCodeBlockRenderer.ExtractRaw(block);
+                // Pretty-print JSON before highlighting so the Data panel always
+                // reads as indented JSON regardless of how the author formatted
+                // it in the source .md (most write one-liners).
+                if (lang.Equals("json", StringComparison.OrdinalIgnoreCase))
+                    raw = PrettyJsonOrOriginal(raw);
                 var highlighted = _highlighter.Highlight(raw, lang);
                 renderer.Write("    <pre><code class=\"language-").Write(HttpUtility.HtmlAttributeEncode(lang)).Write("\">").Write(highlighted).Write("</code></pre>\n");
             }
             renderer.Write("  </div>\n");
+        }
+
+        private static readonly System.Text.Json.JsonSerializerOptions _jsonOpts = new()
+        {
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        };
+
+        private static string PrettyJsonOrOriginal(string raw)
+        {
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(raw);
+                return System.Text.Json.JsonSerializer.Serialize(doc.RootElement, _jsonOpts);
+            }
+            catch
+            {
+                return raw;
+            }
         }
     }
 }

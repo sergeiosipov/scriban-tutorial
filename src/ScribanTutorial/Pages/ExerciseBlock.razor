@@ -33,15 +33,7 @@
         </div>
         <div class="exercise__panel">
             <div class="exercise__panel-label">Expected output</div>
-            @if (_revealExpected)
-            {
-                <pre class="exercise__pre"><code>@Content.Expected</code></pre>
-                <button class="exercise__link" @onclick="() => _revealExpected = false">Hide</button>
-            }
-            else
-            {
-                <button class="exercise__link" @onclick="() => _revealExpected = true">Reveal</button>
-            }
+            <pre class="exercise__pre exercise__pre--expected"><code>@Content.Expected</code></pre>
         </div>
     </div>
 
@@ -138,7 +130,6 @@
     private DiffPaneModel? _diff;
     private Status _status = Status.Idle;
     private bool _running;
-    private bool _revealExpected;
     private bool _revealSolution;
     private int _attempts;
     private bool _restored;

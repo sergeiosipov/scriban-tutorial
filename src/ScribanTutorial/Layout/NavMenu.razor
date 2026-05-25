@@ -39,8 +39,9 @@
                         <span class="nav-menu__num" aria-hidden="true">@index.ToString("D2")</span>
                         <span class="nav-menu__label">@lesson.Title</span>
                         <span class="nav-menu__progress nav-menu__progress--@state.ToString().ToLowerInvariant()"
+                              data-state="@state.ToString().ToLowerInvariant()"
                               aria-hidden="true"
-                              title="@StateTitle(state)">@StateGlyph(state)</span>
+                              title="@StateTitle(state)"></span>
                     </NavLink>
                 </li>
             }
@@ -141,13 +142,6 @@
         if (passed == lesson.Exercises.Count) return LessonState.Complete;
         return LessonState.InProgress;
     }
-
-    private static string StateGlyph(LessonState s) => s switch
-    {
-        LessonState.Complete => "●",
-        LessonState.InProgress => "◐",
-        _ => "○",
-    };
 
     private static string StateTitle(LessonState s) => s switch
     {

@@ -2,13 +2,18 @@
     padding: 1.25rem 1rem;
     display: flex;
     flex-direction: column;
-    min-height: 100%;
+    /* height:100% + border-box keeps the menu exactly the sidebar's height
+       (including its own padding) so the sidebar doesn't scroll just because
+       of padding overflow. */
+    height: 100%;
+    box-sizing: border-box;
 }
 
 .nav-menu__brand {
     padding: 0 0.25rem 1rem 0.25rem;
     border-bottom: 1px solid var(--sidebar-border, #e2e5ea);
     margin-bottom: 0.75rem;
+    flex-shrink: 0;
 }
 
 .nav-menu__title-row {
@@ -56,13 +61,14 @@
     margin: 0;
     padding: 0;
     flex: 1;
+    min-height: 0;
 }
 
 .nav-menu__item { margin: 0; }
 
 /* The <a> rendered by <NavLink> is a Blazor component child — Blazor's CSS
    isolation can't reach it from a plain class selector, so we go through
-   ::deep. Same applies to .active below. */
+   ::deep. */
 .nav-menu__item ::deep .nav-menu__link {
     display: flex;
     align-items: center;
@@ -106,25 +112,54 @@
     flex: 1;
 }
 
+/* Progress glyphs drawn in CSS instead of as Unicode text so all three states
+   have the same diameter (Unicode ○ ◐ ● render at different sizes in most
+   fonts). Class-and-attribute hybrid so the rule still matches whether Blazor
+   isolation reaches the span or not. */
 .nav-menu__item ::deep .nav-menu__progress {
-    font-size: 0.95rem;
-    color: var(--muted, #6b7280);
-    line-height: 1;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 1.5px solid var(--muted, #6b7280);
+    background: transparent;
+    box-sizing: border-box;
+    line-height: 0;
+}
+.nav-menu__item ::deep .nav-menu__progress--inprogress {
+    border-color: var(--accent, #2563eb);
+    background: linear-gradient(to right,
+                                var(--accent, #2563eb) 0,
+                                var(--accent, #2563eb) 50%,
+                                transparent 50%,
+                                transparent 100%);
+}
+.nav-menu__item ::deep .nav-menu__progress--complete {
+    border-color: var(--pass, #16a34a);
+    background: var(--pass, #16a34a);
 }
 
-.nav-menu__item ::deep .nav-menu__progress--complete   { color: var(--pass, #16a34a); }
-.nav-menu__item ::deep .nav-menu__progress--inprogress { color: var(--accent, #2563eb); }
-
-.nav-menu__item ::deep .nav-menu__link.active .nav-menu__progress,
-.nav-menu__item ::deep .nav-menu__link.active .nav-menu__progress--complete,
+.nav-menu__item ::deep .nav-menu__link.active .nav-menu__progress {
+    border-color: rgba(255, 255, 255, 0.85);
+}
 .nav-menu__item ::deep .nav-menu__link.active .nav-menu__progress--inprogress {
-    color: rgba(255, 255, 255, 0.95);
+    background: linear-gradient(to right,
+                                #fff 0,
+                                #fff 50%,
+                                transparent 50%,
+                                transparent 100%);
+    border-color: #fff;
+}
+.nav-menu__item ::deep .nav-menu__link.active .nav-menu__progress--complete {
+    background: #fff;
+    border-color: #fff;
 }
 
 .nav-menu__footer {
     margin-top: auto;
     padding-top: 0.75rem;
     border-top: 1px solid var(--sidebar-border, #e2e5ea);
+    flex-shrink: 0;
 }
 
 .nav-menu__reset {

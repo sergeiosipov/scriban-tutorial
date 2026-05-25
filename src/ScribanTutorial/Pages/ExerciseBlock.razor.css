@@ -17,7 +17,7 @@
 .exercise__title {
     font-size: 1.05rem;
     margin: 0;
-    font-family: 'Cascadia Code', 'Cascadia Mono', Consolas, monospace;
+    font-family: var(--code-font-family);
     letter-spacing: -0.01em;
 }
 
@@ -63,14 +63,31 @@
     padding: 0.85rem 1rem;
     border-radius: 6px;
     overflow-x: auto;
-    font-size: 0.88rem;
+    font-size: var(--code-font-size);
+    font-family: var(--code-font-family);
 }
 
+/* Data model + Expected output share a row in wide layout, with a single
+   resize handle pinned to the row container (not the children) — so both
+   panes always have the same height. On narrow viewports they stack and
+   each gets its own resize. */
 .exercise__panels {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
     margin-bottom: 1rem;
+    height: var(--pane-default-height);
+    min-height: var(--pane-min-height);
+    max-height: 75vh;
+    resize: vertical;
+    overflow: hidden;
+}
+
+.exercise__panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
 }
 
 .exercise__panel-label {
@@ -79,6 +96,7 @@
     letter-spacing: 0.08em;
     color: var(--muted, #6b7280);
     margin-bottom: 0.35rem;
+    flex-shrink: 0;
 }
 
 .exercise__pre {
@@ -87,29 +105,44 @@
     border: 1px solid var(--code-border, #e5e7eb);
     border-radius: 6px;
     padding: 0.7rem 0.9rem;
-    overflow-x: auto;
-    font-size: 0.85rem;
-    font-family: 'Cascadia Code', 'Cascadia Mono', Consolas, monospace;
-    line-height: 1.5;
+    overflow: auto;
+    font-size: var(--code-font-size);
+    font-family: var(--code-font-family);
+    line-height: var(--code-line-height);
     white-space: pre;
+    flex: 1;
+    min-height: 0;
 }
 
+/* The data-model panel is build-time-rendered into a <pre><code>…</code></pre>
+   wrapper. Style it the same as .exercise__pre so the row's two panes look
+   identical aside from content. */
+.exercise__panel-code {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+}
 .exercise__panel-code ::deep pre {
     margin: 0;
     background: var(--code-bg, #f3f4f6);
     border: 1px solid var(--code-border, #e5e7eb);
     border-radius: 6px;
     padding: 0.7rem 0.9rem;
-    overflow-x: auto;
-    font-size: 0.85rem;
-    line-height: 1.5;
+    overflow: auto;
+    font-size: var(--code-font-size);
+    font-family: var(--code-font-family);
+    line-height: var(--code-line-height);
     white-space: pre;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
 }
 .exercise__panel-code ::deep code {
     background: none;
     border: 0;
     padding: 0;
-    font-family: 'Cascadia Code', 'Cascadia Mono', Consolas, monospace;
+    font-family: var(--code-font-family);
+    font-size: var(--code-font-size);
 }
 
 .exercise__pre--err {
@@ -117,19 +150,6 @@
     border-color: color-mix(in srgb, var(--fail) 35%, transparent);
     color: var(--fail);
 }
-
-.exercise__link {
-    background: none;
-    border: 0;
-    padding: 0;
-    margin-top: 0.4rem;
-    color: var(--accent, #2563eb);
-    font: inherit;
-    font-size: 0.85rem;
-    cursor: pointer;
-}
-
-.exercise__link:hover { text-decoration: underline; }
 
 .exercise__editor-label {
     display: block;
@@ -140,45 +160,36 @@
     margin: 0.5rem 0 0.35rem 0;
 }
 
+/* Single editor container. Resize is on this div; the inner CodeMirror view
+   is told to fill 100% so its own scroller picks up the height. CodeMirror's
+   cm-scroller handles internal overflow — no nested "broken" scroll. */
 .exercise__editor {
     width: 100%;
     box-sizing: border-box;
-    font-family: 'Cascadia Code', 'Cascadia Mono', Consolas, monospace;
-    font-size: 0.92rem;
-    line-height: 1.5;
-    padding: 0.7rem 0.9rem;
+    height: var(--pane-default-height);
+    min-height: var(--pane-min-height);
+    max-height: 75vh;
     border: 1px solid var(--border, #e5e7eb);
     border-radius: 6px;
-    resize: vertical;
-    background: var(--code-bg, #f9fafb);
-}
-
-.exercise__editor:focus {
-    outline: 2px solid var(--accent, #2563eb);
-    outline-offset: -1px;
-    border-color: transparent;
-}
-
-/* CodeMirror container — the editor mounts inside this div. */
-.exercise__editor--cm {
-    padding: 0;
     background: var(--bg, #fff);
+    resize: vertical;
     overflow: hidden;
 }
-.exercise__editor--cm ::deep .cm-editor {
-    font-size: 0.92rem;
-    border-radius: 6px;
-    min-height: 6.5rem;
+
+.exercise__editor ::deep .cm-editor {
+    height: 100%;
+    font-size: var(--code-font-size);
 }
-.exercise__editor--cm ::deep .cm-editor.cm-focused {
+.exercise__editor ::deep .cm-editor.cm-focused {
     outline: 2px solid var(--accent, #2563eb);
     outline-offset: -1px;
 }
-.exercise__editor--cm ::deep .cm-scroller {
-    font-family: 'Cascadia Code', 'Cascadia Mono', Consolas, monospace;
-    line-height: 1.55;
+.exercise__editor ::deep .cm-scroller {
+    font-family: var(--code-font-family);
+    line-height: var(--code-line-height);
+    overflow: auto;
 }
-.exercise__editor--cm ::deep .cm-gutters {
+.exercise__editor ::deep .cm-gutters {
     background: var(--code-bg, #f3f4f6);
     border-right: 1px solid var(--code-border, #e5e7eb);
 }
@@ -243,6 +254,13 @@
     margin-bottom: 0.35rem;
 }
 
+/* Result/diff panes should also have a sensible cap so a runaway template
+   doesn't push the page down a hundred screens. They scroll internally. */
+.exercise__result .exercise__pre {
+    max-height: var(--pane-default-height);
+    flex: none;
+}
+
 .exercise__errors,
 .exercise__diff {
     margin-top: 0.65rem;
@@ -290,8 +308,24 @@
     margin-left: 0.4em;
 }
 
+/* Narrow viewport: stack data + expected, give each its own resize handle.
+   The shared-row height/resize on .exercise__panels gets switched off. */
 @media (max-width: 720px) {
     .exercise__panels {
-        grid-template-columns: 1fr;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        height: auto;
+        min-height: 0;
+        max-height: none;
+        resize: none;
+        overflow: visible;
+    }
+    .exercise__panel {
+        height: 240px;
+        min-height: var(--pane-min-height);
+        max-height: 75vh;
+        resize: vertical;
+        overflow: hidden;
     }
 }
