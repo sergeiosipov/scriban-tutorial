@@ -13,18 +13,28 @@ else
         <h1>@_manifest.CourseTitle</h1>
         <p class="home__subtitle">@_manifest.CourseSubtitle</p>
     </header>
-    <ol class="home__lessons">
-        @foreach (var (lesson, index) in _manifest.Lessons.Select((l, i) => (l, i + 1)))
+    <ul class="home__lessons">
+        <li class="home__lesson">
+            <a class="home__lesson-link home__lesson-link--playground" href="playground">
+                <span class="home__lesson-num">Playground</span>
+                <span class="home__lesson-title">Free-form Scriban</span>
+                <span class="home__lesson-count">live editor</span>
+            </a>
+        </li>
+        @{ var n = 0; }
+        @foreach (var lesson in _manifest.Lessons)
         {
+            n++;
+            var idx = n;
             <li class="home__lesson">
                 <a class="home__lesson-link" href="@($"lesson/{lesson.Id}")">
-                    <span class="home__lesson-num">Lesson @index.ToString("D2")</span>
+                    <span class="home__lesson-num">Lesson @idx.ToString("D2")</span>
                     <span class="home__lesson-title">@lesson.Title</span>
                     <span class="home__lesson-count">@lesson.Exercises.Count exercise@(lesson.Exercises.Count == 1 ? "" : "s")</span>
                 </a>
             </li>
         }
-    </ol>
+    </ul>
 }
 
 @code {

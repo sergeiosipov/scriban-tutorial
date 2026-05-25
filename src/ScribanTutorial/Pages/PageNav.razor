@@ -1,0 +1,41 @@
+@* Previous / Next pager. Drop into any page; pass either or both targets.
+   Pages without a prev/next pass null (the spot is left empty so the
+   remaining link stays anchored to its corner of the row). *@
+
+<nav class="page-nav" aria-label="Page navigation">
+    @if (Prev is not null)
+    {
+        <a class="page-nav__link page-nav__link--prev" href="@Prev.Href">
+            <span class="page-nav__arrow" aria-hidden="true">←</span>
+            <span class="page-nav__text">
+                <span class="page-nav__label">Previous</span>
+                <span class="page-nav__title">@Prev.Title</span>
+            </span>
+        </a>
+    }
+    else
+    {
+        <span class="page-nav__placeholder" aria-hidden="true"></span>
+    }
+    @if (Next is not null)
+    {
+        <a class="page-nav__link page-nav__link--next" href="@Next.Href">
+            <span class="page-nav__text">
+                <span class="page-nav__label">Next</span>
+                <span class="page-nav__title">@Next.Title</span>
+            </span>
+            <span class="page-nav__arrow" aria-hidden="true">→</span>
+        </a>
+    }
+    else
+    {
+        <span class="page-nav__placeholder" aria-hidden="true"></span>
+    }
+</nav>
+
+@code {
+    public sealed record NavTarget(string Href, string Title);
+
+    [Parameter] public NavTarget? Prev { get; set; }
+    [Parameter] public NavTarget? Next { get; set; }
+}

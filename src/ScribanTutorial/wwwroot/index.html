@@ -7,7 +7,9 @@
   <!-- Defense-in-depth CSP. We're a static SPA whose only origin is the page itself.
        'wasm-unsafe-eval' is required for Blazor WASM's runtime; 'unsafe-inline'
        (style) is needed for Blazor's scoped CSS isolation and CodeMirror's
-       runtime style injection. No third-party origins are whitelisted. -->
+       runtime style injection. No third-party origins are whitelisted.
+       Note: `frame-ancestors` is ignored when delivered via <meta>; if framing
+       protection ever matters, set it as a server response header. -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self';
                  script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline';
@@ -15,9 +17,9 @@
                  img-src 'self' data:;
                  font-src 'self' data:;
                  connect-src 'self';
-                 frame-ancestors 'none';
                  base-uri 'self';
                  form-action 'none';" />
+  <link rel="icon" type="image/png" href="favicon.png" />
   <script>
     // Single Page Apps for GitHub Pages — companion to 404.html.
     // Decodes the ?/<path> query and history.replaceState's it back to the

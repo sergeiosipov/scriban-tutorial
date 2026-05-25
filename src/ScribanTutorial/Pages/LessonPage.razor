@@ -30,6 +30,7 @@ else
                            ExerciseId="@ex.Id"
                            Content="@_lesson.Exercises[ex.Id]" />
         }
+        <PageNav Prev="_prev" Next="_next" />
     </article>
 }
 
@@ -39,6 +40,8 @@ else
     private LessonContent? _lesson;
     private string? _error;
     private CancellationTokenSource? _cts;
+    private PageNav.NavTarget? _prev;
+    private PageNav.NavTarget? _next;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -50,10 +53,13 @@ else
 
         _lesson = null;
         _error = null;
+        _prev = null;
+        _next = null;
         StateHasChanged();
         try
         {
             _lesson = await Content.LoadLessonAsync(LessonId, ct);
+            ComputeNav();
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -68,6 +74,29 @@ else
             Console.Error.WriteLine($"LessonPage: load failed for lesson '{LessonId}' ({ex.GetType().Name})");
             _error = "Could not load the lesson content. Try reloading.";
         }
+    }
+
+    private void ComputeNav()
+    {
+        // Sidebar order is Course home → Playground → Lesson 01 … Lesson N.
+        // The prev/next chain follows that order: the first lesson's prev is
+        // Playground; the last lesson has no next.
+        if (Content.Manifest is null) return;
+        var lessons = Content.Manifest.Lessons;
+        var idx = -1;
+        for (var i = 0; i < lessons.Count; i++)
+        {
+            if (lessons[i].Id == LessonId) { idx = i; break; }
+        }
+        if (idx < 0) return;
+
+        _prev = idx == 0
+            ? new PageNav.NavTarget("playground", "Playground")
+            : new PageNav.NavTarget($"lesson/{lessons[idx - 1].Id}", lessons[idx - 1].Title);
+
+        _next = idx == lessons.Count - 1
+            ? null
+            : new PageNav.NavTarget($"lesson/{lessons[idx + 1].Id}", lessons[idx + 1].Title);
     }
 
     public void Dispose()
