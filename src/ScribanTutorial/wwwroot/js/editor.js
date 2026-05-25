@@ -6,13 +6,16 @@ import {
 } from "@codemirror/language";
 import { tags as t } from "@lezer/highlight";
 import { scribanLanguage } from "./scriban-language.js";
+import { jsonLanguage } from "./json-language.js";
 
 const editors = new Map();
 
 // Class-based highlight style. The actual colours live in wwwroot/css/app.css
 // under .hl-* rules keyed off CSS variables, so light / dark switching is a
-// data-theme attribute flip — no editor re-mount required.
-const scribanHighlight = HighlightStyle.define([
+// data-theme attribute flip — no editor re-mount required. Shared by the
+// Scriban grammar and the JSON grammar; both route their token kinds into
+// the same .hl-* classes.
+const codeHighlight = HighlightStyle.define([
   { tag: t.keyword,      class: "hl-keyword" },
   { tag: t.atom,         class: "hl-atom" },
   { tag: t.string,       class: "hl-string" },
@@ -23,6 +26,7 @@ const scribanHighlight = HighlightStyle.define([
   { tag: t.punctuation,  class: "hl-punctuation" },
   { tag: t.variableName, class: "hl-variable" },
   { tag: t.typeName,     class: "hl-type" },
+  { tag: t.propertyName, class: "hl-property" },
 ]);
 
 // Cap and floor for the auto-fit initial height. Must match the values in
@@ -56,7 +60,9 @@ export function mount(elementId, initial, dotnetRef, options) {
 
   const extensions = [basicSetup, indentUnit.of("  ")];
   if (language === "scriban") {
-    extensions.push(scribanLanguage, syntaxHighlighting(scribanHighlight));
+    extensions.push(scribanLanguage, syntaxHighlighting(codeHighlight));
+  } else if (language === "json") {
+    extensions.push(jsonLanguage, syntaxHighlighting(codeHighlight));
   }
   extensions.push(EditorView.updateListener.of((u) => {
     if (u.docChanged && dotnetRef) {

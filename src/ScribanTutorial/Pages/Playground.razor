@@ -162,7 +162,7 @@
             _dotnetRef = DotNetObjectReference.Create(this);
             await _editorModule.InvokeVoidAsync(
                 "mount", _dataEditorId, _data, _dotnetRef,
-                new { callbackMethod = "OnDataChange", autoFit = false });
+                new { language = "json", callbackMethod = "OnDataChange", autoFit = false });
             await _editorModule.InvokeVoidAsync(
                 "mount", _templateEditorId, _template, _dotnetRef,
                 new { language = "scriban", callbackMethod = "OnTemplateChange", autoFit = false });
