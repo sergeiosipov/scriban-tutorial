@@ -1,5 +1,3 @@
-# Putting it together
-
 The earlier lessons introduced expressions, filters, and control flow one at a
 time. In real templates you'll usually stack all three in a single file. This
 lesson does exactly that — you'll build a small invoice template that:

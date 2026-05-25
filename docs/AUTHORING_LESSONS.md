@@ -173,9 +173,13 @@ places and needs a theory file.
 
 ### Headings
 
-Use `# Top` once at the top of the file, `## Section` for the main beats,
-`### Subsection` sparingly. The hierarchy is what readers scan when looking
-for "where do I find X".
+**Do not start the file with a `# Title` heading.** The lesson page already
+renders the title from the manifest (`lessons[].title`) above the theory
+body — a leading `# Title` in the markdown produces a duplicated title on
+screen. Open the file with the first paragraph of prose.
+
+Use `## Section` for the main beats and `### Subsection` sparingly. The
+hierarchy is what readers scan when looking for "where do I find X".
 
 ### Plain code blocks
 

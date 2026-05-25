@@ -1,5 +1,3 @@
-# Basics
-
 A Scriban template is just text with `{{ ... }}` tags punched in it. The same
 `{{ ... }}` form is used for both **expressions** (which print their result)
 and **control flow** (`{{ if cond }}…{{ else }}…{{ end }}`,

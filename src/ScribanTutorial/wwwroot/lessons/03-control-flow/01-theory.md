@@ -1,5 +1,3 @@
-# Control flow
-
 Control flow tags use the same `{{ ... }}` delimiters as expressions. The
 template engine recognises a handful of statement keywords (`if`, `else`,
 `for`, `while`, …) and pairs each with a closing `{{ end }}`.

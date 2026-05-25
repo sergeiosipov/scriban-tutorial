@@ -42,20 +42,29 @@ what CI runs.
 │    ├─ Markdig + custom :::example renderer            │
 │    ├─ TextMateSharp colours fenced code blocks        │
 │    ├─ writes *.html siblings + 02-datamodel.html      │
-│    └─ writes per-exercise bundle.json (all six        │
-│       runtime inputs in one fetchable blob)           │
+│    ├─ writes per-exercise bundle.json (all six        │
+│    │    runtime inputs in one fetchable blob)         │
+│    └─ renders top-level repo docs (SECURITY,          │
+│         KNOWN_ISSUES, AUTHORING_LESSONS) into         │
+│         wwwroot/reference/ for the About + Contribute │
+│         pages                                         │
 │  Triggered by a BuildContent MSBuild target           │
 └──────────────────────────┬────────────────────────────┘
                            │ pre-rendered .html + bundle.json
                            ▼
 ┌──────────────── Runtime (browser) ────────────────────┐
 │  App.razor → <Router>                                 │
-│      ├─ "/"                  → Home (course index)    │
-│      ├─ "/playground"        → free-form editor       │
-│      └─ "/lesson/{LessonId}" → LessonPage             │
+│      ├─ "/"                  → 000_home               │
+│      ├─ "/about"             → 001_about              │
+│      ├─ "/playground"        → 002_playground         │
+│      ├─ "/lesson/{LessonId}" → 010_lesson             │
+│      └─ "/contribute"        → 999_contribute-a-lesson│
 │                                                       │
 │  Singletons                                           │
 │    ├─ ContentService  — manifest + lazy lesson load   │
+│    │                  + reference-doc fetch           │
+│    ├─ PageOrder       — auto prev/next from page      │
+│    │                    file-name prefixes + manifest │
 │    ├─ ProgressService — localStorage + in-mem mirror  │
 │    └─ ThemeService    — light / dark, persisted       │
 │                                                       │
@@ -76,14 +85,14 @@ services, components, file layout, and where each piece lives.
 dotnet test
 ```
 
-xUnit project under `tests/ScribanTutorial.Tests/`. Six test classes (33 cases):
+xUnit project under `tests/ScribanTutorial.Tests/`. Six test classes (42 cases):
 
 - `ContentNormalizeTests` — CRLF / trailing-newline normalisation.
 - `JsonToScribanTests` — JSON → ScriptObject conversion (incl. the int-vs-float fix).
 - `ScribanRunnerTests` — render path, parse errors, JSON-error friendly message, the 250 KB output cap.
 - `ExerciseSolutionTests` — data-driven from the manifest; every exercise's canonical solution runs against its data model and is compared to expected. Add an exercise → it gets a test for free.
-- `ContentBuilderTests` — MarkdownRenderer's `:::example` blocks emit the right three-panel layout; TextMateHighlighter colours a known Scriban snippet correctly.
-- `BuildTargetTest` — every `.md` has a fresh `.html` sibling; every exercise has a fresh `bundle.json`. Catches "BuildContent MSBuild target stopped running" without a full publish.
+- `ContentBuilderTests` — MarkdownRenderer's `:::example` blocks emit the right three-panel layout; the link rewriter resolves repo-relative hrefs to GitHub blob URLs; the sanitiser strips `<script>`, `on*=`, `javascript:`, `<iframe>`; per-edge grammar regression locks; TextMateHighlighter colours a known Scriban snippet correctly.
+- `BuildTargetTest` — every lesson `.md` has a fresh `.html` sibling; every exercise has a fresh `bundle.json`; every reference doc rendered into `wwwroot/reference/`. Catches "BuildContent MSBuild target stopped running" without a full publish.
 
 CI gates the deploy on `dotnet test` going green.
 

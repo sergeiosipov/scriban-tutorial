@@ -1,5 +1,3 @@
-# Filters
-
 A **filter** transforms a value. You apply a filter with the pipe operator `|`,
 which feeds the value on its left into the function on its right. The result of
 the whole expression is the final filter's output.

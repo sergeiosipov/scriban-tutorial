@@ -50,10 +50,14 @@ runs.
 ```
 scriban-tutorial/
 ├─ src/ScribanTutorial/        Blazor WebAssembly app (the runtime)
-│  ├─ Pages/                   Routed pages and per-component .razor.css
+│  ├─ Pages/                   Routed pages (NNN_name.razor — numeric
+│  │                           prefix encodes prev/next order) and shared
+│  │                           components (ExerciseBlock, TheoryBlock,
+│  │                           DiffView, PageNav)
 │  ├─ Layout/                  NavMenu, MainLayout
-│  ├─ Services/                ContentService, ProgressService, ThemeService,
-│  │                           ScribanRunner, JsonToScriban, helpers
+│  ├─ Services/                ContentService, PageOrder, ProgressService,
+│  │                           ThemeService, ScribanRunner, JsonToScriban,
+│  │                           CodeEditorHandle, helpers
 │  └─ wwwroot/                 Static assets (CSS, JS, lessons/, manifest.json)
 ├─ tools/ContentBuilder/       .NET console tool: Markdown → HTML, bundle.json,
 │                              syntax-highlighter, --verify subcommand
@@ -151,6 +155,22 @@ deployment pipeline details in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
   `@((MarkupString)...)`). See
   [`Pages/TheoryBlock.razor.css`](src/ScribanTutorial/Pages/TheoryBlock.razor.css)
   for the canonical example.
+- **Page filenames carry their nav order.** Routed pages live under
+  [`src/ScribanTutorial/Pages/`](src/ScribanTutorial/Pages/) and are named
+  `NNN_name.razor` — e.g. `000_home.razor`, `001_about.razor`,
+  `002_playground.razor`, `010_lesson.razor`, `999_contribute-a-lesson.razor`.
+  Razor escapes the leading digit in the generated class name (`_000_home`,
+  etc.), so the alphabetical sort of type names matches the numeric order
+  on disk. [`Services/PageOrder`](src/ScribanTutorial/Services/PageOrder.cs)
+  reflects over routed components, sorts by type name, expands the
+  `lesson/{LessonId}` slot from the manifest, and drives
+  [`PageNav`](src/ScribanTutorial/Pages/PageNav.razor)'s prev/next links.
+  To insert a new page between two existing ones, pick a numeric prefix
+  that sorts between them — there's no central list to update.
+- **Shared (non-routed) components in `Pages/`** don't take a numeric
+  prefix — `ExerciseBlock.razor`, `TheoryBlock.razor`, `DiffView.razor`,
+  `PageNav.razor`. `PageOrder`'s reflection filter skips types without a
+  `[Route]` attribute, so they're invisible to the prev/next chain.
 - **No emojis in source files** unless the user explicitly asks.
 - **Comments explain WHY, not WHAT.** Named identifiers should already
   cover the "what" — only add a comment when there's a non-obvious
