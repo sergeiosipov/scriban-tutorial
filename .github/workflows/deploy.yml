@@ -40,6 +40,13 @@ jobs:
         # `dotnet publish src/...` alone only restores the WASM project.
         run: dotnet restore ScribanTutorial.slnx
 
+      - name: Build WASM project (fires the BuildContent MSBuild target)
+        # Regenerates .html and bundle.json siblings under wwwroot/lessons
+        # via the BuildContent target. BuildTargetTest asserts those siblings
+        # are present and fresh; without this step the test would only see the
+        # .md sources (the generated artifacts are gitignored).
+        run: dotnet build src/ScribanTutorial/ScribanTutorial.csproj --configuration Release --no-restore
+
       - name: Run xUnit tests
         # Includes the parameterised ExerciseSolutionTests that re-runs every
         # exercise's canonical solution against its data model. Gates the
