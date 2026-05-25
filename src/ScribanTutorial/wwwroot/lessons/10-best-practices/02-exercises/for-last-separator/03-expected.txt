@@ -1,0 +1,1 @@
+scriban, wasm, blazor

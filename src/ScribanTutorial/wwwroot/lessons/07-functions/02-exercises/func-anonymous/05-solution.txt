@@ -1,0 +1,2 @@
+{{ sub = do; ret $0 - $1; end
+   sub 9 4 }}

@@ -1,6 +1,0 @@
-Invoice for Ada Lovelace
-------------------------
-widget (x2): $20
-gadget (x1): $25
-------------------------
-Total: $45

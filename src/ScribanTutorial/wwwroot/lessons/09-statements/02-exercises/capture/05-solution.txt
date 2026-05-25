@@ -1,0 +1,4 @@
+{{- capture greeting -}}
+Hello, world.
+{{- end -}}
+{{ greeting | string.upcase }}

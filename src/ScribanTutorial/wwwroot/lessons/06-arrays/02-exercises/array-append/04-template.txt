@@ -1,0 +1,4 @@
+{{ letters = ???
+   letters[0] = ???
+   letters[1] = ??? -}}
+{{ letters[0] }}, {{ letters[1] }}

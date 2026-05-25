@@ -1,0 +1,4 @@
+{{ letters = []
+   letters[0] = "a"
+   letters[1] = "b" -}}
+{{ letters[0] }}, {{ letters[1] }}

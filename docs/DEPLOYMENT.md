@@ -55,7 +55,7 @@ org-level restriction more strict than that would block the deploy.
 | File | Why |
 |---|---|
 | `wwwroot/.nojekyll` | GitHub Pages runs Jekyll by default, which strips folders starting with `_`. Without this file, `_framework/` (the entire .NET runtime + assemblies) gets deleted and the deployed app 404s on boot. |
-| `wwwroot/404.html` | GitHub Pages serves `404.html` for any unknown path. The script inside reads the requested URL, redirects to `index.html?/<path>`, and lets the SPA companion script in `index.html` push the original path into history. Without this, a direct link to `/lesson/01-basics` returns a real 404. |
+| `wwwroot/404.html` | GitHub Pages serves `404.html` for any unknown path. The script inside reads the requested URL, redirects to `index.html?/<path>`, and lets the SPA companion script in `index.html` push the original path into history. Without this, a direct link to `/lesson/01-blocks` returns a real 404. |
 | SPA-redirect script in `<head>` of `index.html` | Companion to the 404 bounce. Decodes the `?/<path>` query and `history.replaceState` it back to the original URL so the Blazor router sees the right path. |
 | Rewritten base href | At dev time the base is `/`. On Pages it has to be `/scriban-tutorial/` so `<base>`-relative URLs resolve correctly under the subpath. The workflow rewrites this rather than us hardcoding it. |
 

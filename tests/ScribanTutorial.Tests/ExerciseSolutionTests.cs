@@ -31,7 +31,7 @@ public class ExerciseSolutionTests
         {
             foreach (var ex in lesson.Exercises)
             {
-                // Manifest path is a URL ("lessons/01-basics/02-exercises/hello").
+                // Manifest path is a URL ("lessons/04-variables/02-exercises/hello").
                 // Translate to a filesystem path under wwwroot.
                 var relSegments = ex.Path.Split('/');
                 var fsPath = Path.Combine(

@@ -294,6 +294,5 @@ solution, run the tests, `dotnet publish`, rewrite the base href to
 - [README](../README.md) — landing-page overview and prerequisites.
 - [AUTHORING_LESSONS.md](AUTHORING_LESSONS.md) — non-developer flow for adding or editing content.
 - [SECURITY.md](SECURITY.md) — threat model for running user templates in the browser.
-- [SCRIBAN_BEST_PRACTICES.md](SCRIBAN_BEST_PRACTICES.md) — Scriban patterns the lessons teach.
 - [DEPLOYMENT.md](DEPLOYMENT.md) — GitHub Pages pipeline, base href, SPA routing.
 - [KNOWN_ISSUES.md](../KNOWN_ISSUES.md) — Scriban TextMate grammar edge cases and other rough edges.

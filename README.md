@@ -85,7 +85,7 @@ services, components, file layout, and where each piece lives.
 dotnet test
 ```
 
-xUnit project under `tests/ScribanTutorial.Tests/`. Six test classes (42 cases):
+xUnit project under `tests/ScribanTutorial.Tests/`. Six test classes (83 cases — most are the per-exercise solution checks):
 
 - `ContentNormalizeTests` — CRLF / trailing-newline normalisation.
 - `JsonToScribanTests` — JSON → ScriptObject conversion (incl. the int-vs-float fix).
@@ -112,6 +112,5 @@ CI gates the deploy on `dotnet test` going green.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — current-state map of services, components, build pipeline, and asset layout. Skim this first for non-trivial changes.
 - [`docs/AUTHORING_LESSONS.md`](docs/AUTHORING_LESSONS.md) — source of the rendered Contribute page; the full lesson-authoring reference.
 - [`docs/SECURITY.md`](docs/SECURITY.md) — threat model for running user-supplied templates in the browser (also rendered on the [About page](https://sergeiosipov.github.io/scriban-tutorial/about)).
-- [`docs/SCRIBAN_BEST_PRACTICES.md`](docs/SCRIBAN_BEST_PRACTICES.md) — the patterns lesson content should teach.
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — GitHub Pages deployment, base href, SPA routing.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) — Scriban TextMate grammar edge cases and course-coverage gaps (also rendered on the [About page](https://sergeiosipov.github.io/scriban-tutorial/about)).

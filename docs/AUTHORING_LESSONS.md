@@ -30,7 +30,7 @@ the file layout works, the conventions, and the verification tools.
 src/ScribanTutorial/wwwroot/
   manifest.json
   lessons/
-    01-basics/
+    04-variables/
       01-theory.md                 ← the read-aloud part of the lesson
       02-exercises/
         hello/
@@ -39,9 +39,9 @@ src/ScribanTutorial/wwwroot/
           03-expected.txt          ← byte-exact expected output
           04-template.txt          ← starter (with ??? placeholders)
           05-solution.txt          ← known-good solution
-        member-access/
+        local-variable/
           ...
-    02-filters/
+    05-objects/
       ...
 ```
 
@@ -64,10 +64,10 @@ are gitignored — don't commit them.
 ## Add a new exercise (quick)
 
 1. Pick a lesson folder under `src/ScribanTutorial/wwwroot/lessons/`,
-   e.g. `02-filters/`.
+   e.g. `06-arrays/`.
 2. Inside its `02-exercises/`, create a new directory named after the
    exercise's stable slug (kebab-case, ASCII):
-   `02-filters/02-exercises/strip-whitespace/`.
+   `06-arrays/02-exercises/array-slice/`.
 3. Create **all five files** (encoding rules below — get this part right or
    the runner will reject your output):
 
@@ -83,14 +83,14 @@ are gitignored — don't commit them.
    `exercises` array (order matters — learners see them in this order):
 
    ```json
-   { "id": "strip-whitespace", "path": "lessons/02-filters/02-exercises/strip-whitespace" }
+   { "id": "array-slice", "path": "lessons/06-arrays/02-exercises/array-slice" }
    ```
 
 5. From the repo root, **verify** your solution actually produces the
    expected output:
 
    ```powershell
-   dotnet run --project tools\ContentBuilder -- --verify src\ScribanTutorial\wwwroot\lessons\02-filters\02-exercises\strip-whitespace
+   dotnet run --project tools\ContentBuilder -- --verify src\ScribanTutorial\wwwroot\lessons\06-arrays\02-exercises\array-slice
    ```
 
    Expected: `--verify OK (...)`. If you see `--verify FAIL`, the tool prints
@@ -119,18 +119,22 @@ are gitignored — don't commit them.
 Higher friction than a single exercise — touches the manifest in more
 places and needs a theory file.
 
-1. Create the lesson directory:
+1. Create the lesson directory (slot it numerically into the course order
+   — `11-…` puts it after Best practices; `08a-…` would sit between
+   Expressions and Statements):
    ```
-   src/ScribanTutorial/wwwroot/lessons/05-functions/
+   src/ScribanTutorial/wwwroot/lessons/11-advanced/
    ```
 2. Inside it, create `01-theory.md` and an empty `02-exercises/`:
    ```
-   05-functions/
+   11-advanced/
      01-theory.md
      02-exercises/
    ```
 3. Write the theory (conventions below). At minimum: one or two `## Section`
-   headings and one `:::example` block per concept.
+   headings and one `:::example` block per concept. **Do not** start the
+   file with a `# Title` — the lesson page already renders the title from
+   the manifest.
 4. Add at least one exercise inside `02-exercises/` — follow the per-exercise
    quick start above.
 5. Add the lesson to `manifest.json`'s `lessons` array, in the order
@@ -138,11 +142,11 @@ places and needs a theory file.
 
    ```json
    {
-     "id": "05-functions",
-     "title": "Functions",
-     "theoryPath": "lessons/05-functions/01-theory",
+     "id": "11-advanced",
+     "title": "Advanced",
+     "theoryPath": "lessons/11-advanced/01-theory",
      "exercises": [
-       { "id": "first", "path": "lessons/05-functions/02-exercises/first" }
+       { "id": "first", "path": "lessons/11-advanced/02-exercises/first" }
      ]
    }
    ```
@@ -354,10 +358,10 @@ under `tests/ScribanTutorial.Tests/`):
 
 ```csharp
 [Fact]
-public void Strip_whitespace_handles_unicode_NBSPs()
+public void Array_slice_handles_unicode_NBSPs()
 {
     var dir = Path.Combine(RepoPaths.LessonsDir,
-        "02-filters", "02-exercises", "strip-whitespace");
+        "06-arrays", "02-exercises", "array-slice");
     // ...read files, run, assert...
 }
 ```
@@ -421,7 +425,7 @@ Set-Content -Encoding utf8NoBOM -Path $path -Value $content
 | `--verify FAIL` with no obvious diff | Trailing whitespace **inside** a line of `03-expected.txt` you didn't notice | Toggle "render whitespace" in your editor and re-check |
 | Exercise renders nothing on the page | Template renders the empty string because the data-model property name is misspelled (Scriban returns null silently for missing members) | Double-check `02-datamodel.json` field names against the template |
 | `for x in items` outputs nothing | `items` is missing from the data model, or it's null. Scriban silently skips a loop over null. | Confirm the field exists in `02-datamodel.json` and is an array |
-| Extra blank line in output | Block tags like `{{ for }}` or `{{ end }}` leave the surrounding newlines in. | Add `{{-` / `-}}` whitespace control. See `03-control-flow/01-theory.md` for examples. |
+| Extra blank line in output | Block tags like `{{ for }}` or `{{ end }}` leave the surrounding newlines in. | Add `{{-` / `-}}` whitespace control. See `01-blocks/01-theory.md` (Whitespace control) and `09-statements/01-theory.md` for examples. |
 | Number formats as `5.0` instead of `5` | Used to be a bug where every JSON integer became a double; fixed (see `JsonToScribanTests.Distinguishes_integers_from_floats`). If it returns, that test will fail. | — |
 | Browser still shows old content | GitHub Pages CDN cache — 2–5 min after a deploy lands. | Hard refresh (Ctrl+F5), wait. |
 | Sidebar indicator stays `○` even after passing | Browser blocked `localStorage` (private mode, restrictive content-blocker). Progress only persists when the browser allows the write. | Try a normal window. |

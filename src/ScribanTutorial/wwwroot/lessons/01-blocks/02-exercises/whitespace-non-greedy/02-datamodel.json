@@ -1,0 +1,5 @@
+{ "products": [
+  { "name": "Orange" },
+  { "name": "Banana" },
+  { "name": "Apple" }
+] }

@@ -3,38 +3,121 @@
   "courseSubtitle": "A hands-on tour of the Scriban templating language",
   "lessons": [
     {
-      "id": "01-basics",
-      "title": "Basics",
-      "theoryPath": "lessons/01-basics/01-theory",
+      "id": "01-blocks",
+      "title": "Blocks",
+      "theoryPath": "lessons/01-blocks/01-theory",
       "exercises": [
-        { "id": "hello",         "path": "lessons/01-basics/02-exercises/hello" },
-        { "id": "member-access", "path": "lessons/01-basics/02-exercises/member-access" }
+        { "id": "code-block-inline",     "path": "lessons/01-blocks/02-exercises/code-block-inline" },
+        { "id": "escape-block",          "path": "lessons/01-blocks/02-exercises/escape-block" },
+        { "id": "whitespace-strip",      "path": "lessons/01-blocks/02-exercises/whitespace-strip" },
+        { "id": "whitespace-non-greedy", "path": "lessons/01-blocks/02-exercises/whitespace-non-greedy" }
       ]
     },
     {
-      "id": "02-filters",
-      "title": "Filters",
-      "theoryPath": "lessons/02-filters/01-theory",
+      "id": "02-comments",
+      "title": "Comments",
+      "theoryPath": "lessons/02-comments/01-theory",
       "exercises": [
-        { "id": "upcase", "path": "lessons/02-filters/02-exercises/upcase" },
-        { "id": "math",   "path": "lessons/02-filters/02-exercises/math" }
+        { "id": "single-line-comment", "path": "lessons/02-comments/02-exercises/single-line-comment" },
+        { "id": "multi-line-comment",  "path": "lessons/02-comments/02-exercises/multi-line-comment" }
       ]
     },
     {
-      "id": "03-control-flow",
-      "title": "Control flow",
-      "theoryPath": "lessons/03-control-flow/01-theory",
+      "id": "03-literals",
+      "title": "Literals",
+      "theoryPath": "lessons/03-literals/01-theory",
       "exercises": [
-        { "id": "list-loop",   "path": "lessons/03-control-flow/02-exercises/list-loop" },
-        { "id": "conditional", "path": "lessons/03-control-flow/02-exercises/conditional" }
+        { "id": "string-basic",         "path": "lessons/03-literals/02-exercises/string-basic" },
+        { "id": "string-interpolation", "path": "lessons/03-literals/02-exercises/string-interpolation" },
+        { "id": "string-verbatim",      "path": "lessons/03-literals/02-exercises/string-verbatim" },
+        { "id": "number-hex-literal",   "path": "lessons/03-literals/02-exercises/number-hex-literal" },
+        { "id": "boolean-output",       "path": "lessons/03-literals/02-exercises/boolean-output" },
+        { "id": "null-renders-empty",   "path": "lessons/03-literals/02-exercises/null-renders-empty" }
       ]
     },
     {
-      "id": "04-assembly",
-      "title": "Putting it together",
-      "theoryPath": "lessons/04-assembly/01-theory",
+      "id": "04-variables",
+      "title": "Variables",
+      "theoryPath": "lessons/04-variables/01-theory",
       "exercises": [
-        { "id": "invoice", "path": "lessons/04-assembly/02-exercises/invoice" }
+        { "id": "hello",          "path": "lessons/04-variables/02-exercises/hello" },
+        { "id": "local-variable", "path": "lessons/04-variables/02-exercises/local-variable" },
+        { "id": "this-access",    "path": "lessons/04-variables/02-exercises/this-access" }
+      ]
+    },
+    {
+      "id": "05-objects",
+      "title": "Objects",
+      "theoryPath": "lessons/05-objects/01-theory",
+      "exercises": [
+        { "id": "member-access",  "path": "lessons/05-objects/02-exercises/member-access" },
+        { "id": "add-member",     "path": "lessons/05-objects/02-exercises/add-member" },
+        { "id": "optional-chain", "path": "lessons/05-objects/02-exercises/optional-chain" },
+        { "id": "empty-check",    "path": "lessons/05-objects/02-exercises/empty-check" }
+      ]
+    },
+    {
+      "id": "06-arrays",
+      "title": "Arrays",
+      "theoryPath": "lessons/06-arrays/01-theory",
+      "exercises": [
+        { "id": "array-index",         "path": "lessons/06-arrays/02-exercises/array-index" },
+        { "id": "array-size",          "path": "lessons/06-arrays/02-exercises/array-size" },
+        { "id": "array-append",        "path": "lessons/06-arrays/02-exercises/array-append" },
+        { "id": "array-with-property", "path": "lessons/06-arrays/02-exercises/array-with-property" }
+      ]
+    },
+    {
+      "id": "07-functions",
+      "title": "Functions",
+      "theoryPath": "lessons/07-functions/01-theory",
+      "exercises": [
+        { "id": "func-simple",     "path": "lessons/07-functions/02-exercises/func-simple" },
+        { "id": "func-parametric", "path": "lessons/07-functions/02-exercises/func-parametric" },
+        { "id": "func-inline",     "path": "lessons/07-functions/02-exercises/func-inline" },
+        { "id": "func-anonymous",  "path": "lessons/07-functions/02-exercises/func-anonymous" }
+      ]
+    },
+    {
+      "id": "08-expressions",
+      "title": "Expressions",
+      "theoryPath": "lessons/08-expressions/01-theory",
+      "exercises": [
+        { "id": "math",             "path": "lessons/08-expressions/02-exercises/math" },
+        { "id": "upcase",           "path": "lessons/08-expressions/02-exercises/upcase" },
+        { "id": "string-repeat",    "path": "lessons/08-expressions/02-exercises/string-repeat" },
+        { "id": "string-vs-number", "path": "lessons/08-expressions/02-exercises/string-vs-number" },
+        { "id": "ternary",          "path": "lessons/08-expressions/02-exercises/ternary" },
+        { "id": "range",            "path": "lessons/08-expressions/02-exercises/range" },
+        { "id": "null-coalesce",    "path": "lessons/08-expressions/02-exercises/null-coalesce" }
+      ]
+    },
+    {
+      "id": "09-statements",
+      "title": "Statements",
+      "theoryPath": "lessons/09-statements/01-theory",
+      "exercises": [
+        { "id": "compound-assign", "path": "lessons/09-statements/02-exercises/compound-assign" },
+        { "id": "conditional",     "path": "lessons/09-statements/02-exercises/conditional" },
+        { "id": "case-when",       "path": "lessons/09-statements/02-exercises/case-when" },
+        { "id": "list-loop",       "path": "lessons/09-statements/02-exercises/list-loop" },
+        { "id": "for-range",       "path": "lessons/09-statements/02-exercises/for-range" },
+        { "id": "for-limit",       "path": "lessons/09-statements/02-exercises/for-limit" },
+        { "id": "for-last",        "path": "lessons/09-statements/02-exercises/for-last" },
+        { "id": "while-loop",      "path": "lessons/09-statements/02-exercises/while-loop" },
+        { "id": "break-continue",  "path": "lessons/09-statements/02-exercises/break-continue" },
+        { "id": "capture",         "path": "lessons/09-statements/02-exercises/capture" }
+      ]
+    },
+    {
+      "id": "10-best-practices",
+      "title": "Best practices",
+      "theoryPath": "lessons/10-best-practices/01-theory",
+      "exercises": [
+        { "id": "whitespace-list",     "path": "lessons/10-best-practices/02-exercises/whitespace-list" },
+        { "id": "for-last-separator",  "path": "lessons/10-best-practices/02-exercises/for-last-separator" },
+        { "id": "array-size-check",    "path": "lessons/10-best-practices/02-exercises/array-size-check" },
+        { "id": "invoice",             "path": "lessons/10-best-practices/02-exercises/invoice" }
       ]
     }
   ]

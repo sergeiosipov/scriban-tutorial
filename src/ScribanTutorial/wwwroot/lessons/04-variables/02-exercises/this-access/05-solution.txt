@@ -1,0 +1,2 @@
+{{ this.score = 6
+   score }}

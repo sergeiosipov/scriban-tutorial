@@ -1,0 +1,5 @@
+{{- if (array.size items) > 0 -}}
+Has {{ array.size items }} item(s)
+{{- else -}}
+Nothing to show
+{{- end -}}

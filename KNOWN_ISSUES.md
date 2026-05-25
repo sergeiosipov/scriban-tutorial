@@ -5,21 +5,25 @@ aware of before opening a related PR.
 
 ## Course coverage
 
-The `:::example` blocks and exercises cover a working subset of Scriban —
-expressions, member access, pipe filters, arithmetic, `if`/`else`, `for`,
-ranges, basic whitespace control, and a real-world combining example.
-Topics intentionally **not yet** covered, queued for follow-up lessons:
+The course now mirrors the structure of
+<https://scriban.github.io/docs/language/> — lessons 01–09 follow the
+doc's top-level sections in order, and lesson 10 collects the best
+practices. Topics still **not** covered by the course (intentionally
+deferred or excluded):
 
-- `case` / `when` pattern matching.
-- `capture` for storing rendered output in a variable.
-- `func name; ...; end` user-defined functions.
-- `with object; ...; end` implicit member access blocks.
-- `wrap` content wrappers.
-- `tablerow` grid layouts.
-- `regex.*` filters beyond a passing mention.
+- `wrap` content wrappers — present in lesson 09's theory as a mention,
+  no exercise.
+- `tablerow` grid layouts — present as a mention; require an HTML host
+  to verify visually and don't transfer to a learner's text-only
+  templates.
+- `include` / `include_join` — depend on a host-configured template
+  loader that this WASM tutorial doesn't ship.
+- `regex.*` filters beyond a passing example in lesson 03 (verbatim
+  strings) and the gotcha list in lesson 10.
 
-A `Future lessons` checklist lives at the bottom of
-`docs/SCRIBAN_BEST_PRACTICES.md`.
+These are listed here, not on the rendered Course coverage page, because
+adding them would require host-side configuration that this single-user
+browser app intentionally avoids.
 
 ## Scriban TextMate grammar — `tools/ContentBuilder/grammars/scriban.tmLanguage.json`
 

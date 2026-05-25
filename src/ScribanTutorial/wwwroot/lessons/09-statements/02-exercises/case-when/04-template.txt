@@ -1,0 +1,9 @@
+{{- x = 5
+    case x
+      when 1, 2, 3
+        ???
+      when 5
+        ???
+      else
+        ???
+    end -}}

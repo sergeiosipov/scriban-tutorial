@@ -1,0 +1,4 @@
+{{ func sub
+     ret $0 - $1
+   end
+   sub 5 1 }}

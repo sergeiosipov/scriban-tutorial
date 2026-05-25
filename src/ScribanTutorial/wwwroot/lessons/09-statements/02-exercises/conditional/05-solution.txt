@@ -1,0 +1,1 @@
+{{ if stock > 0 }}in stock ({{ stock }}){{ else }}out of stock{{ end }}

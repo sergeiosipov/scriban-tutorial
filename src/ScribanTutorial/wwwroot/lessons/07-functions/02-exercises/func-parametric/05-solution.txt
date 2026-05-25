@@ -1,0 +1,4 @@
+{{ func sub(x, y, z = 1)
+     ret x - y - z
+   end
+   sub 10 3 }}
