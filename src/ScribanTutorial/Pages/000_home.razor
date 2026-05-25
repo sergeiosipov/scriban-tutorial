@@ -49,16 +49,11 @@ else
             </a>
         </li>
     </ul>
-    <PageNav Next="_next" />
+    <PageNav />
 }
 
 @code {
     private Manifest? _manifest;
-    // Home is the start of the linear nav chain (Home → About → Playground →
-    // Lesson 01..N → Contribute), so Prev is always null and Next always
-    // points at About. Building the target eagerly keeps the PageNav stable
-    // even before the manifest fetch completes.
-    private readonly PageNav.NavTarget _next = new("about", "About");
 
     protected override async Task OnInitializedAsync()
     {

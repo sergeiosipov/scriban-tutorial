@@ -18,6 +18,7 @@ builder.Services.AddSingleton(sp => new HttpClient
 });
 
 builder.Services.AddSingleton<ContentService>();
+builder.Services.AddSingleton<PageOrder>();
 builder.Services.AddSingleton<ProgressService>();
 builder.Services.AddSingleton<ThemeService>();
 

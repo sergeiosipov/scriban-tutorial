@@ -131,7 +131,7 @@ else
         <section class="reference__section" id="authoring">
             <div class="reference__body">@((MarkupString)_authoringHtml)</div>
         </section>
-        <PageNav Prev="_prev" />
+        <PageNav />
     </article>
 }
 
@@ -139,9 +139,6 @@ else
     private string? _authoringHtml;
     private string? _error;
     private CancellationTokenSource? _cts;
-    // Sidebar order: ... → Lessons → Contribute (last). Prev resolves to the
-    // last manifest lesson once it's loaded; Contribute has no Next.
-    private PageNav.NavTarget? _prev;
 
     protected override async Task OnInitializedAsync()
     {
@@ -149,14 +146,7 @@ else
         var ct = _cts.Token;
         try
         {
-            var authoring = Content.GetReferenceDocAsync("authoring-lessons", ct);
-            var manifest = await Content.InitializeAsync();
-            _authoringHtml = await authoring;
-            if (manifest.Lessons.Count > 0)
-            {
-                var last = manifest.Lessons[^1];
-                _prev = new PageNav.NavTarget($"lesson/{last.Id}", last.Title);
-            }
+            _authoringHtml = await Content.GetReferenceDocAsync("authoring-lessons", ct);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {

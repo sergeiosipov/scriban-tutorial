@@ -1,5 +1,4 @@
 @page "/playground"
-@inject ContentService Content
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
@@ -60,7 +59,7 @@
         </button>
     </div>
 
-    <PageNav Prev="_prev" Next="_next" />
+    <PageNav />
 </article>
 
 @code {
@@ -121,35 +120,17 @@
     private string? _errors;
 
     private CodeEditorHandle? _editor;
-    private DotNetObjectReference<Playground>? _dotnetRef;
+    // IDisposable rather than DotNetObjectReference<T> so we don't have to
+    // spell out the awkward "_002_playground" identifier that Razor escapes
+    // the numeric-prefixed filename to. The actual DotNetObjectReference<T>
+    // value is created locally and inferred — only disposal needs the field.
+    private IDisposable? _dotnetRef;
 
-    private PageNav.NavTarget? _prev;
-    private PageNav.NavTarget? _next;
-
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         // Initial output uses the defaults — render once so the Output pane
         // isn't empty before the user clicks Submit.
         Render();
-
-        // Resolve the first lesson for the "Next" link in the PageNav.
-        try
-        {
-            var manifest = await Content.InitializeAsync();
-            if (manifest.Lessons.Count > 0)
-            {
-                var first = manifest.Lessons[0];
-                _next = new PageNav.NavTarget($"lesson/{first.Id}", first.Title);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Playground: manifest read failed — {ex.GetType().Name}");
-        }
-        // Sidebar order is Course home → About → Playground → Lesson 01 …,
-        // so the page-level Prev points back to About, not all the way to
-        // Course home.
-        _prev = new PageNav.NavTarget("about", "About");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -158,10 +139,11 @@
         try
         {
             _editor = new CodeEditorHandle(JS);
-            _dotnetRef = DotNetObjectReference.Create(this);
-            await _editor.MountAsync(_dataEditorId, _data, _dotnetRef,
+            var dotnetRef = DotNetObjectReference.Create(this);
+            _dotnetRef = dotnetRef;
+            await _editor.MountAsync(_dataEditorId, _data, dotnetRef,
                 new { language = "json", callbackMethod = "OnDataChange", autoFit = false });
-            await _editor.MountAsync(_templateEditorId, _template, _dotnetRef,
+            await _editor.MountAsync(_templateEditorId, _template, dotnetRef,
                 new { language = "scriban", callbackMethod = "OnTemplateChange", autoFit = false });
         }
         catch (Exception ex)

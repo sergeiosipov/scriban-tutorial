@@ -25,7 +25,7 @@
 
 /* `::deep` lifts Blazor CSS isolation for the rest of the selector so this
    rule reaches the immediate child regardless of which component rendered it
-   (Home, LessonPage, Playground all carry their own scoping attribute).
+   (Home, lesson, Playground, About, Contribute all carry their own scoping attribute).
    Without ::deep, the `*` would require MainLayout's b-* attribute and the
    rule wouldn't apply — the page article would then size to its content
    instead of filling the column, with `align-items: center` shrinking it

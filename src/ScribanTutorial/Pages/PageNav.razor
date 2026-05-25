@@ -1,15 +1,19 @@
-@* Previous / Next pager. Drop into any page; pass either or both targets.
-   Pages without a prev/next pass null (the spot is left empty so the
-   remaining link stays anchored to its corner of the row). *@
+@* Previous / Next pager. Self-resolving — reads the current route from
+   NavigationManager and asks PageOrder for the neighbours. No page hand-
+   wires its own targets; drop <PageNav /> at the bottom of any routed
+   component and it figures out the rest. *@
+@inject NavigationManager Nav
+@inject PageOrder PageOrder
+@implements IDisposable
 
 <nav class="page-nav" aria-label="Page navigation">
-    @if (Prev is not null)
+    @if (_prev is not null)
     {
-        <a class="page-nav__link page-nav__link--prev" href="@Prev.Href">
+        <a class="page-nav__link page-nav__link--prev" href="@_prev.Route">
             <span class="page-nav__arrow" aria-hidden="true">←</span>
             <span class="page-nav__text">
                 <span class="page-nav__label">Previous</span>
-                <span class="page-nav__title">@Prev.Title</span>
+                <span class="page-nav__title">@_prev.Title</span>
             </span>
         </a>
     }
@@ -17,12 +21,12 @@
     {
         <span class="page-nav__placeholder" aria-hidden="true"></span>
     }
-    @if (Next is not null)
+    @if (_next is not null)
     {
-        <a class="page-nav__link page-nav__link--next" href="@Next.Href">
+        <a class="page-nav__link page-nav__link--next" href="@_next.Route">
             <span class="page-nav__text">
                 <span class="page-nav__label">Next</span>
-                <span class="page-nav__title">@Next.Title</span>
+                <span class="page-nav__title">@_next.Title</span>
             </span>
             <span class="page-nav__arrow" aria-hidden="true">→</span>
         </a>
@@ -34,8 +38,37 @@
 </nav>
 
 @code {
-    public sealed record NavTarget(string Href, string Title);
+    private PageEntry? _prev;
+    private PageEntry? _next;
 
-    [Parameter] public NavTarget? Prev { get; set; }
-    [Parameter] public NavTarget? Next { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        Nav.LocationChanged += OnLocationChanged;
+        await Recompute();
+    }
+
+    private async void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        try
+        {
+            await Recompute();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"PageNav: location-change recompute failed — {ex.GetType().Name}");
+        }
+    }
+
+    private async Task Recompute()
+    {
+        var route = Nav.ToBaseRelativePath(Nav.Uri);
+        var qIdx = route.IndexOf('?');
+        if (qIdx >= 0) route = route[..qIdx];
+        var hashIdx = route.IndexOf('#');
+        if (hashIdx >= 0) route = route[..hashIdx];
+        (_prev, _next) = await PageOrder.GetPrevNextAsync(route);
+    }
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
 }

@@ -36,7 +36,7 @@ else
                            ExerciseId="@ex.Id"
                            Content="@ex.Content" />
         }
-        <PageNav Prev="_prev" Next="_next" />
+        <PageNav />
     </article>
 }
 
@@ -46,8 +46,6 @@ else
     private LessonContent? _lesson;
     private string? _error;
     private CancellationTokenSource? _cts;
-    private PageNav.NavTarget? _prev;
-    private PageNav.NavTarget? _next;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -59,15 +57,10 @@ else
 
         _lesson = null;
         _error = null;
-        _prev = null;
-        _next = null;
         StateHasChanged();
         try
         {
             _lesson = await Content.LoadLessonAsync(LessonId, ct);
-            // LoadLessonAsync ran through InitializeAsync internally, so this
-            // call hits the memoised manifest task — no extra fetch.
-            ComputeNav(await Content.InitializeAsync());
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -82,29 +75,6 @@ else
             Console.Error.WriteLine($"LessonPage: load failed for lesson '{LessonId}' ({ex.GetType().Name})");
             _error = "Could not load the lesson content. Try reloading.";
         }
-    }
-
-    private void ComputeNav(Manifest manifest)
-    {
-        // Sidebar order is Course home → About → Playground → Lesson 01 …
-        // Lesson N → Contribute a lesson. The prev/next chain follows that
-        // order: the first lesson's prev is Playground; the last lesson's
-        // next is Contribute.
-        var lessons = manifest.Lessons;
-        var idx = -1;
-        for (var i = 0; i < lessons.Count; i++)
-        {
-            if (lessons[i].Id == LessonId) { idx = i; break; }
-        }
-        if (idx < 0) return;
-
-        _prev = idx == 0
-            ? new PageNav.NavTarget("playground", "Playground")
-            : new PageNav.NavTarget($"lesson/{lessons[idx - 1].Id}", lessons[idx - 1].Title);
-
-        _next = idx == lessons.Count - 1
-            ? new PageNav.NavTarget("contribute", "Contribute a lesson")
-            : new PageNav.NavTarget($"lesson/{lessons[idx + 1].Id}", lessons[idx + 1].Title);
     }
 
     public void Dispose()
