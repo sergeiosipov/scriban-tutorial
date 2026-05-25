@@ -75,6 +75,73 @@ public class ContentBuilderTests
         Assert.Contains("hl-type", html);
     }
 
+    // Per-edge regression locks for the grammar. Each test pins one
+    // historical KNOWN_ISSUES bullet, so a future grammar change that
+    // silently changes that behaviour will break the test instead of
+    // shipping unnoticed. KNOWN_ISSUES.md has the rationale per bullet.
+
+    [Fact]
+    public void Grammar_handles_strings_spanning_multiple_lines_inside_a_tag()
+    {
+        var hl = NewHighlighter();
+        // String literal that spans two source lines inside the tag.
+        var html = hl.Highlight("{{ \"line1\nline2\" }}", "scriban");
+        // Both lines of the string body should land in an hl-string span.
+        // Naive line-by-line tokenisers drop the scope on the continuation line.
+        var lines = html.Split('\n');
+        Assert.Contains("hl-string", lines[0]);
+        Assert.Contains("hl-string", lines[1]);
+    }
+
+    [Fact]
+    public void Grammar_breaks_out_of_string_for_dollar_brace_interpolation()
+    {
+        var hl = NewHighlighter();
+        // `"hello ${name}!"` — name should tokenise as a variable, not as
+        // part of the surrounding string body.
+        var html = hl.Highlight("{{ \"hello ${name}!\" }}", "scriban");
+        Assert.Contains("hl-string", html);
+        Assert.Contains("hl-variable", html);
+    }
+
+    [Fact]
+    public void Grammar_treats_verbatim_string_argument_as_a_string()
+    {
+        var hl = NewHighlighter();
+        // Scriban has no first-class regex literal — regex patterns are
+        // strings handed to regex.* filters. Verify the verbatim-string
+        // and the regex function-call both classify reasonably.
+        var html = hl.Highlight("{{ x | regex.match `\\d+` }}", "scriban");
+        Assert.Contains("hl-string", html);        // the `\d+`
+        Assert.Contains("hl-type", html);          // regex
+        Assert.Contains("hl-function", html);      // match
+    }
+
+    [Fact]
+    public void Grammar_treats_hash_comment_as_comment_to_end_of_line()
+    {
+        var hl = NewHighlighter();
+        // Scriban itself parses a `#` to EOL — the closing `}}` on the
+        // SAME line is part of the comment. The grammar should match that
+        // behaviour (workaround: put the closing on a new line).
+        var html = hl.Highlight("{{ x # eats }} rest of line\n}}", "scriban");
+        Assert.Contains("hl-comment", html);
+        Assert.Contains("hl-variable", html);
+    }
+
+    [Fact]
+    public void Grammar_classifies_minus_inside_whitespace_control_as_operator()
+    {
+        var hl = NewHighlighter();
+        // `{{- -x -}}` — the inner `-` is unary minus; we tokenise it as
+        // operator + variable (same as binary `-`). VS Code et al do the
+        // same; the visual distinction isn't worth a parser rewrite.
+        var html = hl.Highlight("{{- -x -}}", "scriban");
+        Assert.Contains("hl-operator", html);
+        Assert.Contains("hl-variable", html);
+        Assert.Contains("hl-brace", html);
+    }
+
     [Fact]
     public void MarkdownRenderer_strips_dangerous_html_from_author_content()
     {

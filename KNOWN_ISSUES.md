@@ -5,41 +5,26 @@ aware of before opening a related PR.
 
 ## Scriban TextMate grammar — `tools/ContentBuilder/grammars/scriban.tmLanguage.json`
 
-The grammar is hand-written and intentionally minimal. It's enough to colour
-the lesson examples readably; it is **not** a complete Scriban parser. Edges
-that won't tokenise the way you might expect:
+Per-edge tests live in
+[`ContentBuilderTests`](tests/ScribanTutorial.Tests/ContentBuilderTests.cs).
+Each test pins the current grammar behaviour for one historical edge — fix
+the grammar **and** update the test in the same PR if you change behaviour
+intentionally; a silent regression breaks the test.
 
-- **Multi-line string literals inside `{{ ... }}`.** A string that spans two
-  source lines won't continue its `string.quoted` scope across the newline —
-  the line-based stream parser ends the token at EOL. In practice authors
-  rarely write multi-line strings in lesson Scriban, but if you start, expect
-  the second line to render unstyled.
-- **Interpolation inside strings.** Scriban supports `"hello ${name}"`-style
-  interpolation; the grammar treats the whole string body as one
-  `string.quoted` and does not break out into the inner expression. Tokens
-  inside `${ ... }` render with the string colour.
-- **Regex literals.** No dedicated scope. They fall through to the generic
-  string handling if quoted, or to identifiers / operators otherwise. The
-  `regex.*` filter modules tokenise correctly (they're regular function
-  calls), but a regex pattern argument is just a string.
-- **Comments at end of line containing `}}`.** `# foo }} bar` inside an
-  expression tag is correctly parsed as a comment that runs to EOL, but
-  the closing `}}` on the SAME line is not seen — the rest of that physical
-  line is comment. Workaround: put the comment on its own line.
-- **Whitespace-control dash inside operators.** A construct like `{{x-y}}`
-  (subtraction with no spaces) is tokenised correctly, but `{{- -x -}}`
-  (unary minus on a value, with strip markers) tokenises the inner `-x` as
-  an operator-then-variable rather than a unary-minus expression. Cosmetic
-  only — Scriban itself parses it fine; the grammar just under-classifies.
+Closed-out edges and the test that locks each one in:
 
-If you want to harden any of these, the grammar lives in
-`tools/ContentBuilder/grammars/scriban.tmLanguage.json`. The class mapping
-that turns scopes into `.hl-*` CSS classes is in `TextMateHighlighter.cs`.
-A single smoke test in
-[`ContentBuilderTests.TextMateHighlighter_emits_expected_classes_for_a_simple_scriban_snippet`](tests/ScribanTutorial.Tests/ContentBuilderTests.cs)
-catches the worst regression (no `hl-brace` / `hl-variable` / `hl-operator` /
-`hl-type` at all). Extending that test with cases for each edge above is the
-natural next step when someone touches the grammar.
+| Edge | Status | Test |
+|---|---|---|
+| Multi-line string literals inside `{{ ... }}` | Works correctly across newlines | `Grammar_handles_strings_spanning_multiple_lines_inside_a_tag` |
+| `"hello ${name}"` interpolation | Fixed via `interpolation` rule + `${ ... }` breakout inside double-quoted strings | `Grammar_breaks_out_of_string_for_dollar_brace_interpolation` |
+| `regex.match` / `string.upcase` / other builtin functions | Fixed via `builtin-call` rule — the X in `builtin.X` is now classified as a function call | `Grammar_treats_verbatim_string_argument_as_a_string` |
+| `# foo }} bar` comment "eats" closing `}}` | Intentional — matches Scriban's own parser (`#` is comment-to-EOL, even past `}}`). Workaround: put the comment on its own line. Highlighter matching parser behaviour is correct; "fixing" it would visually suggest the tag closes when it actually doesn't. | `Grammar_treats_hash_comment_as_comment_to_end_of_line` |
+| `{{- -x -}}` unary minus tokenised as operator+variable | Intentional — same treatment as VS Code, Sublime, every mainstream editor. Disambiguating unary vs binary would require a Lezer parser rewrite for cosmetic-only benefit. | `Grammar_classifies_minus_inside_whitespace_control_as_operator` |
+| Liquid `{% ... %}` statement tags | Removed (course doesn't teach Liquid; restore the `statement` rule if a future lesson covers it) | — |
+
+The grammar JSON lives at `tools/ContentBuilder/grammars/scriban.tmLanguage.json`.
+The scope→`.hl-*` class mapping is in
+[`TextMateHighlighter.cs`](tools/ContentBuilder/TextMateHighlighter.cs).
 
 ## Course coverage
 
