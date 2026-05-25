@@ -24,6 +24,8 @@
              Link="Shared\ContentNormalize.cs" />
     <Compile Include="..\..\src\ScribanTutorial\Services\JsonToScriban.cs"
              Link="Shared\JsonToScriban.cs" />
+    <Compile Include="..\..\src\ScribanTutorial\Services\ScribanRunner.cs"
+             Link="Shared\ScribanRunner.cs" />
   </ItemGroup>
 
 </Project>

@@ -1,7 +1,4 @@
 @page "/playground"
-@using System.Text.Json
-@using Scriban
-@using Scriban.Runtime
 @inject ContentService Content
 @inject IJSRuntime JS
 @implements IAsyncDisposable
@@ -198,40 +195,9 @@
 
     private void Render()
     {
-        try
-        {
-            using var doc = JsonDocument.Parse(_data);
-            var script = new ScriptObject();
-            JsonToScriban.Import(doc.RootElement, script);
-
-            var template = Template.Parse(_template);
-            if (template.HasErrors)
-            {
-                _errors = string.Join("\n", template.Messages.Select(m => m.ToString()));
-                _output = "";
-                return;
-            }
-
-            var ctx = new TemplateContext
-            {
-                MemberRenamer = m => m.Name,
-                LoopLimit = 100_000,
-                RecursiveLimit = 100,
-            };
-            ctx.PushGlobal(script);
-            _output = template.Render(ctx);
-            _errors = null;
-        }
-        catch (JsonException ex)
-        {
-            _errors = $"Data model isn't valid JSON: {ex.Message}";
-            _output = "";
-        }
-        catch (Exception ex)
-        {
-            _errors = ex.Message;
-            _output = "";
-        }
+        var result = ScribanRunner.Run(_template, _data);
+        _output = result.Output;
+        _errors = result.Ok ? null : result.Errors;
     }
 
     private async Task ResetToDefault()

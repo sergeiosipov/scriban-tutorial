@@ -1,6 +1,3 @@
-using System.Text.Json;
-using Scriban;
-using Scriban.Runtime;
 using ScribanTutorial.Services;
 
 namespace ContentBuilder;
@@ -32,38 +29,14 @@ internal static class SolutionVerifier
         var expected  = File.ReadAllText(expectedPath);
         var solution  = File.ReadAllText(solutionPath);
 
-        var template = Template.Parse(solution);
-        if (template.HasErrors)
+        var result = ScribanRunner.Run(solution, datamodel);
+        if (!result.Ok)
         {
-            Console.Error.WriteLine($"--verify FAIL ({exerciseDir}): solution did not parse:");
-            foreach (var msg in template.Messages)
-                Console.Error.WriteLine($"  {msg}");
+            Console.Error.WriteLine($"--verify FAIL ({exerciseDir}): {result.Errors}");
             return 1;
         }
 
-        using var doc = JsonDocument.Parse(datamodel);
-        var script = new ScriptObject();
-        JsonToScriban.Import(doc.RootElement, script);
-
-        var ctx = new TemplateContext
-        {
-            MemberRenamer = m => m.Name,
-            LoopLimit = 100_000,
-            RecursiveLimit = 100,
-        };
-        ctx.PushGlobal(script);
-        string output;
-        try
-        {
-            output = template.Render(ctx);
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"--verify FAIL ({exerciseDir}): runtime error: {ex.Message}");
-            return 1;
-        }
-
-        var actual = ContentNormalize.Normalize(output);
+        var actual = ContentNormalize.Normalize(result.Output);
         var want   = ContentNormalize.Normalize(expected);
         if (string.Equals(actual, want, StringComparison.Ordinal))
         {

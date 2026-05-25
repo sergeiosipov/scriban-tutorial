@@ -1,6 +1,3 @@
-@using System.Text.Json
-@using Scriban
-@using Scriban.Runtime
 @using DiffPlex.DiffBuilder
 @using DiffPlex.DiffBuilder.Model
 @inject ProgressService Progress
@@ -211,28 +208,15 @@
 
         try
         {
-            var template = Template.Parse(_userTemplate);
-            if (template.HasErrors)
+            var result = ScribanRunner.Run(_userTemplate, Content.DataModelJson);
+            if (!result.Ok)
             {
-                _errors = string.Join("\n", template.Messages.Select(m => m.ToString()));
+                _errors = result.Errors;
                 _status = Status.Fail;
                 return;
             }
 
-            using var doc = JsonDocument.Parse(Content.DataModelJson);
-            var scriptObject = new ScriptObject();
-            JsonToScriban.Import(doc.RootElement, scriptObject);
-
-            var context = new TemplateContext
-            {
-                MemberRenamer = member => member.Name,
-                LoopLimit = 100_000,
-                RecursiveLimit = 100,
-            };
-            context.PushGlobal(scriptObject);
-
-            _output = await template.RenderAsync(context);
-
+            _output = result.Output;
             var actual = ContentNormalize.Normalize(_output);
             var expected = ContentNormalize.Normalize(Content.Expected);
             if (string.Equals(actual, expected, StringComparison.Ordinal))
@@ -244,11 +228,6 @@
                 _status = Status.Fail;
                 _diff = InlineDiffBuilder.Diff(expected, actual);
             }
-        }
-        catch (Exception ex)
-        {
-            _errors = ex.Message;
-            _status = Status.Fail;
         }
         finally
         {
