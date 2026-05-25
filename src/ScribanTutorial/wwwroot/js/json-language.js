@@ -9,17 +9,17 @@ export const jsonLanguage = StreamLanguage.define({
   name: "json",
   startState: () => ({ inString: false }),
   token(stream, state) {
+    // Continuation of an unterminated string from a previous line. JSON
+    // forbids raw newlines in strings, so we only hit this while the user
+    // is mid-typing.
     if (state.inString) {
       while (!stream.eol()) {
         const c = stream.next();
         if (c === "\\") { stream.next(); continue; }
         if (c === '"') {
           state.inString = false;
-          // Peek for `<whitespace>:` to spot a key vs a value string. Cheap
-          // and good enough — JSON's grammar makes this unambiguous at the
-          // end-of-string position.
-          const tail = stream.string.slice(stream.pos);
-          return /^\s*:/.test(tail) ? "propertyName" : "string";
+          return /^\s*:/.test(stream.string.slice(stream.pos))
+            ? "propertyName" : "string";
         }
       }
       return "string";
@@ -27,12 +27,25 @@ export const jsonLanguage = StreamLanguage.define({
 
     if (stream.eatSpace()) return null;
 
+    // Strings are emitted as a single token (both quotes + body) so the
+    // open quote shares the same colour as the close quote. Returning the
+    // opening quote separately would tag it as "string" before we knew the
+    // close was followed by `:`, leaving the open quote rendered as
+    // .hl-string while the rest got .hl-property — visibly mismatched.
     if (stream.peek() === '"') {
       stream.next();
-      state.inString = true;
-      // Return a token now so the opening quote itself gets the string colour
-      // — otherwise it would render uncoloured until we finished reading the
+      while (!stream.eol()) {
+        const c = stream.next();
+        if (c === "\\") { stream.next(); continue; }
+        if (c === '"') {
+          return /^\s*:/.test(stream.string.slice(stream.pos))
+            ? "propertyName" : "string";
+        }
+      }
+      // Unterminated on this line — the user is mid-typing. Stay in the
+      // string state so the next line continues to consume until the
       // closing quote.
+      state.inString = true;
       return "string";
     }
     if (stream.match(/^-?\d+(\.\d+)?([eE][+-]?\d+)?/)) return "number";
