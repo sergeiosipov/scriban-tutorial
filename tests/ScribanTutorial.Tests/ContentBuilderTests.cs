@@ -143,6 +143,51 @@ public class ContentBuilderTests
     }
 
     [Fact]
+    public void MarkdownRenderer_rewrites_relative_links_to_repo_files_as_github_blob_urls()
+    {
+        // A reference doc at the repo root with a relative link to a real
+        // sibling file should land at the GitHub blob URL after rendering —
+        // otherwise the link 404s on the deployed SPA, where the source
+        // file isn't shipped.
+        var sourcePath = Path.Combine(RepoPaths.RepoRoot, "KNOWN_ISSUES.md");
+        var options = new ContentBuilder.MarkdownRenderer.RenderOptions(
+            sourcePath, RepoPaths.RepoRoot,
+            "https://github.com/sergeiosipov/scriban-tutorial/blob/main");
+
+        var renderer = new MarkdownRenderer(NewHighlighter());
+        // README.md sits at the repo root — a known real file.
+        var html = renderer.Render("See [the readme](README.md) for setup.", options);
+
+        Assert.Contains(
+            "href=\"https://github.com/sergeiosipov/scriban-tutorial/blob/main/README.md\"",
+            html);
+        Assert.DoesNotContain("href=\"README.md\"", html);
+    }
+
+    [Fact]
+    public void MarkdownRenderer_link_rewriter_leaves_absolute_and_anchor_links_alone()
+    {
+        var sourcePath = Path.Combine(RepoPaths.RepoRoot, "KNOWN_ISSUES.md");
+        var options = new ContentBuilder.MarkdownRenderer.RenderOptions(
+            sourcePath, RepoPaths.RepoRoot,
+            "https://github.com/sergeiosipov/scriban-tutorial/blob/main");
+
+        var renderer = new MarkdownRenderer(NewHighlighter());
+        const string md = """
+            [external](https://example.com/path)
+            [anchor](#somewhere)
+            [missing](does-not-exist.md)
+            """;
+        var html = renderer.Render(md, options);
+
+        Assert.Contains("href=\"https://example.com/path\"", html);
+        Assert.Contains("href=\"#somewhere\"", html);
+        // A relative path that doesn't resolve to a real file stays as-is —
+        // safer than blindly rewriting and producing a broken GitHub link.
+        Assert.Contains("href=\"does-not-exist.md\"", html);
+    }
+
+    [Fact]
     public void MarkdownRenderer_strips_dangerous_html_from_author_content()
     {
         // Defence-in-depth: content under wwwroot/lessons/ is author-controlled

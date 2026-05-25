@@ -36,6 +36,38 @@ public class BuildTargetTest
     }
 
     [Fact]
+    public void Reference_docs_render_into_wwwroot_reference()
+    {
+        // BuildReferenceDocs must produce one .html under wwwroot/reference/
+        // for each top-level doc the About / Contribute pages fetch. Missing
+        // outputs mean the new pass dropped out of the MSBuild target.
+        var pairs = new (string Source, string Output)[]
+        {
+            (Path.Combine("docs", "SECURITY.md"),          "security.html"),
+            ("KNOWN_ISSUES.md",                            "known-issues.html"),
+            (Path.Combine("docs", "AUTHORING_LESSONS.md"), "authoring-lessons.html"),
+        };
+
+        var missing = new List<string>();
+        var stale = new List<string>();
+        foreach (var (srcRel, outName) in pairs)
+        {
+            var src = Path.Combine(RepoPaths.RepoRoot, srcRel);
+            var output = Path.Combine(RepoPaths.ReferenceDir, outName);
+            if (!File.Exists(output))
+            {
+                missing.Add(output);
+                continue;
+            }
+            if (File.Exists(src) && File.GetLastWriteTimeUtc(output) < File.GetLastWriteTimeUtc(src))
+                stale.Add(output);
+        }
+
+        Assert.True(missing.Count == 0 && stale.Count == 0,
+            $"missing: [{string.Join(", ", missing)}]; stale: [{string.Join(", ", stale)}]");
+    }
+
+    [Fact]
     public void Every_exercise_has_a_fresh_bundle_json_sibling()
     {
         var stale = new List<string>();
