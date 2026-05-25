@@ -1,8 +1,21 @@
-import { EditorView, basicSetup } from "codemirror";
+// We deliberately do NOT pull `basicSetup` from the "codemirror" bundle —
+// basicSetup transitively imports @codemirror/search, @codemirror/autocomplete,
+// and @codemirror/lint, none of which this app uses (no search bar, no
+// completion popup, no lint UI). Composing extensions by hand instead saves
+// ~170 KB minified across those three packages.
+import {
+  EditorView,
+  lineNumbers,
+  highlightActiveLine,
+  keymap,
+} from "@codemirror/view";
+import { history, defaultKeymap, historyKeymap } from "@codemirror/commands";
 import {
   syntaxHighlighting,
   HighlightStyle,
   indentUnit,
+  foldGutter,
+  bracketMatching,
 } from "@codemirror/language";
 import { tags as t } from "@lezer/highlight";
 import { scribanLanguage } from "./scriban-language.js";
@@ -58,7 +71,15 @@ export function mount(elementId, initial, dotnetRef, options) {
   const language = opts.language;
   const callbackMethod = opts.callbackMethod || "OnEditorChange";
 
-  const extensions = [basicSetup, indentUnit.of("  ")];
+  const extensions = [
+    lineNumbers(),
+    highlightActiveLine(),
+    history(),
+    bracketMatching(),
+    foldGutter(),
+    keymap.of([...defaultKeymap, ...historyKeymap]),
+    indentUnit.of("  "),
+  ];
   if (language === "scriban") {
     extensions.push(scribanLanguage, syntaxHighlighting(codeHighlight));
   } else if (language === "json") {
