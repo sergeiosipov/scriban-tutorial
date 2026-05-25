@@ -1,0 +1,103 @@
+.playground__header {
+    margin-bottom: 1.5rem;
+}
+
+.playground__intro {
+    color: var(--muted, #6b7280);
+    font-size: 1rem;
+    margin: 0;
+    max-width: 720px;
+}
+
+/* Each pane sizes to its content (capped by --pane-default-cap) and has its
+   own resize handle, matching the exercise / example layout. */
+.playground__panel {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: var(--pane-min-height);
+    height: min(var(--pane-default-cap), max-content);
+    resize: vertical;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+}
+
+.playground__panel-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted, #6b7280);
+    margin-bottom: 0.35rem;
+    flex-shrink: 0;
+}
+
+.playground__editor {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    box-sizing: border-box;
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 6px;
+    background: var(--bg, #fff);
+    overflow: hidden;
+}
+.playground__editor ::deep .cm-editor {
+    height: 100%;
+    font-size: var(--code-font-size);
+}
+.playground__editor ::deep .cm-editor.cm-focused {
+    outline: 2px solid var(--accent, #2563eb);
+    outline-offset: -1px;
+}
+.playground__editor ::deep .cm-scroller {
+    font-family: var(--code-font-family);
+    line-height: var(--code-line-height);
+    overflow: auto;
+}
+.playground__editor ::deep .cm-gutters {
+    background: var(--code-bg, #f3f4f6);
+    border-right: 1px solid var(--code-border, #e5e7eb);
+}
+
+.playground__pre {
+    margin: 0;
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    background: var(--code-bg, #f3f4f6);
+    border: 1px solid var(--code-border, #e5e7eb);
+    border-radius: 6px;
+    padding: 0.7rem 0.9rem;
+    overflow: auto;
+    font-size: var(--code-font-size);
+    font-family: var(--code-font-family);
+    line-height: var(--code-line-height);
+    white-space: pre;
+}
+
+.playground__pre--err {
+    background: color-mix(in srgb, var(--fail) 12%, transparent);
+    border-color: color-mix(in srgb, var(--fail) 35%, transparent);
+    color: var(--fail);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* Template + Output row. Independent per-panel resize (no shared height). */
+.playground__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: start;
+    margin-bottom: 1rem;
+}
+
+.playground__actions {
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 720px) {
+    .playground__row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

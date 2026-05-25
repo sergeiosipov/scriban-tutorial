@@ -176,9 +176,13 @@
         {
             _editorModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/editor.js");
             _dotnetRef = DotNetObjectReference.Create(this);
-            // isDark is no longer wired through — CodeMirror uses .hl-* CSS classes
-            // that re-resolve via CSS variables when <html data-theme> flips.
-            await _editorModule.InvokeVoidAsync("mount", _editorId, _userTemplate, _dotnetRef, false);
+            // Scriban grammar on, default OnEditorChange callback.
+            await _editorModule.InvokeVoidAsync(
+                "mount",
+                _editorId,
+                _userTemplate,
+                _dotnetRef,
+                new { language = "scriban", callbackMethod = "OnEditorChange" });
             _editorMounted = true;
         }
         catch (Exception ex)

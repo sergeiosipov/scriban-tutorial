@@ -31,7 +31,13 @@ const scribanHighlight = HighlightStyle.define([
 const EDITOR_DEFAULT_CAP_PX = 350;
 const EDITOR_MIN_HEIGHT_PX = 80;
 
-export function mount(elementId, initial, dotnetRef, _ignoredIsDark) {
+// options:
+//   - language: "scriban" turns on the Scriban grammar + highlights. Anything
+//                else (undefined, "plain") leaves the editor with just basicSetup —
+//                used by the Playground for its JSON data-model field.
+//   - callbackMethod: name of the [JSInvokable] method on dotnetRef to call when
+//                     the document changes (defaults to "OnEditorChange").
+export function mount(elementId, initial, dotnetRef, options) {
   const parent = document.getElementById(elementId);
   if (!parent) {
     console.error("editor.js: parent element not found:", elementId);
@@ -40,23 +46,23 @@ export function mount(elementId, initial, dotnetRef, _ignoredIsDark) {
   // If a view was already mounted (Blazor re-renders), tear it down first.
   if (editors.has(elementId)) destroy(elementId);
 
-  const view = new EditorView({
-    doc: initial ?? "",
-    parent,
-    extensions: [
-      basicSetup,
-      scribanLanguage,
-      syntaxHighlighting(scribanHighlight),
-      indentUnit.of("  "),
-      EditorView.updateListener.of((u) => {
-        if (u.docChanged && dotnetRef) {
-          const text = u.state.doc.toString();
-          dotnetRef.invokeMethodAsync("OnEditorChange", text).catch((err) =>
-            console.error("editor.js: OnEditorChange invoke failed:", err));
-        }
-      }),
-    ],
-  });
+  const opts = options || {};
+  const language = opts.language;
+  const callbackMethod = opts.callbackMethod || "OnEditorChange";
+
+  const extensions = [basicSetup, indentUnit.of("  ")];
+  if (language === "scriban") {
+    extensions.push(scribanLanguage, syntaxHighlighting(scribanHighlight));
+  }
+  extensions.push(EditorView.updateListener.of((u) => {
+    if (u.docChanged && dotnetRef) {
+      const text = u.state.doc.toString();
+      dotnetRef.invokeMethodAsync(callbackMethod, text).catch((err) =>
+        console.error(`editor.js: ${callbackMethod} invoke failed:`, err));
+    }
+  }));
+
+  const view = new EditorView({ doc: initial ?? "", parent, extensions });
   editors.set(elementId, view);
 
   // CSS holds the container at --editor-min-height as a placeholder. Once

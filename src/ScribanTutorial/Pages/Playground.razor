@@ -1,0 +1,212 @@
+@page "/playground"
+@using System.Text.Json
+@using Scriban
+@using Scriban.Runtime
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<PageTitle>Playground · Scriban Tutorial</PageTitle>
+
+<article class="playground">
+    <header class="playground__header">
+        <h1>Playground</h1>
+        <p class="playground__intro">
+            Free-form Scriban. Edit the data model and template; the output
+            re-renders automatically as you type. Use this to test ideas
+            outside the structured exercises.
+        </p>
+    </header>
+
+    <div class="playground__panel">
+        <div class="playground__panel-label">Data model (JSON)</div>
+        <div id="@_dataEditorId"
+             class="playground__editor"
+             role="textbox"
+             aria-multiline="true"
+             aria-label="JSON data model editor"></div>
+    </div>
+
+    <div class="playground__row">
+        <div class="playground__panel">
+            <div class="playground__panel-label">Template</div>
+            <div id="@_templateEditorId"
+                 class="playground__editor"
+                 role="textbox"
+                 aria-multiline="true"
+                 aria-label="Scriban template editor"></div>
+        </div>
+        <div class="playground__panel">
+            <div class="playground__panel-label">@(_errors is null ? "Output" : "Error")</div>
+            @if (_errors is null)
+            {
+                <pre class="playground__pre"><code>@_output</code></pre>
+            }
+            else
+            {
+                <pre class="playground__pre playground__pre--err"><code>@_errors</code></pre>
+            }
+        </div>
+    </div>
+
+    <div class="playground__actions">
+        <button type="button" class="exercise__btn" @onclick="ResetToDefault">
+            Reset to default
+        </button>
+    </div>
+</article>
+
+@code {
+    private const string DefaultData = """
+        {
+          "name": "Ada"
+        }
+        """;
+    private const string DefaultTemplate = "Hello, {{ name }}!";
+
+    private readonly string _dataEditorId = "playground-data";
+    private readonly string _templateEditorId = "playground-template";
+
+    private string _data = DefaultData;
+    private string _template = DefaultTemplate;
+    private string _output = "";
+    private string? _errors;
+
+    private IJSObjectReference? _editorModule;
+    private DotNetObjectReference<Playground>? _dotnetRef;
+    private bool _mounted;
+    private System.Threading.Timer? _debounce;
+
+    protected override void OnInitialized()
+    {
+        // Render the defaults synchronously so the Output panel isn't empty
+        // before the first keystroke.
+        Render();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _mounted) return;
+        try
+        {
+            _editorModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/editor.js");
+            _dotnetRef = DotNetObjectReference.Create(this);
+            // Data model editor: plain editor (no Scriban grammar). A future pass
+            // could add a JSON StreamLanguage; for now syntax-highlighting JSON
+            // isn't critical for the playground.
+            await _editorModule.InvokeVoidAsync(
+                "mount", _dataEditorId, _data, _dotnetRef,
+                new { callbackMethod = "OnDataChange" });
+            // Template editor: full Scriban grammar.
+            await _editorModule.InvokeVoidAsync(
+                "mount", _templateEditorId, _template, _dotnetRef,
+                new { language = "scriban", callbackMethod = "OnTemplateChange" });
+            _mounted = true;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Playground: editor mount failed — {ex.GetType().Name}");
+        }
+    }
+
+    [JSInvokable]
+    public Task OnDataChange(string text)
+    {
+        _data = text;
+        ScheduleRender();
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task OnTemplateChange(string text)
+    {
+        _template = text;
+        ScheduleRender();
+        return Task.CompletedTask;
+    }
+
+    private void ScheduleRender()
+    {
+        // Debounce 250 ms so we don't re-parse / re-render on every keystroke.
+        _debounce?.Dispose();
+        _debounce = new System.Threading.Timer(_ =>
+        {
+            _ = InvokeAsync(() =>
+            {
+                Render();
+                StateHasChanged();
+            });
+        }, null, 250, System.Threading.Timeout.Infinite);
+    }
+
+    private void Render()
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(_data);
+            var script = new ScriptObject();
+            JsonToScriban.Import(doc.RootElement, script);
+
+            var template = Template.Parse(_template);
+            if (template.HasErrors)
+            {
+                _errors = string.Join("\n", template.Messages.Select(m => m.ToString()));
+                _output = "";
+                return;
+            }
+
+            var ctx = new TemplateContext
+            {
+                MemberRenamer = m => m.Name,
+                LoopLimit = 100_000,
+                RecursiveLimit = 100,
+            };
+            ctx.PushGlobal(script);
+            _output = template.Render(ctx);
+            _errors = null;
+        }
+        catch (JsonException ex)
+        {
+            _errors = $"Data model isn't valid JSON: {ex.Message}";
+            _output = "";
+        }
+        catch (Exception ex)
+        {
+            _errors = ex.Message;
+            _output = "";
+        }
+    }
+
+    private async Task ResetToDefault()
+    {
+        _data = DefaultData;
+        _template = DefaultTemplate;
+        Render();
+        if (_mounted && _editorModule is not null)
+        {
+            try
+            {
+                await _editorModule.InvokeVoidAsync("setValue", _dataEditorId, _data);
+                await _editorModule.InvokeVoidAsync("setValue", _templateEditorId, _template);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Playground: reset setValue failed — {ex.GetType().Name}");
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _debounce?.Dispose();
+        if (_mounted && _editorModule is not null)
+        {
+            try { await _editorModule.InvokeVoidAsync("destroy", _dataEditorId); } catch { }
+            try { await _editorModule.InvokeVoidAsync("destroy", _templateEditorId); } catch { }
+        }
+        if (_editorModule is not null)
+        {
+            try { await _editorModule.DisposeAsync(); } catch { }
+        }
+        _dotnetRef?.Dispose();
+    }
+}
