@@ -41,28 +41,34 @@ what CI runs.
 │    ├─ scans wwwroot/lessons/**/*.md                   │
 │    ├─ Markdig + custom :::example renderer            │
 │    ├─ TextMateSharp colours fenced code blocks        │
-│    └─ writes *.html siblings (gitignored)             │
+│    ├─ writes *.html siblings + 02-datamodel.html      │
+│    └─ writes per-exercise bundle.json (all six        │
+│       runtime inputs in one fetchable blob)           │
 │  Triggered by a BuildContent MSBuild target           │
 └──────────────────────────┬────────────────────────────┘
-                           │ pre-rendered .html
+                           │ pre-rendered .html + bundle.json
                            ▼
 ┌──────────────── Runtime (browser) ────────────────────┐
 │  App.razor → <Router>                                 │
 │      ├─ "/"                  → Home (course index)    │
+│      ├─ "/playground"        → free-form editor       │
 │      └─ "/lesson/{LessonId}" → LessonPage             │
 │                                                       │
 │  Singletons                                           │
 │    ├─ ContentService  — manifest + lazy lesson load   │
-│    ├─ ProgressService — localStorage via JS interop   │
+│    ├─ ProgressService — localStorage + in-mem mirror  │
 │    └─ ThemeService    — light / dark, persisted       │
 │                                                       │
-│  ExerciseBlock                                        │
-│    ├─ CodeMirror 6 editor (Scriban stream parser)     │
-│    ├─ Scriban runner (LoopLimit + RecursiveLimit)     │
-│    ├─ DiffPlex diff view on fail                      │
+│  ExerciseBlock + Playground                           │
+│    ├─ CodeMirror 6 editor (Scriban / JSON grammars)   │
+│    ├─ ScribanRunner (LoopLimit + 250 KB output cap)   │
+│    ├─ DiffView (DiffPlex) on fail                     │
 │    └─ Show solution / Reset buttons                   │
 └───────────────────────────────────────────────────────┘
 ```
+
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the detailed map —
+services, components, file layout, and where each piece lives.
 
 ## Tests
 
@@ -70,22 +76,22 @@ what CI runs.
 dotnet test
 ```
 
-xUnit project under `tests/ScribanTutorial.Tests/`. The
-`ExerciseSolutionTests` class is data-driven from the manifest — every
-exercise's canonical solution is run against its data model and compared
-to the expected output. Add an exercise → it gets a test automatically.
+xUnit project under `tests/ScribanTutorial.Tests/`. Six test classes (33 cases):
+
+- `ContentNormalizeTests` — CRLF / trailing-newline normalisation.
+- `JsonToScribanTests` — JSON → ScriptObject conversion (incl. the int-vs-float fix).
+- `ScribanRunnerTests` — render path, parse errors, JSON-error friendly message, the 250 KB output cap.
+- `ExerciseSolutionTests` — data-driven from the manifest; every exercise's canonical solution runs against its data model and is compared to expected. Add an exercise → it gets a test for free.
+- `ContentBuilderTests` — MarkdownRenderer's `:::example` blocks emit the right three-panel layout; TextMateHighlighter colours a known Scriban snippet correctly.
+- `BuildTargetTest` — every `.md` has a fresh `.html` sibling; every exercise has a fresh `bundle.json`. Catches "BuildContent MSBuild target stopped running" without a full publish.
+
 CI gates the deploy on `dotnet test` going green.
 
 ## Documentation
 
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — current-state map of services, components, build pipeline, and asset layout. Skim this first for non-trivial changes.
 - [`docs/AUTHORING_LESSONS.md`](docs/AUTHORING_LESSONS.md) — how non-developers add or edit a lesson, with the full test-authoring flow.
 - [`docs/SECURITY.md`](docs/SECURITY.md) — threat model for running user-supplied templates in the browser.
 - [`docs/SCRIBAN_BEST_PRACTICES.md`](docs/SCRIBAN_BEST_PRACTICES.md) — the patterns lesson content should teach.
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — GitHub Pages deployment, base href, SPA routing.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) — Scriban TextMate grammar edge cases and other rough edges to be aware of.
-
-## Specification
-
-The full build specification (annotated with where the implementation deviated
-and why) lives at [`SPECIFICATION.md`](SPECIFICATION.md). Look there before
-making non-trivial changes.

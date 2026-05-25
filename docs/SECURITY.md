@@ -24,11 +24,17 @@ unbounded resources:
 {{ "x" | string.append "x" | string.append "x" | ... }}   # produces 2^N bytes
 ```
 
-**Mitigations baked into the runner** (see `Pages/ExerciseBlock.razor`):
+**Mitigations baked into the runner** (see
+[`Services/ScribanRunner.cs`](../src/ScribanTutorial/Services/ScribanRunner.cs),
+the single source of truth used by ExerciseBlock, Playground, and the
+build-time `--verify` tool):
 
 - `TemplateContext.LoopLimit = 100_000` — Scriban throws after this many
   loop iterations.
 - `TemplateContext.RecursiveLimit = 100` — caps recursion depth.
+- Output capped at 250 KB per render. `LoopLimit` stops a runaway counter
+  but doesn't stop a template that emits 50 KB per iteration; the post-render
+  truncation keeps the worst case bounded.
 - Total render time is naturally capped by the browser tab's CPU budget. A
   runaway template freezes only that tab; other tabs and the OS are fine.
 

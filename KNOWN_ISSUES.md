@@ -62,11 +62,14 @@ A `Future lessons` checklist lives at the bottom of
 
 ## CodeMirror vendoring
 
-Vendored under `src/ScribanTutorial/wwwroot/lib/codemirror/` as 15 separate
-ESM files resolved through an importmap in `index.html`. Re-vendoring (bump
-CodeMirror, update the `style-mod` or `crelt` version, etc.) is by hand —
-there's no automated script. The pinned versions and update procedure are
-documented in `wwwroot/lib/codemirror/VERSION.txt`.
+Vendored under `src/ScribanTutorial/wwwroot/lib/codemirror/` as 11 ESM files
+resolved through an importmap in `index.html`. Re-vendoring (bump CodeMirror,
+update the `style-mod` or `crelt` version, etc.) is by hand — there's no
+automated script. The pinned versions and update procedure are documented in
+`wwwroot/lib/codemirror/VERSION.txt`. The `codemirror` umbrella package is
+intentionally *not* vendored: its `basicSetup` would drag in `@codemirror/search`,
+`@codemirror/autocomplete`, and `@codemirror/lint`, none of which this app uses.
+Extensions are composed by hand in `wwwroot/js/editor.js`.
 
 A `tools/vendor-codemirror.ps1` script that fetches each file from unpkg with
 the right version would be worth writing the next time anyone has to bump.
