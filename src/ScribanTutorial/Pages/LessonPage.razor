@@ -24,11 +24,11 @@ else
             <h1>@_lesson.Entry.Title</h1>
         </header>
         <TheoryBlock Html="@_lesson.TheoryHtml" />
-        @foreach (var ex in _lesson.Entry.Exercises)
+        @foreach (var ex in _lesson.Exercises)
         {
             <ExerciseBlock LessonId="@LessonId"
                            ExerciseId="@ex.Id"
-                           Content="@_lesson.Exercises[ex.Id]" />
+                           Content="@ex.Content" />
         }
         <PageNav Prev="_prev" Next="_next" />
     </article>
@@ -59,7 +59,9 @@ else
         try
         {
             _lesson = await Content.LoadLessonAsync(LessonId, ct);
-            ComputeNav();
+            // LoadLessonAsync ran through InitializeAsync internally, so this
+            // call hits the memoised manifest task — no extra fetch.
+            ComputeNav(await Content.InitializeAsync());
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -76,13 +78,12 @@ else
         }
     }
 
-    private void ComputeNav()
+    private void ComputeNav(Manifest manifest)
     {
         // Sidebar order is Course home → Playground → Lesson 01 … Lesson N.
         // The prev/next chain follows that order: the first lesson's prev is
         // Playground; the last lesson has no next.
-        if (Content.Manifest is null) return;
-        var lessons = Content.Manifest.Lessons;
+        var lessons = manifest.Lessons;
         var idx = -1;
         for (var i = 0; i < lessons.Count; i++)
         {

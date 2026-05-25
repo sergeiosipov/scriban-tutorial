@@ -30,12 +30,11 @@ internal static class CliApp
             for (var i = 0; i < args.Length; i++)
             {
                 var a = args[i];
-                string? next() => i + 1 < args.Length ? args[++i] : null;
                 switch (a)
                 {
-                    case "--input":   input = next(); break;
-                    case "--grammar": grammar = next(); break;
-                    case "--theme":   theme = next() ?? "light"; break;
+                    case "--input":   input = i + 1 < args.Length ? args[++i] : null; break;
+                    case "--grammar": grammar = i + 1 < args.Length ? args[++i] : null; break;
+                    case "--theme":   theme = (i + 1 < args.Length ? args[++i] : null) ?? "light"; break;
                     case "--help":
                     case "-h":
                     case "/?":
@@ -75,6 +74,12 @@ internal static class CliApp
         }
     }
 
+    // True if output is missing or older than source. Shared by every
+    // ContentBuilder regen pass so the staleness rule stays uniform.
+    private static bool IsStale(string source, string output) =>
+        !File.Exists(output) ||
+        File.GetLastWriteTimeUtc(output) < File.GetLastWriteTimeUtc(source);
+
     private static int BuildContent(string lessonsDir, MarkdownRenderer renderer)
     {
         if (!Directory.Exists(lessonsDir))
@@ -88,12 +93,7 @@ internal static class CliApp
         foreach (var md in mdFiles)
         {
             var html = Path.ChangeExtension(md, ".html");
-            if (File.Exists(html))
-            {
-                var mdTime = File.GetLastWriteTimeUtc(md);
-                var htmlTime = File.GetLastWriteTimeUtc(html);
-                if (htmlTime >= mdTime) continue;
-            }
+            if (!IsStale(md, html)) continue;
             try
             {
                 var output = renderer.Render(File.ReadAllText(md));
@@ -126,12 +126,7 @@ internal static class CliApp
         foreach (var json in dataFiles)
         {
             var html = Path.Combine(Path.GetDirectoryName(json)!, "02-datamodel.html");
-            if (File.Exists(html))
-            {
-                var jsonTime = File.GetLastWriteTimeUtc(json);
-                var htmlTime = File.GetLastWriteTimeUtc(html);
-                if (htmlTime >= jsonTime) continue;
-            }
+            if (!IsStale(json, html)) continue;
             try
             {
                 using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(json));

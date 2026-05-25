@@ -5,9 +5,13 @@
   <meta name="viewport" content="width=device-width" />
   <title>Scriban Interactive Training</title>
   <!-- Defense-in-depth CSP. We're a static SPA whose only origin is the page itself.
-       'wasm-unsafe-eval' is required for Blazor WASM's runtime; 'unsafe-inline'
-       (style) is needed for Blazor's scoped CSS isolation and CodeMirror's
-       runtime style injection. No third-party origins are whitelisted.
+       'wasm-unsafe-eval' is required for Blazor WASM's runtime. 'unsafe-inline'
+       on script-src is for the inline <script type="importmap"> below — until we
+       commit to maintaining a CSP hash for it, dropping unsafe-inline would block
+       bare specifier resolution for CodeMirror. 'unsafe-inline' on style-src is
+       needed for Blazor's scoped CSS isolation and CodeMirror's runtime style
+       injection. The two boot scripts (spa-redirect.js, theme-boot.js) are
+       external files served from 'self'. No third-party origins are whitelisted.
        Note: `frame-ancestors` is ignored when delivered via <meta>; if framing
        protection ever matters, set it as a server response header. -->
   <meta http-equiv="Content-Security-Policy"
@@ -20,34 +24,9 @@
                  base-uri 'self';
                  form-action 'none';" />
   <link rel="icon" type="image/png" href="favicon.png" />
-  <script>
-    // Single Page Apps for GitHub Pages — companion to 404.html.
-    // Decodes the ?/<path> query and history.replaceState's it back to the
-    // original URL so the Blazor router sees the right path on first paint.
-    // Must run before <base> so that the URL we replaceState to is correct.
-    (function(l) {
-      if (l.search[1] === '/') {
-        var decoded = l.search.slice(1).split('&').map(function(s) {
-          return s.replace(/~and~/g, '&');
-        }).join('?');
-        window.history.replaceState(null, null, l.pathname.slice(0, -1) + decoded + l.hash);
-      }
-    }(window.location));
-  </script>
+  <script src="js/spa-redirect.js"></script>
   <base href="/" />
-  <script>
-    // Apply the persisted theme synchronously, before any CSS or component renders,
-    // so the boot shell already shows the right colour scheme.
-    (function() {
-      try {
-        var t = localStorage.getItem('scriban-tutorial:theme');
-        if (t !== 'light' && t !== 'dark') {
-          t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
-        document.documentElement.setAttribute('data-theme', t);
-      } catch (e) { /* localStorage unavailable — stick with default light */ }
-    })();
-  </script>
+  <script src="js/theme-boot.js"></script>
   <link rel="stylesheet" href="css/app.css" />
   <link rel="stylesheet" href="ScribanTutorial.styles.css" />
   <script type="importmap">

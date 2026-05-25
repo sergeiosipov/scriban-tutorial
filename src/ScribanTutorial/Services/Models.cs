@@ -24,7 +24,12 @@ public sealed record ExerciseContent(
 public sealed record LessonContent(
     LessonEntry Entry,
     string TheoryHtml,
-    IReadOnlyDictionary<string, ExerciseContent> Exercises);
+    IReadOnlyList<LessonExerciseView> Exercises);
+
+public sealed record LessonExerciseView(
+    string Id,
+    string Path,
+    ExerciseContent Content);
 
 public sealed record ExerciseProgress(
     string ExerciseId,

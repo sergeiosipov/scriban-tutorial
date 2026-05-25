@@ -8,7 +8,6 @@ public sealed class ProgressService : IAsyncDisposable
     private const string KeyPrefix = "scriban-tutorial:progress:";
     private readonly IJSRuntime _js;
     private IJSObjectReference? _module;
-    private readonly SemaphoreSlim _moduleGate = new(1, 1);
 
     // In-memory mirror of localStorage, populated lazily per lesson on the
     // first GetAllForLessonAsync. Saves/resets update this and localStorage
@@ -24,20 +23,8 @@ public sealed class ProgressService : IAsyncDisposable
 
     public ProgressService(IJSRuntime js) => _js = js;
 
-    private async ValueTask<IJSObjectReference> ModuleAsync()
-    {
-        if (_module is not null) return _module;
-        await _moduleGate.WaitAsync();
-        try
-        {
-            _module ??= await _js.InvokeAsync<IJSObjectReference>("import", "./js/progress.js");
-            return _module;
-        }
-        finally
-        {
-            _moduleGate.Release();
-        }
-    }
+    private async ValueTask<IJSObjectReference> ModuleAsync() =>
+        _module ??= await _js.InvokeAsync<IJSObjectReference>("import", "./js/progress.js");
 
     private static string Key(string lessonId, string exerciseId) =>
         $"{KeyPrefix}{lessonId}:{exerciseId}";

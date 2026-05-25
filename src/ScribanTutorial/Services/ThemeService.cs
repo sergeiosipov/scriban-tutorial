@@ -6,7 +6,6 @@ public sealed class ThemeService : IAsyncDisposable
 {
     private readonly IJSRuntime _js;
     private IJSObjectReference? _module;
-    private readonly SemaphoreSlim _moduleGate = new(1, 1);
     private string _current = "light";
     private bool _initialized;
 
@@ -17,20 +16,8 @@ public sealed class ThemeService : IAsyncDisposable
     public string Current => _current;
     public bool IsDark => _current == "dark";
 
-    private async ValueTask<IJSObjectReference> ModuleAsync()
-    {
-        if (_module is not null) return _module;
-        await _moduleGate.WaitAsync();
-        try
-        {
-            _module ??= await _js.InvokeAsync<IJSObjectReference>("import", "./js/theme.js");
-            return _module;
-        }
-        finally
-        {
-            _moduleGate.Release();
-        }
-    }
+    private async ValueTask<IJSObjectReference> ModuleAsync() =>
+        _module ??= await _js.InvokeAsync<IJSObjectReference>("import", "./js/theme.js");
 
     public async Task InitializeAsync()
     {

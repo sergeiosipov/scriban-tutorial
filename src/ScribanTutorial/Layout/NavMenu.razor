@@ -14,7 +14,7 @@
             <button class="nav-menu__theme"
                     type="button"
                     title="@(Theme.IsDark ? "Switch to light theme" : "Switch to dark theme")"
-                    aria-label="Toggle theme"
+                    aria-label="@(Theme.IsDark ? "Switch to light theme" : "Switch to dark theme")"
                     @onclick="ToggleTheme">
                 @(Theme.IsDark ? "☼" : "☾")
             </button>

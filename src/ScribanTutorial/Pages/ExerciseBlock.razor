@@ -19,12 +19,17 @@
     </header>
 
     <div class="exercise__description">
+        @* Source is ContentBuilder-rendered Markdown from the repo. If you ever
+           load HTML from an untrusted source, sanitise first. *@
         @((MarkupString)Content.DescriptionHtml)
     </div>
 
     <div class="exercise__panels">
         <div class="exercise__panel">
             <div class="exercise__panel-label">Data model</div>
+            @* Source is ContentBuilder-rendered, syntax-highlighted JSON from
+               the repo. If you ever load HTML from an untrusted source,
+               sanitise first. *@
             <div class="exercise__panel-code">@((MarkupString)Content.DataModelHtml)</div>
         </div>
         <div class="exercise__panel">
