@@ -146,7 +146,10 @@
         {
             Console.Error.WriteLine($"Playground: manifest read failed — {ex.GetType().Name}");
         }
-        _prev = new PageNav.NavTarget("", "Course home");
+        // Sidebar order is Course home → About → Playground → Lesson 01 …,
+        // so the page-level Prev points back to About, not all the way to
+        // Course home.
+        _prev = new PageNav.NavTarget("about", "About");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

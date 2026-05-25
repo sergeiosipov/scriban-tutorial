@@ -50,13 +50,18 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-/* Playground card: same shape as a lesson, slightly different palette so
-   it reads as the "free-form" entry rather than a structured lesson. */
-.home__lesson-link--playground {
+/* About / Playground / Contribute cards share the lesson card's shape but
+   each gets a subtle tint so the "this isn't a numbered lesson" distinction
+   reads at a glance. */
+.home__lesson-link--about,
+.home__lesson-link--playground,
+.home__lesson-link--contribute {
     background: color-mix(in srgb, var(--accent) 4%, var(--bg));
     border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
 }
-.home__lesson-link--playground .home__lesson-num {
+.home__lesson-link--about .home__lesson-num,
+.home__lesson-link--playground .home__lesson-num,
+.home__lesson-link--contribute .home__lesson-num {
     color: var(--accent, #2563eb);
 }
 

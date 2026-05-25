@@ -48,6 +48,7 @@ else
         <section class="reference__section" id="known-issues">
             <div class="reference__body">@((MarkupString)_knownIssuesHtml)</div>
         </section>
+        <PageNav Prev="_prev" Next="_next" />
     </article>
 }
 
@@ -56,6 +57,11 @@ else
     private string? _knownIssuesHtml;
     private string? _error;
     private CancellationTokenSource? _cts;
+    // Sidebar order: Course home → About → Playground → Lessons → Contribute.
+    // About's prev/next are both fixed (don't depend on the manifest), so
+    // they're built once at construction.
+    private readonly PageNav.NavTarget _prev = new("", "Course home");
+    private readonly PageNav.NavTarget _next = new("playground", "Playground");
 
     protected override async Task OnInitializedAsync()
     {

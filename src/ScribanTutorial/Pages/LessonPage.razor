@@ -86,9 +86,10 @@ else
 
     private void ComputeNav(Manifest manifest)
     {
-        // Sidebar order is Course home → Playground → Lesson 01 … Lesson N.
-        // The prev/next chain follows that order: the first lesson's prev is
-        // Playground; the last lesson has no next.
+        // Sidebar order is Course home → About → Playground → Lesson 01 …
+        // Lesson N → Contribute a lesson. The prev/next chain follows that
+        // order: the first lesson's prev is Playground; the last lesson's
+        // next is Contribute.
         var lessons = manifest.Lessons;
         var idx = -1;
         for (var i = 0; i < lessons.Count; i++)
@@ -102,7 +103,7 @@ else
             : new PageNav.NavTarget($"lesson/{lessons[idx - 1].Id}", lessons[idx - 1].Title);
 
         _next = idx == lessons.Count - 1
-            ? null
+            ? new PageNav.NavTarget("contribute", "Contribute a lesson")
             : new PageNav.NavTarget($"lesson/{lessons[idx + 1].Id}", lessons[idx + 1].Title);
     }
 

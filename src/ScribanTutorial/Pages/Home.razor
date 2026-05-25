@@ -15,6 +15,13 @@ else
     </header>
     <ul class="home__lessons">
         <li class="home__lesson">
+            <a class="home__lesson-link home__lesson-link--about" href="about">
+                <span class="home__lesson-num">About</span>
+                <span class="home__lesson-title">What this app is, what it teaches</span>
+                <span class="home__lesson-count">overview</span>
+            </a>
+        </li>
+        <li class="home__lesson">
             <a class="home__lesson-link home__lesson-link--playground" href="playground">
                 <span class="home__lesson-num">Playground</span>
                 <span class="home__lesson-title">Free-form Scriban</span>
@@ -34,11 +41,24 @@ else
                 </a>
             </li>
         }
+        <li class="home__lesson">
+            <a class="home__lesson-link home__lesson-link--contribute" href="contribute">
+                <span class="home__lesson-num">Contribute</span>
+                <span class="home__lesson-title">Add a lesson — no code required</span>
+                <span class="home__lesson-count">walkthrough</span>
+            </a>
+        </li>
     </ul>
+    <PageNav Next="_next" />
 }
 
 @code {
     private Manifest? _manifest;
+    // Home is the start of the linear nav chain (Home → About → Playground →
+    // Lesson 01..N → Contribute), so Prev is always null and Next always
+    // points at About. Building the target eagerly keeps the PageNav stable
+    // even before the manifest fetch completes.
+    private readonly PageNav.NavTarget _next = new("about", "About");
 
     protected override async Task OnInitializedAsync()
     {
