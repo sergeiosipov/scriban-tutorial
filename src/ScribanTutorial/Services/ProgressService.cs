@@ -10,6 +10,16 @@ public sealed class ProgressService : IAsyncDisposable
     private IJSObjectReference? _module;
     private readonly SemaphoreSlim _moduleGate = new(1, 1);
 
+    // In-memory mirror of localStorage, populated lazily per lesson on the
+    // first GetAllForLessonAsync. Saves/resets update this and localStorage
+    // in lockstep so NavMenu's per-lesson indicator refresh after a Submit
+    // becomes free (no JS hops) instead of `listKeysWithPrefix + N gets`
+    // per lesson.
+    //
+    // WASM is single-threaded; no locking needed.
+    private readonly Dictionary<string, ExerciseProgress> _cache = new();
+    private readonly HashSet<string> _hydratedLessons = new();
+
     public event Action? Changed;
 
     public ProgressService(IJSRuntime js) => _js = js;
@@ -34,43 +44,68 @@ public sealed class ProgressService : IAsyncDisposable
 
     public async ValueTask<ExerciseProgress?> GetAsync(string lessonId, string exerciseId)
     {
+        if (_cache.TryGetValue(Key(lessonId, exerciseId), out var cached))
+            return cached;
         var module = await ModuleAsync();
         var raw = await module.InvokeAsync<string?>("get", Key(lessonId, exerciseId));
-        return Deserialize(raw);
+        var record = Deserialize(raw);
+        if (record is not null) _cache[Key(lessonId, exerciseId)] = record;
+        return record;
     }
 
     public async ValueTask<IReadOnlyDictionary<string, ExerciseProgress>> GetAllForLessonAsync(string lessonId)
     {
-        var module = await ModuleAsync();
-        var prefix = $"{KeyPrefix}{lessonId}:";
-        var keys = await module.InvokeAsync<string[]>("listKeysWithPrefix", prefix);
-        var result = new Dictionary<string, ExerciseProgress>(keys.Length);
-        foreach (var key in keys)
+        if (!_hydratedLessons.Contains(lessonId))
         {
-            var raw = await module.InvokeAsync<string?>("get", key);
-            var record = Deserialize(raw);
-            if (record is null) continue;
-            result[record.ExerciseId] = record;
+            var module = await ModuleAsync();
+            var prefix = $"{KeyPrefix}{lessonId}:";
+            var keys = await module.InvokeAsync<string[]>("listKeysWithPrefix", prefix);
+            foreach (var key in keys)
+            {
+                var raw = await module.InvokeAsync<string?>("get", key);
+                var record = Deserialize(raw);
+                if (record is null) continue;
+                _cache[key] = record;
+            }
+            _hydratedLessons.Add(lessonId);
+        }
+        return BuildLessonView(lessonId);
+    }
+
+    private IReadOnlyDictionary<string, ExerciseProgress> BuildLessonView(string lessonId)
+    {
+        var prefix = $"{KeyPrefix}{lessonId}:";
+        var result = new Dictionary<string, ExerciseProgress>();
+        foreach (var (key, record) in _cache)
+        {
+            if (key.StartsWith(prefix, StringComparison.Ordinal))
+                result[record.ExerciseId] = record;
         }
         return result;
     }
 
     public async ValueTask SaveAsync(ExerciseProgress progress, string lessonId)
     {
+        var key = Key(lessonId, progress.ExerciseId);
+        _cache[key] = progress;
         var module = await ModuleAsync();
-        await module.InvokeVoidAsync("set", Key(lessonId, progress.ExerciseId), JsonSerializer.Serialize(progress));
+        await module.InvokeVoidAsync("set", key, JsonSerializer.Serialize(progress));
         Changed?.Invoke();
     }
 
     public async ValueTask ResetAsync(string lessonId, string exerciseId)
     {
+        var key = Key(lessonId, exerciseId);
+        _cache.Remove(key);
         var module = await ModuleAsync();
-        await module.InvokeVoidAsync("remove", Key(lessonId, exerciseId));
+        await module.InvokeVoidAsync("remove", key);
         Changed?.Invoke();
     }
 
     public async ValueTask ResetAllAsync()
     {
+        _cache.Clear();
+        _hydratedLessons.Clear();
         var module = await ModuleAsync();
         await module.InvokeAsync<int>("clearWithPrefix", KeyPrefix);
         Changed?.Invoke();
