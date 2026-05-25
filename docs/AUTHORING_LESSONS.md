@@ -6,7 +6,9 @@ the file layout works, the conventions, and the verification tools.
 > Reading this on GitHub? The same content is rendered with a
 > non-programmer walkthrough on the live site:
 > [**Contribute a lesson**](https://sergeiosipov.github.io/scriban-tutorial/contribute).
-> If you want to edit, do it on either page — both link back to this file.
+>
+> Working on the app itself (C#, JS, build, CI) rather than lesson
+> content? See [`CONTRIBUTING.md`](../CONTRIBUTING.md) instead.
 
 - [File layout](#file-layout)
 - [Add a new exercise (quick)](#add-a-new-exercise-quick)
@@ -19,7 +21,6 @@ the file layout works, the conventions, and the verification tools.
 - [Editing on Windows / VS Code](#editing-on-windows--vs-code)
 - [Manifest field reference](#manifest-field-reference)
 - [Common authoring pitfalls](#common-authoring-pitfalls)
-- [Project mechanics](#project-mechanics)
 
 ---
 
@@ -420,31 +421,3 @@ Set-Content -Encoding utf8NoBOM -Path $path -Value $content
 | Number formats as `5.0` instead of `5` | Used to be a bug where every JSON integer became a double; fixed (see `JsonToScribanTests.Distinguishes_integers_from_floats`). If it returns, that test will fail. | — |
 | Browser still shows old content | GitHub Pages CDN cache — 2–5 min after a deploy lands. | Hard refresh (Ctrl+F5), wait. |
 | Sidebar indicator stays `○` even after passing | Browser blocked `localStorage` (private mode, restrictive content-blocker). Progress only persists when the browser allows the write. | Try a normal window. |
-
----
-
-## Project mechanics
-
-These are housekeeping notes about how the project itself is wired —
-read them before opening a PR that touches build infrastructure, the
-embedded editor, or the deployment pipeline.
-
-### CodeMirror vendoring
-
-Vendored under `src/ScribanTutorial/wwwroot/lib/codemirror/` as 11 ESM files
-resolved through an importmap in `index.html`. Bumps are scripted via
-`tools/Vendor-CodeMirror.ps1` — edit the `$packages` table with the new
-version pin, run the script, update `wwwroot/lib/codemirror/VERSION.txt`
-to match, and commit the bumped files + VERSION.txt in one PR. The script
-reports a SHA-256 prefix per file so two runs on a clean checkout can be
-diff-compared. The `codemirror` umbrella package is intentionally *not*
-vendored: its `basicSetup` would drag in `@codemirror/search`,
-`@codemirror/autocomplete`, and `@codemirror/lint`, none of which this app
-uses. Extensions are composed by hand in `wwwroot/js/editor.js`.
-
-### GitHub Pages CDN
-
-Pages serves through a CDN that occasionally takes 2–5 minutes after a
-successful deploy to propagate. If the workflow run is green but the site
-still shows old content, hard-refresh (Ctrl+F5) and wait. This is documented
-in `docs/DEPLOYMENT.md` so users don't think their deploy is broken.

@@ -87,11 +87,22 @@ xUnit project under `tests/ScribanTutorial.Tests/`. Six test classes (33 cases):
 
 CI gates the deploy on `dotnet test` going green.
 
+## Contributing
+
+- **Lesson, exercise, or theory edits** — open the rendered
+  [Contribute a lesson](https://sergeiosipov.github.io/scriban-tutorial/contribute)
+  page on the live site. No dev setup required; the page walks you
+  through the GitHub web-UI flow.
+- **App code, build, CI, or infrastructure** — see
+  [`CONTRIBUTING.md`](CONTRIBUTING.md) for prerequisites, the test
+  suite, the build pipeline, and project mechanics.
+
 ## Documentation
 
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — developer onboarding: prerequisites, test suite, build pipeline, project mechanics, PR flow.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — current-state map of services, components, build pipeline, and asset layout. Skim this first for non-trivial changes.
-- [`docs/AUTHORING_LESSONS.md`](docs/AUTHORING_LESSONS.md) — how non-developers add or edit a lesson, with the full test-authoring flow.
-- [`docs/SECURITY.md`](docs/SECURITY.md) — threat model for running user-supplied templates in the browser.
+- [`docs/AUTHORING_LESSONS.md`](docs/AUTHORING_LESSONS.md) — source of the rendered Contribute page; the full lesson-authoring reference.
+- [`docs/SECURITY.md`](docs/SECURITY.md) — threat model for running user-supplied templates in the browser (also rendered on the [About page](https://sergeiosipov.github.io/scriban-tutorial/about)).
 - [`docs/SCRIBAN_BEST_PRACTICES.md`](docs/SCRIBAN_BEST_PRACTICES.md) — the patterns lesson content should teach.
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — GitHub Pages deployment, base href, SPA routing.
-- [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) — Scriban TextMate grammar edge cases and other rough edges to be aware of.
+- [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) — Scriban TextMate grammar edge cases and course-coverage gaps (also rendered on the [About page](https://sergeiosipov.github.io/scriban-tutorial/about)).

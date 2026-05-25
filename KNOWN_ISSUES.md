@@ -43,5 +43,5 @@ The scope→`.hl-*` class mapping is in
 
 > Project-mechanics notes that used to live here (CodeMirror vendoring,
 > GitHub Pages CDN cache) have moved to
-> [`docs/AUTHORING_LESSONS.md`](docs/AUTHORING_LESSONS.md#project-mechanics) —
-> they're contributor concerns, not learner-visible gotchas.
+> [`CONTRIBUTING.md`](CONTRIBUTING.md#project-mechanics) — they're
+> contributor concerns, not learner-visible gotchas.
