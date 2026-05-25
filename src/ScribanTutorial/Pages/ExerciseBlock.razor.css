@@ -269,25 +269,32 @@
     margin-top: 0.65rem;
 }
 
+/* Diff line highlights — colour only the actual text (a tag-style chip),
+   not the full row. The <br /> inside each span breaks the line; the spans
+   themselves stay inline so the colour-mix background hugs the content. */
+.exercise__pre--diff .diff__line--ins,
+.exercise__pre--diff .diff__line--del,
+.exercise__pre--diff .diff__line--mod {
+    display: inline;
+    padding: 0 0.35em;
+    border-radius: 3px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
 .exercise__pre--diff .diff__line--ins {
     background: color-mix(in srgb, var(--pass) 20%, transparent);
     color: var(--pass);
-    display: inline-block;
-    width: 100%;
 }
 
 .exercise__pre--diff .diff__line--del {
     background: color-mix(in srgb, var(--fail) 20%, transparent);
     color: var(--fail);
-    display: inline-block;
-    width: 100%;
 }
 
 .exercise__pre--diff .diff__line--mod {
     background: color-mix(in srgb, #f59e0b 18%, transparent);
     color: #f59e0b;
-    display: inline-block;
-    width: 100%;
 }
 
 .exercise__solution {
