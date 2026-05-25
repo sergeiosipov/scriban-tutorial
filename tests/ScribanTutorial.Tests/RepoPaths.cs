@@ -13,6 +13,7 @@ internal static class RepoPaths
     public static string RepoRoot { get; } = ResolveRepoRoot();
     public static string LessonsDir => Path.Combine(RepoRoot, "src", "ScribanTutorial", "wwwroot", "lessons");
     public static string ManifestPath => Path.Combine(RepoRoot, "src", "ScribanTutorial", "wwwroot", "manifest.json");
+    public static string ScribanGrammarPath => Path.Combine(RepoRoot, "tools", "ContentBuilder", "grammars", "scriban.tmLanguage.json");
 
     private static string ResolveRepoRoot([CallerFilePath] string thisFile = "")
     {

@@ -11,7 +11,10 @@
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Markdig" Version="1.2.0" />
     <PackageReference Include="Scriban" Version="7.2.0" />
+    <PackageReference Include="TextMateSharp" Version="2.0.3" />
+    <PackageReference Include="TextMateSharp.Grammars" Version="2.0.3" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
   </ItemGroup>
@@ -27,6 +30,10 @@
              Link="Shared\ScribanRunner.cs" />
     <Compile Include="..\..\src\ScribanTutorial\Services\Models.cs"
              Link="Shared\Models.cs" />
+    <Compile Include="..\..\tools\ContentBuilder\MarkdownRenderer.cs"
+             Link="Shared\MarkdownRenderer.cs" />
+    <Compile Include="..\..\tools\ContentBuilder\TextMateHighlighter.cs"
+             Link="Shared\TextMateHighlighter.cs" />
   </ItemGroup>
 
   <ItemGroup>
