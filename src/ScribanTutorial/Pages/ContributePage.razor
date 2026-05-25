@@ -1,0 +1,70 @@
+@page "/contribute"
+@inject ContentService Content
+@implements IDisposable
+
+<PageTitle>Contribute a lesson · Scriban Tutorial</PageTitle>
+
+@if (_error is not null)
+{
+    <article class="reference reference--error">
+        <h1>Contribute a lesson</h1>
+        <p>@_error</p>
+        <a href="">Back to the course index</a>
+    </article>
+}
+else if (_authoringHtml is null)
+{
+    <div class="reference__loading" role="status" aria-live="polite">Loading…</div>
+}
+else
+{
+    <article class="reference">
+        <header class="reference__header">
+            <div class="reference__eyebrow">Contribute</div>
+            <h1>Contribute a lesson</h1>
+        </header>
+        <section class="reference__intro">
+            <p>
+                The course content lives as plain Markdown / JSON / text files
+                under <code>wwwroot/lessons/</code>. No C# required to add or
+                edit a lesson — only the conventions and the build-time
+                verification tools, both of which are documented below. Edits
+                land on the live site through the same CI pipeline that gates
+                every other change.
+            </p>
+        </section>
+        <section class="reference__section" id="authoring">
+            <div class="reference__body">@((MarkupString)_authoringHtml)</div>
+        </section>
+    </article>
+}
+
+@code {
+    private string? _authoringHtml;
+    private string? _error;
+    private CancellationTokenSource? _cts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _cts = new CancellationTokenSource();
+        var ct = _cts.Token;
+        try
+        {
+            _authoringHtml = await Content.GetReferenceDocAsync("authoring-lessons", ct);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"ContributePage: load failed — {ex.GetType().Name}: {ex.Message}");
+            _error = "Could not load the Contribute page. Try reloading.";
+        }
+    }
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
+    }
+}
