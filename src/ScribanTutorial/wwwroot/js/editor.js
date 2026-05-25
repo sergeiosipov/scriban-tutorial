@@ -28,7 +28,7 @@ const scribanHighlight = HighlightStyle.define([
 // Cap and floor for the auto-fit initial height. Must match the values in
 // app.css's --pane-default-cap / --editor-min-height (kept in JS too because
 // computed-style lookup against a freshly-mounted element is racy).
-const EDITOR_DEFAULT_CAP_PX = 350;
+const EDITOR_DEFAULT_CAP_PX = 300;
 const EDITOR_MIN_HEIGHT_PX = 80;
 
 // options:

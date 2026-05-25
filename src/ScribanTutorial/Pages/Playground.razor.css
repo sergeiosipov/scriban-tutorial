@@ -1,5 +1,16 @@
+/* Header is a flex row so the Reset-example button can sit on the right
+   without floating, and align to the top of the intro text. */
 .playground__header {
     margin-bottom: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.25rem;
+}
+
+.playground__header-text {
+    flex: 1;
+    min-width: 0;
 }
 
 .playground__intro {
@@ -7,6 +18,49 @@
     font-size: 1rem;
     margin: 0;
     max-width: 720px;
+}
+
+.playground__reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 0.85rem;
+    border: 1px solid var(--border, #e5e7eb);
+    background: transparent;
+    color: var(--fg, #1a1a1a);
+    border-radius: 6px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.88rem;
+    flex-shrink: 0;
+    margin-top: 0.5rem;
+}
+.playground__reset:hover {
+    border-color: var(--accent, #2563eb);
+    color: var(--accent, #2563eb);
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.playground__reset:focus-visible {
+    outline: 2px solid var(--accent, #2563eb);
+    outline-offset: 1px;
+}
+.playground__reset-icon {
+    font-size: 1.05em;
+    line-height: 1;
+    display: inline-block;
+    /* The reload glyph is intrinsically a tad below the baseline; nudge it
+       so it sits visually centred against the label text. */
+    transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+    .playground__header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .playground__reset {
+        align-self: flex-start;
+    }
 }
 
 /* On the Playground each pane defaults to the full --pane-default-cap (350px)
@@ -92,10 +146,6 @@
     gap: 0.75rem;
     align-items: start;
     margin-bottom: 1rem;
-}
-
-.playground__actions {
-    margin-top: 0.5rem;
 }
 
 @media (max-width: 720px) {

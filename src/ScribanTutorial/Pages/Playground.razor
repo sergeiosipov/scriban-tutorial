@@ -9,12 +9,21 @@
 
 <article class="playground">
     <header class="playground__header">
-        <h1>Playground</h1>
-        <p class="playground__intro">
-            Free-form Scriban. Edit the data model and template; the output
-            re-renders automatically as you type. Use this to test ideas
-            outside the structured exercises.
-        </p>
+        <div class="playground__header-text">
+            <h1>Playground</h1>
+            <p class="playground__intro">
+                Free-form Scriban. Edit the data model and template; output
+                re-renders as you type. The default example transforms a
+                vendor's raw fund data into the OpenFund v1 disclosure format.
+            </p>
+        </div>
+        <button type="button"
+                class="playground__reset"
+                title="Restore the default example"
+                @onclick="ResetToDefault">
+            <span class="playground__reset-icon" aria-hidden="true">↺</span>
+            <span>Reset example</span>
+        </button>
     </header>
 
     <div class="playground__panel">
@@ -47,56 +56,57 @@
             }
         </div>
     </div>
-
-    <div class="playground__actions">
-        <button type="button" class="exercise__btn" @onclick="ResetToDefault">
-            Reset to default
-        </button>
-    </div>
 </article>
 
 @code {
-    // Recipe example. Uses nested objects, arrays of objects, a boolean
-    // conditional, a numeric expression, for.last for separator handling, the
-    // for.index loop variable, and string.pad_right for column alignment.
-    // Enough to demonstrate most of what the four lessons teach in one shot.
+    // Vendor-shaped fund payload that needs to be reshaped into a normalised
+    // OpenFund-style disclosure. Demonstrates nested-object access, array
+    // iteration with for.index, arithmetic, pad_right / pad_left filters,
+    // and whitespace control.
     private const string DefaultData = """
         {
-          "name": "Roasted carrots with cumin",
-          "vegetarian": true,
-          "servings": 4,
-          "tags": ["side", "easy", "30-minute"],
-          "ingredients": [
-            { "amount": "500g",  "item": "carrots",       "optional": false },
-            { "amount": "2 tbsp", "item": "olive oil",     "optional": false },
-            { "amount": "1 tsp",  "item": "salt",          "optional": false },
-            { "amount": "1 tsp",  "item": "cumin seeds",   "optional": false },
-            { "amount": "1 tbsp", "item": "fresh parsley", "optional": true  }
-          ],
-          "steps": [
-            "Preheat the oven to 200°C (fan).",
-            "Peel and slice the carrots into 1-cm sticks.",
-            "Toss with oil, salt, and cumin in a roasting tray.",
-            "Roast for 25 minutes, stirring once halfway.",
-            "Scatter with parsley and serve."
-          ]
+          "fund": {
+            "id": "XYZ-2024-A",
+            "name": "Atlas Growth Fund",
+            "manager": "Atlas Capital Partners",
+            "currency": "USD",
+            "inception_date": "2024-03-15",
+            "nav": 142.85,
+            "nav_date": "2026-05-22",
+            "cash_pct": 23.5,
+            "holdings": [
+              { "ticker": "NVDA",  "shares":  6300, "weight_pct": 22.4 },
+              { "ticker": "AAPL",  "shares": 12500, "weight_pct": 18.5 },
+              { "ticker": "MSFT",  "shares":  8900, "weight_pct": 14.2 },
+              { "ticker": "GOOGL", "shares":  4100, "weight_pct": 11.8 },
+              { "ticker": "JPM",   "shares":  9700, "weight_pct":  9.6 }
+            ]
+          }
         }
         """;
 
     private const string DefaultTemplate = """
-        # {{ name }}
-        {{ if vegetarian }}(vegetarian) · {{ end }}Serves {{ servings }}
-        Tags:{{ for tag in tags }} {{ tag }}{{ if !for.last }},{{ end }}{{ end }}
+        === OpenFund v1 Standard Disclosure ===
+        Fund ID:      {{ fund.id }}
+        Legal Name:   {{ fund.name }}
+        Manager:      {{ fund.manager }}
+        Inception:    {{ fund.inception_date }}
+        Currency:     {{ fund.currency }}
 
-        ## Ingredients
-        {{- for ing in ingredients }}
-        - {{ ing.amount | string.pad_right 8 }} {{ ing.item }}{{ if ing.optional }} (optional){{ end }}
+        Valuation (as of {{ fund.nav_date }})
+          NAV per Unit: {{ fund.nav }} {{ fund.currency }}
+
+        Allocation
+          Holdings:   {{ fund.holdings | array.size }}
+          Cash:       {{ fund.cash_pct }}%
+          Equities:   {{ 100 - fund.cash_pct }}%
+
+        Top Holdings (by weight, descending)
+        {{- for h in fund.holdings }}
+          {{ for.index + 1 }}. {{ h.ticker | string.pad_right 6 }}{{ h.weight_pct | string.pad_left 6 }}%   ({{ h.shares | string.pad_left 6 }} sh)
         {{- end }}
 
-        ## Method
-        {{- for step in steps }}
-        {{ for.index + 1 }}. {{ step }}
-        {{- end }}
+        Compliance: This output follows the OpenFund schema v1.
         """;
 
     private readonly string _dataEditorId = "playground-data";
@@ -126,8 +136,8 @@
         {
             _editorModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/editor.js");
             _dotnetRef = DotNetObjectReference.Create(this);
-            // autoFit:false because Playground panels are a fixed 350-px-tall box
-            // — the editor fills that via flex, not via a JS-measured height.
+            // autoFit:false because Playground panels are a fixed --pane-default-cap
+            // tall — the editor fills that via flex, not via a JS-measured height.
             await _editorModule.InvokeVoidAsync(
                 "mount", _dataEditorId, _data, _dotnetRef,
                 new { callbackMethod = "OnDataChange", autoFit = false });

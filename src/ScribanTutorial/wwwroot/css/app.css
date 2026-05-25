@@ -26,7 +26,7 @@
     --code-font-family: 'Cascadia Code', 'Cascadia Mono', Consolas, 'Courier New', monospace;
     /* Cap that panels and the editor honour by default. Each pane sizes to
        fit its content but is clamped here; the user can drag past this. */
-    --pane-default-cap: 350px;
+    --pane-default-cap: 300px;
     --pane-min-height: 60px;
     --editor-min-height: 80px;
 
