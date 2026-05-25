@@ -23,6 +23,8 @@
              Link="Shared\ContentNormalize.cs" />
     <Compile Include="..\..\src\ScribanTutorial\Services\JsonToScriban.cs"
              Link="Shared\JsonToScriban.cs" />
+    <Compile Include="..\..\src\ScribanTutorial\Services\ScribanRunner.cs"
+             Link="Shared\ScribanRunner.cs" />
     <Compile Include="..\..\src\ScribanTutorial\Services\Models.cs"
              Link="Shared\Models.cs" />
   </ItemGroup>
