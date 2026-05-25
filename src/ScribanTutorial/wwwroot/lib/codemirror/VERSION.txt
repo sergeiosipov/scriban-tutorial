@@ -21,9 +21,12 @@ or lint UI; the "codemirror" basicSetup bundle pulls these in transitively):
   @codemirror/autocomplete      6.18.7
   @codemirror/lint              6.8.4
 
-To re-vendor: drop the files and re-run the curl block in the Stage 7 commit
-that introduced this directory. Bump versions only when there's a reason —
-mention the reason in VERSION.txt and commit the updated bundle in one PR.
+To re-vendor: edit the `$packages` table in `tools/Vendor-CodeMirror.ps1`,
+run the script, update the version block above to match, and commit the
+bumped files + this VERSION.txt in one PR. The script fetches each file
+from unpkg and reports a SHA-256 prefix per file so two runs on a clean
+checkout can be diff-compared. Bump versions only when there's a reason —
+mention the reason in this file.
 
 Bare specifiers (e.g. `import { ... } from "@codemirror/state"`) are resolved
 to the local file via the <script type="importmap"> block in index.html.
