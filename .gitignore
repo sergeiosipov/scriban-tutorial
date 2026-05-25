@@ -21,6 +21,8 @@ desktop.ini
 src/ScribanTutorial/wwwroot/lessons/**/*.html
 # Same for the data-model HTML pretty-printed by ContentBuilder.
 src/ScribanTutorial/wwwroot/lessons/**/02-datamodel.html
+# Per-exercise bundle.json the runtime fetches in one round trip.
+src/ScribanTutorial/wwwroot/lessons/**/bundle.json
 
 # Local dev server logs
 *.log

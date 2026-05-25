@@ -63,7 +63,9 @@ internal static class CliApp
             var renderer = new MarkdownRenderer(highlighter);
             var mdExit = BuildContent(input, renderer);
             if (mdExit != 0) return mdExit;
-            return BuildDataModelHtml(input, highlighter);
+            var dataExit = BuildDataModelHtml(input, highlighter);
+            if (dataExit != 0) return dataExit;
+            return BuildExerciseBundles(input);
         }
         catch (Exception ex)
         {
@@ -146,6 +148,64 @@ internal static class CliApp
             }
         }
         Console.WriteLine($"ContentBuilder: scanned {dataFiles.Length} data-model files, regenerated {regenerated}.");
+        return 0;
+    }
+
+    // Bundle every exercise's six runtime source files into a single bundle.json
+    // sibling so ContentService.FetchLessonAsync hits one URL per exercise
+    // instead of six. Drops a 2-exercise lesson from 13 fetches to 3.
+    private static int BuildExerciseBundles(string lessonsDir)
+    {
+        var bundleOpts = new System.Text.Json.JsonSerializerOptions
+        {
+            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        };
+        // An exercise dir is any directory containing all five canonical files.
+        var solutionFiles = Directory.EnumerateFiles(lessonsDir, "05-solution.txt", SearchOption.AllDirectories).ToArray();
+        var regenerated = 0;
+        foreach (var solution in solutionFiles)
+        {
+            var dir = Path.GetDirectoryName(solution)!;
+            var sources = new[]
+            {
+                Path.Combine(dir, "01-description.html"),
+                Path.Combine(dir, "02-datamodel.json"),
+                Path.Combine(dir, "02-datamodel.html"),
+                Path.Combine(dir, "03-expected.txt"),
+                Path.Combine(dir, "04-template.txt"),
+                Path.Combine(dir, "05-solution.txt"),
+            };
+            if (!sources.All(File.Exists)) continue;
+            var bundlePath = Path.Combine(dir, "bundle.json");
+            if (File.Exists(bundlePath))
+            {
+                var bundleTime = File.GetLastWriteTimeUtc(bundlePath);
+                var newestSrc = sources.Max(File.GetLastWriteTimeUtc);
+                if (bundleTime >= newestSrc) continue;
+            }
+            try
+            {
+                var bundle = new
+                {
+                    description    = File.ReadAllText(sources[0]),
+                    dataModel      = File.ReadAllText(sources[1]),
+                    dataModelHtml  = File.ReadAllText(sources[2]),
+                    expected       = File.ReadAllText(sources[3]),
+                    template       = File.ReadAllText(sources[4]),
+                    solution       = File.ReadAllText(sources[5]),
+                };
+                File.WriteAllText(bundlePath,
+                    System.Text.Json.JsonSerializer.Serialize(bundle, bundleOpts));
+                regenerated++;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"ContentBuilder: failed to write bundle for {dir} — {ex.Message}");
+                return 1;
+            }
+        }
+        Console.WriteLine($"ContentBuilder: scanned {solutionFiles.Length} exercises, regenerated {regenerated} bundles.");
         return 0;
     }
 

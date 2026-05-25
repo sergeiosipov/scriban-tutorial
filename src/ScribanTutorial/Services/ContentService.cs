@@ -62,28 +62,26 @@ public sealed class ContentService
         return await task.WaitAsync(ct);
     }
 
+    private static readonly JsonSerializerOptions _bundleOpts = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
     private async Task<LessonContent> FetchLessonAsync(LessonEntry entry)
     {
         var theoryHtml = await _http.GetStringAsync($"{entry.TheoryPath}.html");
 
         var exercisePairs = await Task.WhenAll(entry.Exercises.Select(async ex =>
         {
-            var basePath = ex.Path;
-            var parts = await Task.WhenAll(
-                _http.GetStringAsync($"{basePath}/01-description.html"),
-                _http.GetStringAsync($"{basePath}/02-datamodel.json"),
-                _http.GetStringAsync($"{basePath}/02-datamodel.html"),
-                _http.GetStringAsync($"{basePath}/03-expected.txt"),
-                _http.GetStringAsync($"{basePath}/04-template.txt"),
-                _http.GetStringAsync($"{basePath}/05-solution.txt"));
-
+            var bundle = await _http.GetFromJsonAsync<ExerciseBundle>($"{ex.Path}/bundle.json", _bundleOpts)
+                ?? throw new InvalidOperationException($"bundle.json missing for {ex.Id}");
             return (ex.Id, content: new ExerciseContent(
-                DescriptionHtml: parts[0],
-                DataModelJson:   parts[1],
-                DataModelHtml:   parts[2],
-                Expected:        parts[3],
-                StarterTemplate: parts[4],
-                Solution:        parts[5]));
+                DescriptionHtml: bundle.Description,
+                DataModelJson:   bundle.DataModel,
+                DataModelHtml:   bundle.DataModelHtml,
+                Expected:        bundle.Expected,
+                StarterTemplate: bundle.Template,
+                Solution:        bundle.Solution));
         }));
 
         return new LessonContent(
@@ -91,4 +89,12 @@ public sealed class ContentService
             theoryHtml,
             exercisePairs.ToDictionary(e => e.Id, e => e.content));
     }
+
+    private sealed record ExerciseBundle(
+        string Description,
+        string DataModel,
+        string DataModelHtml,
+        string Expected,
+        string Template,
+        string Solution);
 }
