@@ -67,27 +67,26 @@
     font-family: var(--code-font-family);
 }
 
-/* Data model + Expected output share a row in wide layout, with a single
-   resize handle pinned to the row container (not the children) — so both
-   panes always have the same height. On narrow viewports they stack and
-   each gets its own resize. */
+/* Data model + Expected output each manage their own height. Each pane fits
+   its content up to --pane-default-cap (350px), then internal scroll. User
+   can drag the bottom-right corner of either pane independently to extend.
+   align-items: start so the row doesn't auto-stretch one to match the other. */
 .exercise__panels {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
     margin-bottom: 1rem;
-    height: var(--pane-default-height);
-    min-height: var(--pane-min-height);
-    max-height: 75vh;
-    resize: vertical;
-    overflow: hidden;
+    align-items: start;
 }
 
 .exercise__panel {
     display: flex;
     flex-direction: column;
-    min-height: 0;
     min-width: 0;
+    height: min(var(--pane-default-cap), max-content);
+    min-height: var(--pane-min-height);
+    resize: vertical;
+    overflow: hidden;
 }
 
 .exercise__panel-label {
@@ -160,15 +159,19 @@
     margin: 0.5rem 0 0.35rem 0;
 }
 
-/* Single editor container. Resize is on this div; the inner CodeMirror view
-   is told to fill 100% so its own scroller picks up the height. CodeMirror's
-   cm-scroller handles internal overflow — no nested "broken" scroll. */
+/* Single editor container. The initial height is set by editor.js after the
+   view mounts so it fits the starter template up to --pane-default-cap. After
+   that the user can drag the bottom-right corner to resize freely; .cm-editor
+   has height: 100% so it follows the container, and .cm-scroller handles
+   internal overflow. CodeMirror doesn't expose its natural content height to
+   CSS so the initial fit-content has to come from JS. */
 .exercise__editor {
     width: 100%;
     box-sizing: border-box;
-    height: var(--pane-default-height);
-    min-height: var(--pane-min-height);
-    max-height: 75vh;
+    /* Placeholder height until editor.js measures content and sets the real
+       initial height. min-height keeps the placeholder visible. */
+    height: var(--editor-min-height);
+    min-height: var(--editor-min-height);
     border: 1px solid var(--border, #e5e7eb);
     border-radius: 6px;
     background: var(--bg, #fff);
@@ -257,7 +260,7 @@
 /* Result/diff panes should also have a sensible cap so a runaway template
    doesn't push the page down a hundred screens. They scroll internally. */
 .exercise__result .exercise__pre {
-    max-height: var(--pane-default-height);
+    max-height: var(--pane-default-cap);
     flex: none;
 }
 
@@ -308,24 +311,9 @@
     margin-left: 0.4em;
 }
 
-/* Narrow viewport: stack data + expected, give each its own resize handle.
-   The shared-row height/resize on .exercise__panels gets switched off. */
+/* Narrow viewport: stack the panels (each already has its own resize). */
 @media (max-width: 720px) {
     .exercise__panels {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        height: auto;
-        min-height: 0;
-        max-height: none;
-        resize: none;
-        overflow: visible;
-    }
-    .exercise__panel {
-        height: 240px;
-        min-height: var(--pane-min-height);
-        max-height: 75vh;
-        resize: vertical;
-        overflow: hidden;
+        grid-template-columns: 1fr;
     }
 }

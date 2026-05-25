@@ -19,12 +19,16 @@
 
     /* One source of truth for every code surface — data model panel, expected
        output, template editor, example panels, diff. Keeps font sizes
-       consistent. */
-    --code-font-size: 0.9rem;
+       consistent. Code is intentionally smaller than body so the visual
+       hierarchy puts the prose first and the code second. */
+    --code-font-size: 0.85rem;
     --code-line-height: 1.55;
     --code-font-family: 'Cascadia Code', 'Cascadia Mono', Consolas, 'Courier New', monospace;
-    --pane-default-height: 350px;
-    --pane-min-height: 120px;
+    /* Cap that panels and the editor honour by default. Each pane sizes to
+       fit its content but is clamped here; the user can drag past this. */
+    --pane-default-cap: 350px;
+    --pane-min-height: 60px;
+    --editor-min-height: 80px;
 
     /* Syntax-highlight palette (VS Code Light+ inspired). Used by both
        ContentBuilder's TextMate spans (<span class="hl-*">) and CodeMirror's
@@ -253,53 +257,28 @@ h1:focus { outline: none; }
     font-size: var(--code-font-size);
 }
 
-/* Wide: data is its own resizable pane; template+output share a resizable row. */
-.example__col--data {
-    height: var(--pane-default-height);
+/* Each pane sizes to fit its content, capped at --pane-default-cap. User can
+   drag the corner of any pane to extend past the cap. Panes in the template/
+   output row don't share height — each is independent. */
+.example__col--data,
+.example__row > .example__col {
+    height: min(var(--pane-default-cap), max-content);
     min-height: var(--pane-min-height);
-    max-height: 75vh;
     resize: vertical;
     overflow: hidden;
-}
-.example__col--data pre {
-    height: 100%;
 }
 
 .example__row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 0.75rem;
-    height: var(--pane-default-height);
-    min-height: var(--pane-min-height);
-    max-height: 75vh;
-    resize: vertical;
-    overflow: hidden;
-}
-.example__row > .example__col {
-    overflow: hidden;
-    min-height: 0;
-}
-.example__row > .example__col pre {
-    height: 100%;
+    /* Don't let the row stretch shorter children to match the tallest — keep
+       each independently sized. */
+    align-items: start;
 }
 
 @media (max-width: 720px) {
-    /* Narrow: drop the shared-resize row, give each pane its own resize. */
     .example__row {
-        display: flex;
-        flex-direction: column;
-        height: auto;
-        min-height: 0;
-        max-height: none;
-        resize: none;
-        overflow: visible;
-    }
-    .example__row > .example__col,
-    .example__col--data {
-        height: 240px;
-        min-height: var(--pane-min-height);
-        max-height: 75vh;
-        resize: vertical;
-        overflow: hidden;
+        grid-template-columns: minmax(0, 1fr);
     }
 }

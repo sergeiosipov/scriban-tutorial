@@ -25,6 +25,12 @@ const scribanHighlight = HighlightStyle.define([
   { tag: t.typeName,     class: "hl-type" },
 ]);
 
+// Cap and floor for the auto-fit initial height. Must match the values in
+// app.css's --pane-default-cap / --editor-min-height (kept in JS too because
+// computed-style lookup against a freshly-mounted element is racy).
+const EDITOR_DEFAULT_CAP_PX = 350;
+const EDITOR_MIN_HEIGHT_PX = 80;
+
 export function mount(elementId, initial, dotnetRef, _ignoredIsDark) {
   const parent = document.getElementById(elementId);
   if (!parent) {
@@ -52,6 +58,28 @@ export function mount(elementId, initial, dotnetRef, _ignoredIsDark) {
     ],
   });
   editors.set(elementId, view);
+
+  // CSS holds the container at --editor-min-height as a placeholder. Once
+  // CodeMirror has laid out, measure its scrollHeight and set the container
+  // to fit-content-up-to-cap. After that the user can drag the corner to
+  // resize freely (CSS resize:vertical sets inline height on drag, which
+  // overrides our initial set).
+  requestAnimationFrame(() => {
+    try { fitEditorHeight(parent, view); }
+    catch (e) { console.error("editor.js: fitEditorHeight failed:", e); }
+  });
+}
+
+function fitEditorHeight(parent, view) {
+  const scroller = view.scrollDOM;
+  // scrollHeight is the natural rendered height of the editor's content
+  // (gutters included, padding included). Falls back to 0 if not laid out yet
+  // — the requestAnimationFrame above usually avoids that.
+  const natural = scroller.scrollHeight;
+  const target = Math.min(
+    EDITOR_DEFAULT_CAP_PX,
+    Math.max(EDITOR_MIN_HEIGHT_PX, natural + 2));
+  parent.style.height = target + "px";
 }
 
 export function setValue(elementId, value) {
