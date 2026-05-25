@@ -48,7 +48,7 @@ public sealed class ContentService
             {
                 var entry = Manifest!.Lessons.FirstOrDefault(l => l.Id == lessonId)
                     ?? throw new KeyNotFoundException($"lesson not found: {lessonId}");
-                task = FetchLessonAsync(entry, ct);
+                task = FetchLessonAsync(entry);
                 _lessonTasks[lessonId] = task;
             }
         }
@@ -56,23 +56,26 @@ public sealed class ContentService
         {
             _gate.Release();
         }
+        // ct.WaitAsync lets the caller abandon the UI early without poisoning
+        // the cached task — the inner fetch runs to completion uncancelled, so
+        // a later visit to the same lesson re-awaits a finished (not faulted) task.
         return await task.WaitAsync(ct);
     }
 
-    private async Task<LessonContent> FetchLessonAsync(LessonEntry entry, CancellationToken ct)
+    private async Task<LessonContent> FetchLessonAsync(LessonEntry entry)
     {
-        var theoryHtml = await _http.GetStringAsync($"{entry.TheoryPath}.html", ct);
+        var theoryHtml = await _http.GetStringAsync($"{entry.TheoryPath}.html");
 
         var exercisePairs = await Task.WhenAll(entry.Exercises.Select(async ex =>
         {
             var basePath = ex.Path;
             var parts = await Task.WhenAll(
-                _http.GetStringAsync($"{basePath}/01-description.html", ct),
-                _http.GetStringAsync($"{basePath}/02-datamodel.json", ct),
-                _http.GetStringAsync($"{basePath}/02-datamodel.html", ct),
-                _http.GetStringAsync($"{basePath}/03-expected.txt", ct),
-                _http.GetStringAsync($"{basePath}/04-template.txt", ct),
-                _http.GetStringAsync($"{basePath}/05-solution.txt", ct));
+                _http.GetStringAsync($"{basePath}/01-description.html"),
+                _http.GetStringAsync($"{basePath}/02-datamodel.json"),
+                _http.GetStringAsync($"{basePath}/02-datamodel.html"),
+                _http.GetStringAsync($"{basePath}/03-expected.txt"),
+                _http.GetStringAsync($"{basePath}/04-template.txt"),
+                _http.GetStringAsync($"{basePath}/05-solution.txt"));
 
             return (ex.Id, content: new ExerciseContent(
                 DescriptionHtml: parts[0],
