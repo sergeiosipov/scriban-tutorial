@@ -1,15 +1,10 @@
 # Basics
 
-Scriban is a small, fast templating language for .NET. A Scriban template is
-just text with `{{ ... }}` tags punched in it. The same `{{ ... }}` form is used
-for both **expressions** (which print their result) and **control flow**
-(`{{ if cond }}…{{ else }}…{{ end }}`, `{{ for x in items }}…{{ end }}`, and so
-on). Anything outside the tags is copied to the output literally.
-
-> Scriban also offers an opt-in **Liquid compatibility** mode that recognises
-> `{% ... %}` tags — but that's a separate parser entry point
-> (`Template.ParseLiquid`) and not how this course uses Scriban. Everywhere in
-> these lessons, the only delimiter you'll see is `{{ ... }}`.
+A Scriban template is just text with `{{ ... }}` tags punched in it. The same
+`{{ ... }}` form is used for both **expressions** (which print their result)
+and **control flow** (`{{ if cond }}…{{ else }}…{{ end }}`,
+`{{ for x in items }}…{{ end }}`, and so on). Anything outside the tags is
+copied to the output literally.
 
 ## Variables
 

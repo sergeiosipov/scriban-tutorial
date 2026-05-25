@@ -9,8 +9,23 @@ public sealed class ContentService
     private readonly HttpClient _http;
     private Task<Manifest>? _manifestTask;
     private readonly ConcurrentDictionary<string, Task<LessonContent>> _lessonTasks = new();
+    private readonly ConcurrentDictionary<string, Task<string>> _referenceDocTasks = new();
 
     public ContentService(HttpClient http) => _http = http;
+
+    /// <summary>
+    /// Fetch and memoise a pre-rendered reference doc from
+    /// <c>wwwroot/reference/&lt;name&gt;.html</c>. Used by the About and
+    /// Contribute pages to surface top-level repo docs (SECURITY.md,
+    /// KNOWN_ISSUES.md, AUTHORING_LESSONS.md) without a second fetch on
+    /// re-visit. Inner fetch runs uncancelled so the cache never holds a
+    /// faulted task; the caller's token only guards the await.
+    /// </summary>
+    public async Task<string> GetReferenceDocAsync(string name, CancellationToken ct = default)
+    {
+        var task = _referenceDocTasks.GetOrAdd(name, n => _http.GetStringAsync($"reference/{n}.html"));
+        return await task.WaitAsync(ct);
+    }
 
     public Task<Manifest> InitializeAsync() => _manifestTask ??= LoadManifestAsync();
 

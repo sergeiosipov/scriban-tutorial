@@ -1,0 +1,119 @@
+.reference {
+    max-width: 900px;
+}
+
+.reference__loading {
+    color: var(--muted, #6b7280);
+    padding: 1rem 0;
+}
+
+.reference__header {
+    margin-bottom: 1.5rem;
+}
+
+.reference__eyebrow {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted, #6b7280);
+    margin-bottom: 0.25rem;
+}
+
+.reference__intro {
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    background: var(--bg, #fff);
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow);
+}
+
+.reference__intro p {
+    margin: 0.7em 0;
+}
+
+.reference__intro p:first-child { margin-top: 0; }
+.reference__intro p:last-child { margin-bottom: 0; }
+
+.reference__intro code {
+    background: var(--code-bg, #f3f4f6);
+    border: 1px solid var(--code-border, #e5e7eb);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    font-size: 0.88em;
+}
+
+.reference__section {
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem 1.5rem 1.5rem;
+    background: var(--bg, #fff);
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow);
+}
+
+.reference__section > h2 {
+    margin-top: 0;
+}
+
+.reference__body ::deep h2,
+.reference__body ::deep h3 {
+    margin-top: 1.4rem;
+}
+
+.reference__body ::deep p {
+    margin: 0.7em 0;
+}
+
+.reference__body ::deep table {
+    border-collapse: collapse;
+    margin: 1em 0;
+}
+
+.reference__body ::deep th,
+.reference__body ::deep td {
+    border: 1px solid var(--border, #e5e7eb);
+    padding: 0.4em 0.7em;
+    text-align: left;
+    vertical-align: top;
+}
+
+.reference__body ::deep th {
+    background: var(--code-bg, #f3f4f6);
+}
+
+.reference__body ::deep code {
+    background: var(--code-bg, #f3f4f6);
+    border: 1px solid var(--code-border, #e5e7eb);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    font-size: 0.88em;
+}
+
+.reference__body ::deep pre {
+    background: var(--code-bg, #f3f4f6);
+    border: 1px solid var(--code-border, #e5e7eb);
+    padding: 0.85rem 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.reference__body ::deep pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 1em;
+}
+
+.reference__body ::deep blockquote {
+    border-left: 3px solid var(--border, #e5e7eb);
+    margin: 1em 0;
+    padding: 0.1em 1em;
+    color: var(--muted, #6b7280);
+}
+
+.reference--error h1 {
+    color: var(--fail, #dc2626);
+}

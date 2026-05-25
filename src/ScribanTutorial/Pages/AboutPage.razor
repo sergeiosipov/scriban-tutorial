@@ -1,0 +1,86 @@
+@page "/about"
+@inject ContentService Content
+@implements IDisposable
+
+<PageTitle>About · Scriban Tutorial</PageTitle>
+
+@if (_error is not null)
+{
+    <article class="reference reference--error">
+        <h1>About</h1>
+        <p>@_error</p>
+        <a href="">Back to the course index</a>
+    </article>
+}
+else if (_securityHtml is null || _knownIssuesHtml is null)
+{
+    <div class="reference__loading" role="status" aria-live="polite">Loading…</div>
+}
+else
+{
+    <article class="reference">
+        <header class="reference__header">
+            <div class="reference__eyebrow">About</div>
+            <h1>About this tutorial</h1>
+        </header>
+        <section class="reference__intro">
+            <p>
+                A browser-based, client-side training course for the
+                <a href="https://github.com/scriban/scriban">Scriban</a> templating
+                language. Pure Blazor WebAssembly — no backend, no database, no
+                accounts. The Scriban engine evaluates the templates you write
+                directly in the browser tab; nothing leaves your machine.
+            </p>
+            <p>
+                The course covers default (non-Liquid) Scriban, where both
+                expressions and statement blocks use <code>{{ ... }}</code>.
+                Scriban also offers an opt-in Liquid compatibility mode
+                (<code>{% ... %}</code>) via a separate parser entry point;
+                this tutorial does not use it.
+            </p>
+        </section>
+        @* Each rendered doc leads with its own H1 (Security / Known issues),
+           so we don't add a page-level section heading — that would render
+           the title twice. The section wrappers stay as visual dividers. *@
+        <section class="reference__section" id="security">
+            <div class="reference__body">@((MarkupString)_securityHtml)</div>
+        </section>
+        <section class="reference__section" id="known-issues">
+            <div class="reference__body">@((MarkupString)_knownIssuesHtml)</div>
+        </section>
+    </article>
+}
+
+@code {
+    private string? _securityHtml;
+    private string? _knownIssuesHtml;
+    private string? _error;
+    private CancellationTokenSource? _cts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _cts = new CancellationTokenSource();
+        var ct = _cts.Token;
+        try
+        {
+            var security = Content.GetReferenceDocAsync("security", ct);
+            var known = Content.GetReferenceDocAsync("known-issues", ct);
+            _securityHtml = await security;
+            _knownIssuesHtml = await known;
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"AboutPage: load failed — {ex.GetType().Name}: {ex.Message}");
+            _error = "Could not load the About page. Try reloading.";
+        }
+    }
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
+    }
+}
