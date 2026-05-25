@@ -77,10 +77,66 @@ A short tour of the standard library worth memorising:
 
 The full reference: <https://scriban.github.io/docs/built-ins/>.
 
-## The capstone
+## Pre-compute in the host — or in the template?
 
-The exercise below pulls everything together: data-model member access,
-a loop with whitespace control, per-line and grand-total fields
-pre-computed in the data model, and a literal frame around the dynamic
-parts. If you can read it without squinting, you're ready to write
+Pre-computing totals in the host code that produces the JSON is the
+cleanest default: templates stay readable and the same numbers feed
+every consumer. But sometimes the data arrives as a flat list of rows
+and you have to do the rollup at render time. Two patterns cover almost
+every case.
+
+**Accumulator with a local variable.** Declare `$grand = 0` outside the
+loop, add inside it. The `$` prefix keeps the counter local — it won't
+leak into the global scope of an `include` or the next render. Pair it
+with an inline `subtotal(line) = line.qty * line.unit_price` and the
+per-row arithmetic gets a name.
+
+```scriban
+{{- subtotal(line) = line.qty * line.unit_price
+    $grand = 0 -}}
+{{- for line in lines
+      $line_total = subtotal line
+      $grand = $grand + $line_total
+}}
+{{- end }}
+Total: {{ $grand }}
+```
+
+**Object-as-map for group-by.** Scriban doesn't ship a `group_by`
+function, but a plain object plus the null-coalesce idiom does the job:
+
+```scriban
+{{ totals = {}
+   for t in transactions
+     if t.status == "settled"
+       key = t.fund + " " + t.type
+       totals[key] = (totals[key] ?? 0) + t.amount
+     end
+   end
+   for k in (object.keys totals)
+     k + ": " + totals[k]
+   end }}
+```
+
+The parens around `(object.keys totals)` matter — a bare
+`for k in object.keys totals` reads as
+`for k in object.keys` *followed by* a stray `totals`, and the engine
+trips on the zero-argument `object.keys` call. Same reason
+`(array.size x) > 0` needs its parens.
+
+## The capstones
+
+The exercises below pull everything together. There are three flavours,
+in order of difficulty:
+
+1. **`invoice`** — data-model fields and member access only; subtotals
+   and the grand total arrive pre-computed.
+2. **`invoice-from-items`** — same shape, but the data carries only
+   `qty` and `unit_price`. The template computes each subtotal via an
+   inline function and the grand total via a `$grand` accumulator.
+3. **`transaction-rollup`** — group-by aggregation: four fund
+   transactions are filtered by status and merged by
+   fund+direction into one line per group.
+
+If you can read all three without squinting, you're ready to write
 Scriban for real.

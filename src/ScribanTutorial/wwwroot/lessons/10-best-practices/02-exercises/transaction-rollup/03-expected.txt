@@ -1,0 +1,2 @@
+ABC buy 150
+XYZ sell 200

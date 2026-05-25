@@ -117,7 +117,9 @@
         { "id": "whitespace-list",     "path": "lessons/10-best-practices/02-exercises/whitespace-list" },
         { "id": "for-last-separator",  "path": "lessons/10-best-practices/02-exercises/for-last-separator" },
         { "id": "array-size-check",    "path": "lessons/10-best-practices/02-exercises/array-size-check" },
-        { "id": "invoice",             "path": "lessons/10-best-practices/02-exercises/invoice" }
+        { "id": "invoice",             "path": "lessons/10-best-practices/02-exercises/invoice" },
+        { "id": "invoice-from-items",  "path": "lessons/10-best-practices/02-exercises/invoice-from-items" },
+        { "id": "transaction-rollup",  "path": "lessons/10-best-practices/02-exercises/transaction-rollup" }
       ]
     }
   ]

@@ -1,0 +1,11 @@
+{{- subtotal(line) = line.qty * line.unit_price
+    $grand = 0 -}}
+Invoice for {{ customer }}
+------------------------
+{{- for line in lines
+      $line_total = subtotal line
+      $grand = $grand + $line_total }}
+{{ line.description }} (x{{ line.qty }}): ${{ $line_total }}
+{{- end }}
+------------------------
+Total: ${{ $grand }}

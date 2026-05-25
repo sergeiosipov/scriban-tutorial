@@ -1,0 +1,8 @@
+{
+  "transactions": [
+    { "id": "T-001", "fund": "ABC", "type": "buy",  "amount": 100, "status": "settled" },
+    { "id": "T-002", "fund": "ABC", "type": "buy",  "amount": 50,  "status": "settled" },
+    { "id": "T-003", "fund": "XYZ", "type": "sell", "amount": 200, "status": "settled" },
+    { "id": "T-004", "fund": "XYZ", "type": "buy",  "amount": 300, "status": "pending" }
+  ]
+}

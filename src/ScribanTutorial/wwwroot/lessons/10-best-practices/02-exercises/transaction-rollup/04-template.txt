@@ -1,0 +1,10 @@
+{{- totals = {}
+    for t in transactions
+      if t.status ??? "settled"
+        key = ???
+        totals[key] = (totals[key] ??? 0) + t.amount
+      end
+    end -}}
+{{ for k in (object.keys totals) -}}
+{{ k }} {{ totals[k] }}
+{{ end -}}

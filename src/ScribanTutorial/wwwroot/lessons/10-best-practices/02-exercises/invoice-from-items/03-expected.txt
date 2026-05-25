@@ -1,0 +1,7 @@
+Invoice for Ada Lovelace
+------------------------
+widget (x3): $30
+gadget (x2): $50
+sprocket (x1): $12
+------------------------
+Total: $92
