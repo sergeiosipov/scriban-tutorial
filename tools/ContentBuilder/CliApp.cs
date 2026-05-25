@@ -26,19 +26,15 @@ internal static class CliApp
 
             string? input = null;
             string? grammar = null;
-            string? repoRoot = null;
-            string? referenceOut = null;
             string theme = "light";
             for (var i = 0; i < args.Length; i++)
             {
                 var a = args[i];
                 switch (a)
                 {
-                    case "--input":     input = i + 1 < args.Length ? args[++i] : null; break;
-                    case "--grammar":   grammar = i + 1 < args.Length ? args[++i] : null; break;
-                    case "--theme":     theme = (i + 1 < args.Length ? args[++i] : null) ?? "light"; break;
-                    case "--repo-root": repoRoot = i + 1 < args.Length ? args[++i] : null; break;
-                    case "--reference-out": referenceOut = i + 1 < args.Length ? args[++i] : null; break;
+                    case "--input":   input = i + 1 < args.Length ? args[++i] : null; break;
+                    case "--grammar": grammar = i + 1 < args.Length ? args[++i] : null; break;
+                    case "--theme":   theme = (i + 1 < args.Length ? args[++i] : null) ?? "light"; break;
                     case "--help":
                     case "-h":
                     case "/?":
@@ -68,14 +64,7 @@ internal static class CliApp
             if (mdExit != 0) return mdExit;
             var dataExit = BuildDataModelHtml(input, highlighter);
             if (dataExit != 0) return dataExit;
-            var bundleExit = BuildExerciseBundles(input);
-            if (bundleExit != 0) return bundleExit;
-            // Reference docs render only when both --repo-root and
-            // --reference-out are supplied. The MSBuild target passes both;
-            // ad-hoc invocations without them stay limited to lesson content.
-            if (!string.IsNullOrEmpty(repoRoot) && !string.IsNullOrEmpty(referenceOut))
-                return BuildReferenceDocs(repoRoot, referenceOut, renderer);
-            return 0;
+            return BuildExerciseBundles(input);
         }
         catch (Exception ex)
         {
@@ -215,63 +204,10 @@ internal static class CliApp
         return 0;
     }
 
-    // Render top-level repo docs (SECURITY.md, KNOWN_ISSUES.md,
-    // docs/AUTHORING_LESSONS.md) into wwwroot/reference/*.html so the SPA can
-    // surface them on the About / Contribute pages without leaving the site.
-    // Relative links in those docs are rewritten to GitHub blob URLs by the
-    // MarkdownRenderer's link-rewriter — so href="../src/Foo.cs" still works
-    // on the deployed SPA, where the resource doesn't exist.
-    private static int BuildReferenceDocs(string repoRoot, string referenceOutDir, MarkdownRenderer renderer)
-    {
-        const string githubBlobBase = "https://github.com/sergeiosipov/scriban-tutorial/blob/main";
-        var pairs = new (string Source, string Output)[]
-        {
-            ("docs/SECURITY.md",         "security.html"),
-            ("KNOWN_ISSUES.md",          "known-issues.html"),
-            ("docs/AUTHORING_LESSONS.md","authoring-lessons.html"),
-        };
-
-        if (!Directory.Exists(repoRoot))
-        {
-            Console.Error.WriteLine($"Repo root not found: {repoRoot}");
-            return 1;
-        }
-        Directory.CreateDirectory(referenceOutDir);
-
-        var regenerated = 0;
-        foreach (var (srcRel, outRel) in pairs)
-        {
-            var src = Path.Combine(repoRoot, srcRel.Replace('/', Path.DirectorySeparatorChar));
-            if (!File.Exists(src))
-            {
-                Console.Error.WriteLine($"ContentBuilder: reference source missing — {src}");
-                return 1;
-            }
-            var outPath = Path.Combine(referenceOutDir, outRel);
-            if (!IsStale(src, outPath)) continue;
-            try
-            {
-                var options = new MarkdownRenderer.RenderOptions(src, repoRoot, githubBlobBase);
-                var output = renderer.Render(File.ReadAllText(src), options);
-                File.WriteAllText(outPath, output);
-                regenerated++;
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"ContentBuilder: failed to render reference doc {src} — {ex.Message}");
-                return 1;
-            }
-        }
-        Console.WriteLine($"ContentBuilder: scanned {pairs.Length} reference docs, regenerated {regenerated}.");
-        return 0;
-    }
-
     private static void PrintUsage()
     {
         Console.WriteLine("Usage:");
-        Console.WriteLine("  ContentBuilder --input <lessons-dir> --grammar <scriban.tmLanguage.json>");
-        Console.WriteLine("                 [--theme light|dark]");
-        Console.WriteLine("                 [--repo-root <path> --reference-out <wwwroot/reference>]");
+        Console.WriteLine("  ContentBuilder --input <lessons-dir> --grammar <scriban.tmLanguage.json> [--theme light|dark]");
         Console.WriteLine("  ContentBuilder --verify <exercise-dir>");
     }
 }

@@ -75,7 +75,7 @@ piece of state lives.
 
 `dotnet build` runs the `BuildContent` MSBuild target before computing
 static web assets. That target invokes
-[`tools/ContentBuilder/`](tools/ContentBuilder/), which does four
+[`tools/ContentBuilder/`](tools/ContentBuilder/), which does three
 mtime-driven passes:
 
 | Pass | Walks | Emits |
@@ -83,10 +83,13 @@ mtime-driven passes:
 | Markdown → HTML | every `*.md` under `wwwroot/lessons/` | `*.html` sibling |
 | Data-model pretty-print | every `02-datamodel.json` | `02-datamodel.html` sibling |
 | Exercise bundling | every `05-solution.txt` (= every exercise dir) | `bundle.json` with all six inputs |
-| Reference docs | top-level repo docs (`SECURITY.md`, `KNOWN_ISSUES.md`, `docs/AUTHORING_LESSONS.md`) | `wwwroot/reference/*.html` for the About and Contribute pages |
 
-All generated artifacts (`*.html`, `bundle.json`, `wwwroot/reference/`)
-are gitignored.
+All generated artifacts (`*.html`, `bundle.json`) are gitignored.
+
+The About and Contribute pages' bodies are authored directly in their
+respective `.razor` files (`Pages/001_about.razor`,
+`Pages/999_contribute-a-lesson.razor`) — not generated from external
+`.md` sources. Edits to that content go through Razor.
 
 ContentBuilder also has a `--verify <exercise-path>` subcommand for
 checking a single exercise's canonical solution against its expected
@@ -196,7 +199,10 @@ in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 ## Security disclosures
 
-The threat model for the app is in [`docs/SECURITY.md`](docs/SECURITY.md).
+The threat model for the app is rendered on the
+[About page](https://sergeiosipov.github.io/scriban-tutorial/about) (or
+read it as Razor in
+[`Pages/001_about.razor`](src/ScribanTutorial/Pages/001_about.razor)).
 If you find a vulnerability that affects deployed users (e.g. an XSS in
 the Markdig→HTML pipeline that the sanitiser misses), open a private
 disclosure via the GitHub Security tab rather than a public issue.
@@ -206,6 +212,10 @@ disclosure via the GitHub Security tab rather than a public issue.
 - [`README.md`](README.md) — landing-page overview and prerequisites.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — detailed map of services, components, build pipeline, asset layout.
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — CI pipeline, base href rewrite, SPA routing on GitHub Pages.
-- [`docs/SECURITY.md`](docs/SECURITY.md) — threat model.
-- [`docs/AUTHORING_LESSONS.md`](docs/AUTHORING_LESSONS.md) — source for the rendered Contribute page; the full lesson-authoring reference.
-- [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) — Scriban grammar edges and course-coverage gaps.
+
+The threat model, known issues, course-coverage notes, and the full
+lesson-authoring reference all live as rendered pages on the live site
+([About](https://sergeiosipov.github.io/scriban-tutorial/about) and
+[Contribute a lesson](https://sergeiosipov.github.io/scriban-tutorial/contribute))
+rather than as standalone `.md` files in this repo. Their source is
+Razor under [`Pages/`](src/ScribanTutorial/Pages/).

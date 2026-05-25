@@ -1,87 +1,258 @@
 @page "/about"
-@inject ContentService Content
-@implements IDisposable
 
 <PageTitle>About · Scriban Tutorial</PageTitle>
 
-@if (_error is not null)
-{
-    <article class="reference reference--error">
-        <h1>About</h1>
-        <p>@_error</p>
-        <a href="">Back to the course index</a>
-    </article>
-}
-else if (_securityHtml is null || _knownIssuesHtml is null)
-{
-    <div class="reference__loading" role="status" aria-live="polite">Loading…</div>
-}
-else
-{
-    <article class="reference">
-        <header class="reference__header">
-            <div class="reference__eyebrow">About</div>
-            <h1>About this tutorial</h1>
-        </header>
-        <section class="reference__intro">
+<article class="reference">
+    <header class="reference__header">
+        <div class="reference__eyebrow">About</div>
+        <h1>About this tutorial</h1>
+    </header>
+
+    <section class="reference__intro">
+        <p>
+            A browser-based, client-side training course for the
+            <a href="https://github.com/scriban/scriban">Scriban</a> templating
+            language. Pure Blazor WebAssembly — no backend, no database, no
+            accounts. The Scriban engine evaluates the templates you write
+            directly in the browser tab; nothing leaves your machine. Source
+            code lives at
+            <a href="https://github.com/sergeiosipov/scriban-tutorial"
+               target="_blank" rel="noopener">github.com/sergeiosipov/scriban-tutorial</a>.
+        </p>
+        <p>
+            The course covers default (non-Liquid) Scriban, where both
+            expressions and statement blocks use <code>{{ ... }}</code>.
+            Scriban also offers an opt-in Liquid compatibility mode
+            (<code>{% ... %}</code>) via a separate parser entry point;
+            this tutorial does not use it.
+        </p>
+    </section>
+
+    <section class="reference__section" id="security">
+        <div class="reference__body">
+            <h2>Security</h2>
             <p>
-                A browser-based, client-side training course for the
-                <a href="https://github.com/scriban/scriban">Scriban</a> templating
-                language. Pure Blazor WebAssembly — no backend, no database, no
-                accounts. The Scriban engine evaluates the templates you write
-                directly in the browser tab; nothing leaves your machine.
+                The current configuration is appropriate <strong>only</strong>
+                for the single-user local-browser execution model.
             </p>
+
+            <h3>Threat model</h3>
             <p>
-                The course covers default (non-Liquid) Scriban, where both
-                expressions and statement blocks use <code>{{ ... }}</code>.
-                Scriban also offers an opt-in Liquid compatibility mode
-                (<code>{% ... %}</code>) via a separate parser entry point;
-                this tutorial does not use it.
+                This app <strong>evaluates user-supplied Scriban templates in
+                the user's own browser</strong>. The "attacker" is the user;
+                the victim is the same user's browser tab. Standard
+                server-side template-injection threats don't apply — there's
+                no server. But the local execution model has its own concerns.
             </p>
-        </section>
-        @* Each rendered doc leads with its own H1 (Security / Known issues),
-           so we don't add a page-level section heading — that would render
-           the title twice. The section wrappers stay as visual dividers. *@
-        <section class="reference__section" id="security">
-            <div class="reference__body">@((MarkupString)_securityHtml)</div>
-        </section>
-        <section class="reference__section" id="known-issues">
-            <div class="reference__body">@((MarkupString)_knownIssuesHtml)</div>
-        </section>
-        <PageNav />
-    </article>
-}
 
-@code {
-    private string? _securityHtml;
-    private string? _knownIssuesHtml;
-    private string? _error;
-    private CancellationTokenSource? _cts;
+            <h3>1. CPU / memory denial of service via malicious templates</h3>
+            <p>
+                A user can deliberately or accidentally write a template that
+                consumes unbounded resources:
+            </p>
+<pre><code>{{ for i in 1..999999999 }}{{ i }}{{ end }}</code></pre>
+<pre><code>{{ func loop; loop; ret; end; loop }}</code></pre>
+<pre><code>{{ "x" | string.append "x" | string.append "x" | ... }}   # produces 2^N bytes</code></pre>
+            <p>
+                <strong>Mitigations baked into the runner</strong> (see
+                <a href="https://github.com/sergeiosipov/scriban-tutorial/blob/main/src/ScribanTutorial/Services/ScribanRunner.cs"
+                   target="_blank" rel="noopener"><code>Services/ScribanRunner.cs</code></a>,
+                the single source of truth used by ExerciseBlock, Playground,
+                and the build-time <code>--verify</code> tool):
+            </p>
+            <ul>
+                <li><code>TemplateContext.LoopLimit = 100_000</code> — Scriban throws after this many loop iterations.</li>
+                <li><code>TemplateContext.RecursiveLimit = 100</code> — caps recursion depth.</li>
+                <li>Output capped at 250 KB per render. <code>LoopLimit</code> stops a runaway counter but doesn't stop a template that emits 50 KB per iteration; the post-render truncation keeps the worst case bounded.</li>
+                <li>Total render time is naturally capped by the browser tab's CPU budget. A runaway template freezes only that tab; other tabs and the OS are fine.</li>
+            </ul>
+            <h4>Known upstream limitation</h4>
+            <p>
+                Scriban's recursive-descent parser can throw
+                <code>StackOverflowException</code> on deeply nested expressions
+                (e.g. <code>((((((…))))))</code> thousands deep). On .NET, a
+                <code>StackOverflowException</code> is <strong>not catchable</strong>
+                — it tears down the WASM runtime. The user has to reload the
+                tab. This is a Scriban limitation, not something we can
+                mitigate. Acceptable because this is single-user local-browser
+                execution.
+            </p>
 
-    protected override async Task OnInitializedAsync()
-    {
-        _cts = new CancellationTokenSource();
-        var ct = _cts.Token;
-        try
-        {
-            var security = Content.GetReferenceDocAsync("security", ct);
-            var known = Content.GetReferenceDocAsync("known-issues", ct);
-            _securityHtml = await security;
-            _knownIssuesHtml = await known;
-        }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
-        {
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"AboutPage: load failed — {ex.GetType().Name}: {ex.Message}");
-            _error = "Could not load the About page. Try reloading.";
-        }
-    }
+            <h3>2. Cross-site scripting (XSS)</h3>
+            <p>The app puts two kinds of content into the DOM:</p>
+            <ul>
+                <li>
+                    <strong>Theory HTML</strong> — rendered through
+                    <code>@@((MarkupString)Html)</code>. Markdig output is HTML;
+                    left to itself, a <code>.md</code> file containing
+                    <code>&lt;script&gt;</code> would execute.
+                    <strong>Mitigations</strong> (defence-in-depth):
+                    <ol>
+                        <li>Every <code>.md</code> is author-controlled and PR-reviewed.</li>
+                        <li>
+                            <a href="https://github.com/sergeiosipov/scriban-tutorial/blob/main/tools/ContentBuilder/MarkdownRenderer.cs"
+                               target="_blank" rel="noopener"><code>MarkdownRenderer.Render</code></a>
+                            passes the Markdig output through <code>Ganss.Xss.HtmlSanitizer</code>
+                            at build time, stripping <code>&lt;script&gt;</code>,
+                            <code>&lt;iframe&gt;</code>, <code>&lt;object&gt;</code>,
+                            <code>&lt;embed&gt;</code>, <code>on*=</code> handlers,
+                            and <code>javascript:</code> URLs. So even if a malicious
+                            snippet slipped past review, it never reaches the deployed
+                            <code>.html</code>.
+                            <a href="https://github.com/sergeiosipov/scriban-tutorial/blob/main/tests/ScribanTutorial.Tests/ContentBuilderTests.cs"
+                               target="_blank" rel="noopener"><code>ContentBuilderTests.MarkdownRenderer_strips_dangerous_html_from_author_content</code></a>
+                            gates this.
+                        </li>
+                    </ol>
+                </li>
+                <li>
+                    <strong>JSON data-model display</strong> — rendered as text
+                    inside <code>&lt;pre&gt;&lt;code&gt;</code>. Blazor's
+                    <code>@@expression</code> HTML-escapes by default. Safe.
+                </li>
+                <li>
+                    <strong>The user's template</strong> — never inserted into
+                    the DOM. Only fed to Scriban and to the CodeMirror editor.
+                </li>
+            </ul>
+            <p>
+                The <code>JavaScriptEncoder.UnsafeRelaxedJsonEscaping</code> we
+                use to pretty-print the data-model panel is safe
+                <strong>in this context</strong>: the JSON becomes text inside
+                a <code>&lt;pre&gt;</code> element, not embedded in
+                <code>&lt;script&gt;</code> or HTML attributes. If a future
+                change moves JSON into an HTML attribute or a
+                <code>&lt;script&gt;</code> block, switch back to the default
+                encoder.
+            </p>
 
-    public void Dispose()
-    {
-        _cts?.Cancel();
-        _cts?.Dispose();
-    }
-}
+            <h3>3. <code>localStorage</code> privacy</h3>
+            <p>
+                User progress is stored under keys
+                <code>scriban-tutorial:progress:*</code> and the theme under
+                <code>scriban-tutorial:theme</code>. These are visible to any
+                other JavaScript on the same origin. Acceptable because:
+            </p>
+            <ul>
+                <li>No PII, no credentials.</li>
+                <li>The app is the only thing served from this origin.</li>
+                <li>A user can clear progress with <code>localStorage.clear()</code> from DevTools, or via the standard browser "clear site data" flow.</li>
+            </ul>
+
+            <h3>4. Third-party JavaScript (CodeMirror)</h3>
+            <p>
+                CodeMirror 6 and its transitive dependencies are vendored
+                locally under <code>wwwroot/lib/codemirror/</code>, not loaded
+                from a CDN. There's no supply-chain risk at runtime. Updates
+                require a deliberate re-vendoring step — see the
+                "CodeMirror vendoring" section of
+                <a href="https://github.com/sergeiosipov/scriban-tutorial/blob/main/CONTRIBUTING.md#codemirror-vendoring"
+                   target="_blank" rel="noopener"><code>CONTRIBUTING.md</code></a>
+                and the pinned versions in
+                <a href="https://github.com/sergeiosipov/scriban-tutorial/blob/main/src/ScribanTutorial/wwwroot/lib/codemirror/VERSION.txt"
+                   target="_blank" rel="noopener"><code>wwwroot/lib/codemirror/VERSION.txt</code></a>.
+            </p>
+
+            <h3>5. Dependency hygiene</h3>
+            <p>
+                CI fails on any vulnerable NuGet (direct or transitive) via a
+                <code>dotnet list package --vulnerable --include-transitive</code>
+                step in
+                <a href="https://github.com/sergeiosipov/scriban-tutorial/blob/main/.github/workflows/deploy.yml"
+                   target="_blank" rel="noopener"><code>.github/workflows/deploy.yml</code></a>.
+                The same gate runs on every PR before merge.
+                <a href="https://github.com/sergeiosipov/scriban-tutorial/blob/main/.github/dependabot.yml"
+                   target="_blank" rel="noopener">Dependabot</a> watches the
+                github-actions ecosystem weekly so action SHA bumps land as
+                PRs; NuGet bumps stay manual so a breaking-API jump can't
+                auto-merge.
+            </p>
+            <p>Current pins:</p>
+            <table>
+                <thead>
+                    <tr><th>Package</th><th>Version</th><th>Where</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Scriban</td><td>7.2.0</td><td>WASM runtime + ContentBuilder + tests</td></tr>
+                    <tr><td>DiffPlex</td><td>1.9.0</td><td>WASM runtime</td></tr>
+                    <tr><td>Markdig</td><td>1.2.0</td><td>ContentBuilder + tests (build-time only)</td></tr>
+                    <tr><td>HtmlSanitizer (Ganss.Xss)</td><td>9.0.892</td><td>ContentBuilder + tests (build-time only)</td></tr>
+                    <tr><td>TextMateSharp</td><td>2.0.3</td><td>ContentBuilder + tests (build-time only)</td></tr>
+                    <tr><td>TextMateSharp.Grammars</td><td>2.0.3</td><td>ContentBuilder + tests (build-time only)</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="reference__section" id="known-issues">
+        <div class="reference__body">
+            <h2>Known issues</h2>
+            <p>
+                Tracked rough edges that don't block the build but a
+                contributor should be aware of before opening a related PR.
+            </p>
+
+            <h3>Course coverage</h3>
+            <p>
+                The course mirrors the structure of
+                <a href="https://scriban.github.io/docs/language/"
+                   target="_blank" rel="noopener">scriban.github.io/docs/language</a>
+                — lessons 01–09 follow the doc's top-level sections in order,
+                and lesson 10 collects the best practices. Topics still
+                <strong>not</strong> covered by the course (intentionally
+                deferred or excluded):
+            </p>
+            <ul>
+                <li><code>wrap</code> content wrappers — present in lesson 09's theory as a mention, no exercise.</li>
+                <li><code>tablerow</code> grid layouts — present as a mention; require an HTML host to verify visually and don't transfer to a learner's text-only templates.</li>
+                <li><code>include</code> / <code>include_join</code> — depend on a host-configured template loader that this WASM tutorial doesn't ship.</li>
+                <li><code>regex.*</code> filters beyond the verbatim-string exercise in lesson 03, a one-row mention in lesson 08's "Built-in filter modules" table, and the <code>regex-redact</code> exercise in lesson 10.</li>
+            </ul>
+            <p>
+                These are listed here because adding them would require
+                host-side configuration that this single-user browser app
+                intentionally avoids.
+            </p>
+
+            <h3>Scriban TextMate grammar</h3>
+            <p>
+                Per-edge tests live in
+                <a href="https://github.com/sergeiosipov/scriban-tutorial/blob/main/tests/ScribanTutorial.Tests/ContentBuilderTests.cs"
+                   target="_blank" rel="noopener"><code>ContentBuilderTests</code></a>.
+                Each test pins the current grammar behaviour for one edge —
+                fix the grammar <strong>and</strong> update the test in the
+                same PR if you change behaviour intentionally; a silent
+                regression breaks the test.
+            </p>
+            <p>Intentional edges contributors should know about:</p>
+            <table>
+                <thead>
+                    <tr><th>Edge</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code># foo }} bar</code> comment "eats" closing <code>}}</code></td>
+                        <td>Intentional — matches Scriban's own parser (<code>#</code> is comment-to-EOL, even past <code>}}</code>). Workaround: put the comment on its own line. Highlighter matching parser behaviour is correct; "fixing" it would visually suggest the tag closes when it actually doesn't.</td>
+                    </tr>
+                    <tr>
+                        <td><code>{{- -x -}}</code> unary minus tokenised as operator+variable</td>
+                        <td>Intentional — same treatment as VS Code, Sublime, every mainstream editor. Disambiguating unary vs binary would require a Lezer parser rewrite for cosmetic-only benefit.</td>
+                    </tr>
+                    <tr>
+                        <td>Liquid <code>{% ... %}</code> statement tags</td>
+                        <td>Removed (course doesn't teach Liquid; restore the <code>statement</code> rule if a future lesson covers it).</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>
+                The grammar JSON lives at
+                <a href="https://github.com/sergeiosipov/scriban-tutorial/blob/main/tools/ContentBuilder/grammars/scriban.tmLanguage.json"
+                   target="_blank" rel="noopener"><code>tools/ContentBuilder/grammars/scriban.tmLanguage.json</code></a>.
+                The scope→<code>.hl-*</code> class mapping is in
+                <a href="https://github.com/sergeiosipov/scriban-tutorial/blob/main/tools/ContentBuilder/TextMateHighlighter.cs"
+                   target="_blank" rel="noopener"><code>TextMateHighlighter.cs</code></a>.
+            </p>
+        </div>
+    </section>
+    <PageNav />
+</article>

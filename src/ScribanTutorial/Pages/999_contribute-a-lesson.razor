@@ -1,167 +1,436 @@
 @page "/contribute"
-@inject ContentService Content
-@implements IDisposable
 
 <PageTitle>Contribute a lesson · Scriban Tutorial</PageTitle>
 
-@if (_error is not null)
-{
-    <article class="reference reference--error">
+<article class="reference">
+    <header class="reference__header">
+        <div class="reference__eyebrow">Contribute</div>
         <h1>Contribute a lesson</h1>
-        <p>@_error</p>
-        <a href="">Back to the course index</a>
-    </article>
-}
-else if (_authoringHtml is null)
-{
-    <div class="reference__loading" role="status" aria-live="polite">Loading…</div>
-}
-else
-{
-    <article class="reference">
-        <header class="reference__header">
-            <div class="reference__eyebrow">Contribute</div>
-            <h1>Contribute a lesson</h1>
-        </header>
-        <section class="reference__intro">
+    </header>
+    <section class="reference__intro">
+        <p>
+            Everything you read in a lesson — the explanations, the
+            exercises, the expected outputs — is a plain text file in
+            the project's GitHub repository. You don't need to be a
+            programmer to edit one. You don't need to install anything.
+            You don't even need to leave the browser.
+        </p>
+        <h2 class="reference__intro-h">Where the content lives</h2>
+        <p>
+            The repository is at
+            <a href="https://github.com/sergeiosipov/scriban-tutorial"
+               target="_blank" rel="noopener">github.com/sergeiosipov/scriban-tutorial</a>.
+            The course content lives in this folder:
+        </p>
+        <p>
+            <a href="https://github.com/sergeiosipov/scriban-tutorial/tree/main/src/ScribanTutorial/wwwroot/lessons"
+               target="_blank" rel="noopener"><code>src/ScribanTutorial/wwwroot/lessons/</code></a>
+        </p>
+        <p>
+            Inside, every lesson is a numbered folder (e.g.
+            <code>01-blocks/</code>, <code>04-variables/</code>).
+            Inside each lesson folder you'll find a
+            <code>01-theory.md</code> file (the prose at the top of
+            the page) and an <code>02-exercises/</code> folder
+            containing one sub-folder per exercise. Each exercise is
+            five small files: a description, a JSON data model, the
+            expected output, a starter template, and a known-good
+            solution. The "File layout" section below has a diagram.
+        </p>
+        <h2 class="reference__intro-h">How to edit a file (no install required)</h2>
+        <ol>
+            <li>
+                Sign in to GitHub (free account; create one if you don't
+                have it). Then open the file you want to change on
+                github.com — for example,
+                <a href="https://github.com/sergeiosipov/scriban-tutorial/blob/main/src/ScribanTutorial/wwwroot/lessons/01-blocks/01-theory.md"
+                   target="_blank" rel="noopener">the theory file for lesson 01</a>.
+            </li>
+            <li>
+                Click the pencil icon (<strong>✎ Edit this file</strong>)
+                at the top-right of the file view. GitHub will tell you
+                "You need to fork this repository to propose changes."
+                Click <strong>Fork this repository</strong> — it's a
+                one-click copy of the project into your own account.
+            </li>
+            <li>
+                Edit the text in the box. Markdown is what you see in
+                the lesson — headings start with <code>#</code>, lists
+                start with <code>-</code>, code blocks are fenced with
+                triple backticks. The "Theory markdown conventions"
+                section below has the full cheat-sheet.
+            </li>
+            <li>
+                Scroll down and click <strong>Commit changes…</strong>.
+                A small dialog asks for a short description ("Fix typo
+                in lesson 03" is fine) and which branch to commit to —
+                accept the default (<em>"Create a new branch…"</em>).
+            </li>
+            <li>
+                Click <strong>Propose changes</strong>, then
+                <strong>Create pull request</strong>. That's it — you've
+                submitted your edit.
+            </li>
+        </ol>
+        <h2 class="reference__intro-h">What happens next</h2>
+        <p>
+            A pull request (PR) is a request to merge your edits into the
+            live project. As soon as you open one, GitHub Actions runs
+            the build and the test suite automatically; you'll see a
+            green check (or a red cross) within a couple of minutes
+            right on the PR page. The maintainer reviews the PR, may
+            ask for small changes (just click <strong>✎ Edit</strong> on
+            the file in your branch to update it), then merges it. The
+            merge auto-deploys to the live site within ~5 minutes.
+        </p>
+        <h2 class="reference__intro-h">If you also want to run it locally</h2>
+        <p>
+            Not required — the GitHub web flow above is enough for prose
+            and exercise edits. But if you'd like to preview your
+            changes before submitting, install the .NET 10 SDK, clone
+            the repository, and run <code>dotnet run</code> from the
+            <code>src/ScribanTutorial</code> directory. The README has
+            the full setup. Local <code>dotnet test</code> runs the
+            same checks CI does on your PR, so you can iterate without
+            round-tripping through GitHub.
+        </p>
+        <p class="reference__intro-foot">
+            The full authoring reference is in the next section — more
+            detail than most lesson edits need, but it's where the
+            file-format rules, the verification commands, and the
+            common pitfalls all live.
+        </p>
+        <p class="reference__intro-foot">
+            Working on the app itself — C#, JS, build, CI, or
+            infrastructure — rather than lesson content? See
+            <a href="https://github.com/sergeiosipov/scriban-tutorial/blob/main/CONTRIBUTING.md"
+               target="_blank" rel="noopener"><code>CONTRIBUTING.md</code></a>
+            for prerequisites, the test suite, the build pipeline,
+            and the project-mechanics notes (CodeMirror vendoring,
+            GitHub Pages CDN cache).
+        </p>
+    </section>
+
+    <section class="reference__section" id="authoring">
+        <div class="reference__body">
+            <h2>Authoring reference</h2>
+
+            <h3>File layout</h3>
+<pre><code>src/ScribanTutorial/wwwroot/
+  manifest.json
+  lessons/
+    04-variables/
+      01-theory.md                 ← the read-aloud part of the lesson
+      02-exercises/
+        hello/
+          01-description.md        ← what the exercise asks
+          02-datamodel.json        ← JSON the template will see
+          03-expected.txt          ← byte-exact expected output
+          04-template.txt          ← starter (with ??? placeholders)
+          05-solution.txt          ← known-good solution
+        local-variable/
+          ...
+    05-objects/
+      ...</code></pre>
+            <p>Numeric prefixes are part of the filename. They:</p>
+            <ul>
+                <li>keep a directory listing in the right order,</li>
+                <li>make the first build-step's output match the source order, and</li>
+                <li>let the manifest reference exercise dirs by their stable slug (<code>hello</code>, not <code>01-hello</code>).</li>
+            </ul>
+            <p>Don't rename them.</p>
             <p>
-                Everything you read in a lesson — the explanations, the
-                exercises, the expected outputs — is a plain text file in
-                the project's GitHub repository. You don't need to be a
-                programmer to edit one. You don't need to install anything.
-                You don't even need to leave the browser.
+                ContentBuilder also writes generated siblings into each
+                lesson and exercise directory at build time: <code>*.html</code>
+                for every <code>.md</code>, <code>02-datamodel.html</code>,
+                and a <code>bundle.json</code> collecting all six runtime
+                inputs in one fetch. These are gitignored — don't commit
+                them.
             </p>
-            <h2 class="reference__intro-h">Where the content lives</h2>
-            <p>
-                The repository is at
-                <a href="https://github.com/sergeiosipov/scriban-tutorial"
-                   target="_blank" rel="noopener">github.com/sergeiosipov/scriban-tutorial</a>.
-                The course content lives in this folder:
-            </p>
-            <p>
-                <a href="https://github.com/sergeiosipov/scriban-tutorial/tree/main/src/ScribanTutorial/wwwroot/lessons"
-                   target="_blank" rel="noopener"><code>src/ScribanTutorial/wwwroot/lessons/</code></a>
-            </p>
-            <p>
-                Inside, every lesson is a numbered folder (e.g.
-                <code>01-blocks/</code>, <code>04-variables/</code>).
-                Inside each lesson folder you'll find a
-                <code>01-theory.md</code> file (the prose at the top of
-                the page) and an <code>02-exercises/</code> folder
-                containing one sub-folder per exercise. Each exercise is
-                five small files: a description, a JSON data model, the
-                expected output, a starter template, and a known-good
-                solution. The "File layout" section below has a diagram.
-            </p>
-            <h2 class="reference__intro-h">How to edit a file (no install required)</h2>
+
+            <h3>Add a new exercise (quick)</h3>
             <ol>
                 <li>
-                    Sign in to GitHub (free account; create one if you don't
-                    have it). Then open the file you want to change on
-                    github.com — for example,
-                    <a href="https://github.com/sergeiosipov/scriban-tutorial/blob/main/src/ScribanTutorial/wwwroot/lessons/01-blocks/01-theory.md"
-                       target="_blank" rel="noopener">the theory file for lesson 01</a>.
+                    Pick a lesson folder under
+                    <code>src/ScribanTutorial/wwwroot/lessons/</code>,
+                    e.g. <code>06-arrays/</code>.
                 </li>
                 <li>
-                    Click the pencil icon (<strong>✎ Edit this file</strong>)
-                    at the top-right of the file view. GitHub will tell you
-                    "You need to fork this repository to propose changes."
-                    Click <strong>Fork this repository</strong> — it's a
-                    one-click copy of the project into your own account.
+                    Inside its <code>02-exercises/</code>, create a new
+                    directory named after the exercise's stable slug
+                    (kebab-case, ASCII):
+                    <code>06-arrays/02-exercises/array-slice/</code>.
                 </li>
                 <li>
-                    Edit the text in the box. Markdown is what you see in
-                    the lesson — headings start with <code>#</code>, lists
-                    start with <code>-</code>, code blocks are fenced with
-                    triple backticks. The "Theory markdown conventions"
-                    section below has the full cheat-sheet.
+                    Create <strong>all five files</strong> (encoding rules
+                    below — get this part right or the runner will reject
+                    your output):
+                    <table>
+                        <thead>
+                            <tr><th>File</th><th>What goes in it</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>01-description.md</code></td><td>What the exercise asks. Markdown. <strong>Do not paste the expected output here</strong> — that lives in <code>03-expected.txt</code> and renders in the Expected output panel.</td></tr>
+                            <tr><td><code>02-datamodel.json</code></td><td>JSON object the engine binds to. Top-level MUST be an object, not an array.</td></tr>
+                            <tr><td><code>03-expected.txt</code></td><td>Byte-exact expected output. CRLF collapsed to LF and trailing newlines trimmed before comparison; everything else significant.</td></tr>
+                            <tr><td><code>04-template.txt</code></td><td>Starter template. Use <code>???</code> for the placeholder(s) the learner fills in.</td></tr>
+                            <tr><td><code>05-solution.txt</code></td><td>The canonical, known-good solution. Verified automatically by the test suite.</td></tr>
+                        </tbody>
+                    </table>
                 </li>
                 <li>
-                    Scroll down and click <strong>Commit changes…</strong>.
-                    A small dialog asks for a short description ("Fix typo
-                    in lesson 03" is fine) and which branch to commit to —
-                    accept the default (<em>"Create a new branch…"</em>).
+                    Open <code>wwwroot/manifest.json</code> and add an entry
+                    to the lesson's <code>exercises</code> array (order
+                    matters — learners see them in this order):
+<pre><code>{ "id": "array-slice", "path": "lessons/06-arrays/02-exercises/array-slice" }</code></pre>
                 </li>
                 <li>
-                    Click <strong>Propose changes</strong>, then
-                    <strong>Create pull request</strong>. That's it — you've
-                    submitted your edit.
+                    From the repo root, <strong>verify</strong> your solution
+                    produces the expected output:
+<pre><code>dotnet run --project tools\ContentBuilder -- --verify src\ScribanTutorial\wwwroot\lessons\06-arrays\02-exercises\array-slice</code></pre>
+                    Expected: <code>--verify OK (...)</code>. On
+                    <code>--verify FAIL</code> the tool prints expected vs.
+                    actual — fix the solution or the expected file until
+                    they agree.
+                </li>
+                <li>
+                    Re-run <strong>the full test suite</strong> to catch any
+                    regressions:
+<pre><code>dotnet test</code></pre>
+                    The <code>ExerciseSolutionTests</code> class
+                    auto-includes your new exercise — no test code to write.
+                </li>
+                <li>
+                    <code>dotnet build</code> (regenerates the
+                    <code>.html</code> siblings) → reload the dev server
+                    → click the lesson → confirm your new exercise appears
+                    and the solution passes when typed in.
+                </li>
+                <li>
+                    Commit. The same path verifies in CI on push, gating
+                    the deploy.
                 </li>
             </ol>
-            <h2 class="reference__intro-h">What happens next</h2>
+
+            <h3>Add a new lesson (start to finish)</h3>
             <p>
-                A pull request (PR) is a request to merge your edits into the
-                live project. As soon as you open one, GitHub Actions runs
-                the build and the test suite automatically; you'll see a
-                green check (or a red cross) within a couple of minutes
-                right on the PR page. The maintainer reviews the PR, may
-                ask for small changes (just click <strong>✎ Edit</strong> on
-                the file in your branch to update it), then merges it. The
-                merge auto-deploys to the live site within ~5 minutes.
+                Higher friction than a single exercise — touches the
+                manifest in more places and needs a theory file.
             </p>
-            <h2 class="reference__intro-h">If you also want to run it locally</h2>
+            <ol>
+                <li>
+                    Create the lesson directory (slot it numerically into
+                    the course order — <code>11-…</code> puts it after Best
+                    practices; <code>08a-…</code> would sit between
+                    Expressions and Statements):
+<pre><code>src/ScribanTutorial/wwwroot/lessons/11-advanced/</code></pre>
+                </li>
+                <li>
+                    Inside it, create <code>01-theory.md</code> and an empty
+                    <code>02-exercises/</code>.
+                </li>
+                <li>
+                    Write the theory. At minimum: one or two
+                    <code>## Section</code> headings and one
+                    <code>:::example</code> block per concept.
+                    <strong>Do not</strong> start the file with a
+                    <code># Title</code> — the lesson page already renders
+                    the title from the manifest.
+                </li>
+                <li>
+                    Add at least one exercise inside <code>02-exercises/</code>
+                    — follow the per-exercise quick start above.
+                </li>
+                <li>
+                    Add the lesson to <code>manifest.json</code>'s
+                    <code>lessons</code> array, in the order learners should
+                    see it:
+<pre><code>{
+  "id": "11-advanced",
+  "title": "Advanced",
+  "theoryPath": "lessons/11-advanced/01-theory",
+  "exercises": [
+    { "id": "first", "path": "lessons/11-advanced/02-exercises/first" }
+  ]
+}</code></pre>
+                    <code>id</code> must match the directory name.
+                    <code>theoryPath</code> omits the extension — the
+                    runtime fetches <code>{theoryPath}.html</code> which
+                    ContentBuilder writes from your <code>.md</code>.
+                </li>
+                <li>
+                    <code>dotnet build</code> → <code>dotnet test</code> →
+                    reload.
+                </li>
+                <li>
+                    Spot-check the new lesson in both light and dark themes —
+                    code blocks should be readable in both.
+                </li>
+            </ol>
+
+            <h3>File format rules (critical)</h3>
+            <table>
+                <thead>
+                    <tr><th>Rule</th><th>Why</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>UTF-8 with <strong>no BOM</strong></td><td>The runner compares bytes; a BOM prefix breaks byte-exact match against expected.</td></tr>
+                    <tr><td>LF line endings (<code>\n</code>), not CRLF</td><td><code>.gitattributes</code> already enforces this on commit, but configure your editor too.</td></tr>
+                    <tr><td>JSON parses cleanly with quoted keys, no trailing commas</td><td>The data model is <code>System.Text.Json</code>-parsed at build time and again at runtime.</td></tr>
+                    <tr><td><code>03-expected.txt</code> is byte-exact (except CRLF and trailing newlines)</td><td>Interior whitespace, tabs, and trailing spaces <em>inside a line</em> all count.</td></tr>
+                    <tr><td><code>02-datamodel.json</code> top-level is an object</td><td>The Scriban global scope is keyed on object property names; an array at top-level has nothing to bind.</td></tr>
+                    <tr><td>Don't rename exercise / lesson <code>id</code> after release</td><td>Learners' saved progress is keyed <code>{lessonId}:{exerciseId}</code> in localStorage; a rename silently looks like a brand-new (unstarted) exercise.</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Theory markdown conventions</h3>
+            <h4>Headings</h4>
             <p>
-                Not required — the GitHub web flow above is enough for prose
-                and exercise edits. But if you'd like to preview your
-                changes before submitting, install the .NET 10 SDK, clone
-                the repository, and run <code>dotnet run</code> from the
-                <code>src/ScribanTutorial</code> directory. The README has
-                the full setup. Local <code>dotnet test</code> runs the
-                same checks CI does on your PR, so you can iterate without
-                round-tripping through GitHub.
+                <strong>Do not start the file with a <code># Title</code>
+                heading.</strong> The lesson page already renders the title
+                from the manifest (<code>lessons[].title</code>) above the
+                theory body — a leading <code># Title</code> in the markdown
+                produces a duplicated title on screen. Open the file with
+                the first paragraph of prose.
             </p>
-            <p class="reference__intro-foot">
-                The reference below is the maintainer's authoring guide —
-                more detail than most lesson edits need, but it's where
-                the file-format rules, the verification commands, and the
-                common pitfalls all live. It's rendered straight from
-                <a href="https://github.com/sergeiosipov/scriban-tutorial/blob/main/docs/AUTHORING_LESSONS.md"
-                   target="_blank" rel="noopener"><code>docs/AUTHORING_LESSONS.md</code></a>
-                — click the pencil icon there to suggest a change.
+            <p>
+                Use <code>## Section</code> for the main beats and
+                <code>### Subsection</code> sparingly.
             </p>
-            <p class="reference__intro-foot">
-                Working on the app itself — C#, JS, build, CI, or
-                infrastructure — rather than lesson content? See
-                <a href="https://github.com/sergeiosipov/scriban-tutorial/blob/main/CONTRIBUTING.md"
-                   target="_blank" rel="noopener"><code>CONTRIBUTING.md</code></a>
-                for prerequisites, the test suite, the build pipeline,
-                and the project-mechanics notes (CodeMirror vendoring,
-                GitHub Pages CDN cache).
+            <h4>Plain code blocks</h4>
+            <p>
+                Fenced blocks with a language hint get syntax highlighted
+                at build time. Supported language hints:
+                <code>scriban</code> (highlights via the custom grammar),
+                <code>json</code>, <code>text</code> (no highlighting —
+                verbatim with HTML escaping). Other language hints fall
+                through to TextMateSharp's bundled grammars if present.
             </p>
-        </section>
-        <section class="reference__section" id="authoring">
-            <div class="reference__body">@((MarkupString)_authoringHtml)</div>
-        </section>
-        <PageNav />
-    </article>
-}
+            <h4>Inline HTML is sanitised</h4>
+            <p>
+                Markdig passes raw HTML in your <code>.md</code> through to
+                the output, but ContentBuilder runs the result through an
+                HTML sanitizer before writing the <code>.html</code>. That
+                strips <code>&lt;script&gt;</code>, <code>&lt;iframe&gt;</code>,
+                <code>&lt;object&gt;</code>, <code>&lt;embed&gt;</code>,
+                <code>on*=</code> handlers, and <code>javascript:</code> URLs.
+                The <code>&lt;span class="hl-*"&gt;</code> highlight wrappers
+                and the <code>&lt;pre&gt;&lt;code class="language-*"&gt;</code>
+                blocks the renderer emits are explicitly allowed.
+            </p>
+            <h4><code>:::example</code> side-by-side panels</h4>
+            <p>
+                For "given this template + this data, you get this output"
+                — the most common shape a lesson needs:
+            </p>
+<pre><code>:::example
+```scriban
+{{ user.first_name }} {{ user.last_name }}
+```
+```json
+{ "user": { "first_name": "Ada", "last_name": "Lovelace" } }
+```
+```text
+Ada Lovelace
+```
+:::</code></pre>
+            <p>
+                One <code>scriban</code> block becomes the Template column,
+                one <code>json</code> block (optional) becomes the Data
+                column, one <code>text</code> block becomes the Output
+                column.
+            </p>
 
-@code {
-    private string? _authoringHtml;
-    private string? _error;
-    private CancellationTokenSource? _cts;
+            <h3>Exercise design</h3>
+            <p>A few hard-earned rules:</p>
+            <ul>
+                <li><strong>One concept per exercise.</strong> Hello (just <code>{{ name }}</code>) and Member access (<code>{{ user.first_name }}</code>) split rather than combining them.</li>
+                <li><strong>Starter template is close enough to correct that the gap is obvious.</strong> Use <code>???</code> for the blank.</li>
+                <li><strong>Expected output is short and visually distinctive.</strong> A 20-line expected hides off-by-one whitespace bugs from the diff view.</li>
+                <li><strong>Always include <code>05-solution.txt</code>.</strong> Run <code>--verify</code> and the test suite before committing.</li>
+                <li><strong>No host-config dependencies.</strong> Custom renamers, <code>include "..."</code>, host-provided functions — none of those transfer to a learner's future projects.</li>
+            </ul>
 
-    protected override async Task OnInitializedAsync()
-    {
-        _cts = new CancellationTokenSource();
-        var ct = _cts.Token;
-        try
-        {
-            _authoringHtml = await Content.GetReferenceDocAsync("authoring-lessons", ct);
-        }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
-        {
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"ContributePage: load failed — {ex.GetType().Name}: {ex.Message}");
-            _error = "Could not load the Contribute page. Try reloading.";
-        }
-    }
+            <h3>Verifying your work</h3>
+            <p><strong>Single exercise:</strong></p>
+<pre><code>dotnet run --project tools\ContentBuilder -- --verify src\ScribanTutorial\wwwroot\lessons\&lt;lesson&gt;\02-exercises\&lt;exercise&gt;</code></pre>
+            <p>
+                Exit 0 + <code>--verify OK</code> = green. Exit 1 + diff =
+                something's off; the tool prints the expected and actual
+                blocks so you can see exactly where.
+            </p>
+            <p><strong>Everything at once:</strong></p>
+<pre><code>dotnet test</code></pre>
+            <p>
+                The <code>ExerciseSolutionTests</code> xUnit class reads
+                the manifest, walks every exercise, and asserts the
+                solution renders the expected output. New exercises are
+                picked up automatically.
+            </p>
+            <p><strong>Both at once during a build:</strong></p>
+<pre><code>dotnet build</code></pre>
+            <p>
+                The MSBuild <code>BuildContent</code> target invokes
+                ContentBuilder to regenerate the <code>.html</code>
+                siblings on every build.
+            </p>
 
-    public void Dispose()
-    {
-        _cts?.Cancel();
-        _cts?.Dispose();
-    }
-}
+            <h3>Editing on Windows / VS Code</h3>
+            <p>Settings that prevent the format rules from biting you:</p>
+<pre><code>{
+  "files.encoding": "utf8",
+  "files.eol": "\n",
+  "files.insertFinalNewline": false,
+  "files.trimTrailingWhitespace": false
+}</code></pre>
+            <p>
+                <code>insertFinalNewline: false</code> because some
+                exercises don't want one.
+                <code>trimTrailingWhitespace: false</code> because
+                <code>03-expected.txt</code> can legitimately contain
+                trailing spaces inside a line.
+            </p>
+            <p>
+                If you use PowerShell to write a file by hand,
+                <strong>never</strong> use <code>&gt;</code> or default
+                <code>Out-File</code>: it writes UTF-16 with a BOM. The
+                right pattern:
+            </p>
+<pre><code>Set-Content -Encoding utf8NoBOM -Path $path -Value $content</code></pre>
+
+            <h3>Manifest field reference</h3>
+            <table>
+                <thead>
+                    <tr><th>Field</th><th>Type</th><th>What it does</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>courseTitle</code></td><td>string</td><td>Top of the sidebar</td></tr>
+                    <tr><td><code>courseSubtitle</code></td><td>string</td><td>Below the title</td></tr>
+                    <tr><td><code>lessons[]</code></td><td>array</td><td>Order matters — sidebar order</td></tr>
+                    <tr><td><code>lessons[].id</code></td><td>string</td><td>URL slug — must match the folder name</td></tr>
+                    <tr><td><code>lessons[].title</code></td><td>string</td><td>Display name</td></tr>
+                    <tr><td><code>lessons[].theoryPath</code></td><td>string</td><td>Path without extension; runtime fetches <code>.html</code></td></tr>
+                    <tr><td><code>lessons[].exercises[]</code></td><td>array</td><td>Order matters — exercise order within the lesson</td></tr>
+                    <tr><td><code>lessons[].exercises[].id</code></td><td>string</td><td>Stable identifier — <strong>don't rename</strong> after release</td></tr>
+                    <tr><td><code>lessons[].exercises[].path</code></td><td>string</td><td>Path to the exercise directory (no trailing slash)</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Common authoring pitfalls</h3>
+            <table>
+                <thead>
+                    <tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>--verify FAIL</code> with no obvious diff</td><td>Trailing whitespace <strong>inside</strong> a line of <code>03-expected.txt</code> you didn't notice</td><td>Toggle "render whitespace" in your editor and re-check</td></tr>
+                    <tr><td>Exercise renders nothing on the page</td><td>Template renders the empty string because the data-model property name is misspelled (Scriban returns null silently)</td><td>Double-check <code>02-datamodel.json</code> field names against the template</td></tr>
+                    <tr><td><code>for x in items</code> outputs nothing</td><td><code>items</code> is missing from the data model, or it's null</td><td>Confirm the field exists and is an array</td></tr>
+                    <tr><td>Extra blank line in output</td><td>Block tags like <code>{{ for }}</code> or <code>{{ end }}</code> leave the surrounding newlines in</td><td>Add <code>{{-</code> / <code>-}}</code> whitespace control. See lessons 01 (Blocks) and 09 (Statements).</td></tr>
+                    <tr><td>Browser still shows old content</td><td>GitHub Pages CDN cache — 2–5 min after a deploy lands</td><td>Hard refresh (Ctrl+F5), wait</td></tr>
+                    <tr><td>Sidebar indicator stays ○ even after passing</td><td>Browser blocked <code>localStorage</code> (private mode, restrictive content-blocker)</td><td>Try a normal window</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <PageNav />
+</article>

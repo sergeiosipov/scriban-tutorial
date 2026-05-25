@@ -28,12 +28,10 @@
       <_ContentBuilderProject>$(MSBuildThisFileDirectory)..\..\tools\ContentBuilder\ContentBuilder.csproj</_ContentBuilderProject>
       <_ContentBuilderGrammar>$(MSBuildThisFileDirectory)..\..\tools\ContentBuilder\grammars\scriban.tmLanguage.json</_ContentBuilderGrammar>
       <_ContentBuilderInput>$(MSBuildThisFileDirectory)wwwroot\lessons</_ContentBuilderInput>
-      <_ContentBuilderRepoRoot>$(MSBuildThisFileDirectory)..\..</_ContentBuilderRepoRoot>
-      <_ContentBuilderReferenceOut>$(MSBuildThisFileDirectory)wwwroot\reference</_ContentBuilderReferenceOut>
       <_ContentBuilderDll>$(MSBuildThisFileDirectory)..\..\tools\ContentBuilder\bin\$(Configuration)\net10.0\ContentBuilder.dll</_ContentBuilderDll>
     </PropertyGroup>
     <MSBuild Projects="$(_ContentBuilderProject)" Targets="Build" Properties="Configuration=$(Configuration)" />
-    <Exec Command="dotnet exec &quot;$(_ContentBuilderDll)&quot; --input &quot;$(_ContentBuilderInput)&quot; --grammar &quot;$(_ContentBuilderGrammar)&quot; --theme light --repo-root &quot;$(_ContentBuilderRepoRoot)&quot; --reference-out &quot;$(_ContentBuilderReferenceOut)&quot;"
+    <Exec Command="dotnet exec &quot;$(_ContentBuilderDll)&quot; --input &quot;$(_ContentBuilderInput)&quot; --grammar &quot;$(_ContentBuilderGrammar)&quot; --theme light"
           ConsoleToMsBuild="true" />
   </Target>
 

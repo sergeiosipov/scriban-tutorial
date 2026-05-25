@@ -5,7 +5,6 @@ using Markdig.Extensions.CustomContainers;
 using Markdig.Renderers;
 using Markdig.Renderers.Html;
 using Markdig.Syntax;
-using Markdig.Syntax.Inlines;
 
 namespace ContentBuilder;
 
@@ -28,18 +27,7 @@ internal sealed class MarkdownRenderer
         _sanitizer = BuildSanitizer();
     }
 
-    public string Render(string markdown) => Render(markdown, options: null);
-
-    /// <summary>
-    /// Render Markdown to sanitised HTML. When <paramref name="options"/>
-    /// supplies a <see cref="RenderOptions.SourceFilePath"/> and a
-    /// <see cref="RenderOptions.RepoRoot"/>, any relative link whose target
-    /// resolves to a real file under the repo root is rewritten to a GitHub
-    /// blob URL — so a reference doc rendered under wwwroot/reference/ can
-    /// still link to its sibling source files without 404-ing on the
-    /// deployed SPA.
-    /// </summary>
-    public string Render(string markdown, RenderOptions? options)
+    public string Render(string markdown)
     {
         var writer = new StringWriter();
         var renderer = new HtmlRenderer(writer);
@@ -52,8 +40,6 @@ internal sealed class MarkdownRenderer
         renderer.ObjectRenderers.Add(new ExampleContainerRenderer(_highlighter));
 
         var document = Markdown.Parse(markdown, _pipeline);
-        if (options is not null)
-            RewriteRelativeLinks(document, options);
         renderer.Render(document);
         writer.Flush();
         // Sanitize the Markdig output. The content under wwwroot/lessons/ is
@@ -63,64 +49,6 @@ internal sealed class MarkdownRenderer
         // @((MarkupString)Html) cast in TheoryBlock/ExerciseBlock. Sanitizing
         // at build time makes the defence structural instead of procedural.
         return _sanitizer.Sanitize(writer.ToString());
-    }
-
-    internal sealed record RenderOptions(string SourceFilePath, string RepoRoot, string GithubBlobBaseUrl);
-
-    private static void RewriteRelativeLinks(MarkdownObject node, RenderOptions options)
-    {
-        foreach (var descendant in node.Descendants())
-        {
-            if (descendant is LinkInline link && !link.IsImage)
-                link.Url = MaybeRewriteUrl(link.Url, options);
-            else if (descendant is AutolinkInline auto)
-                auto.Url = MaybeRewriteUrl(auto.Url, options) ?? auto.Url;
-        }
-    }
-
-    private static string? MaybeRewriteUrl(string? url, RenderOptions options)
-    {
-        if (string.IsNullOrEmpty(url)) return url;
-        // Leave anchors, absolute URLs, scheme-relative, mailto, and the
-        // root-relative URLs alone — only purely-relative paths should be
-        // resolved against the source file's directory.
-        if (url[0] == '#') return url;
-        if (url.StartsWith("//", StringComparison.Ordinal)) return url;
-        if (url.StartsWith("/", StringComparison.Ordinal)) return url;
-        var colon = url.IndexOf(':');
-        if (colon > 0 && colon < (url.IndexOf('/') is var slash && slash < 0 ? url.Length : slash))
-            return url;
-
-        var fragmentIdx = url.IndexOf('#');
-        var pathPart = fragmentIdx < 0 ? url : url[..fragmentIdx];
-        var fragment = fragmentIdx < 0 ? "" : url[fragmentIdx..];
-        if (pathPart.Length == 0) return url;
-
-        // Resolve against the source file's directory.
-        var sourceDir = Path.GetDirectoryName(options.SourceFilePath);
-        if (string.IsNullOrEmpty(sourceDir)) return url;
-        string absolute;
-        try
-        {
-            absolute = Path.GetFullPath(Path.Combine(sourceDir, pathPart));
-        }
-        catch
-        {
-            return url;
-        }
-
-        var repoRoot = Path.GetFullPath(options.RepoRoot);
-        var rootWithSep = repoRoot.EndsWith(Path.DirectorySeparatorChar)
-            ? repoRoot
-            : repoRoot + Path.DirectorySeparatorChar;
-        if (!absolute.StartsWith(rootWithSep, StringComparison.OrdinalIgnoreCase))
-            return url;
-        if (!File.Exists(absolute) && !Directory.Exists(absolute))
-            return url;
-
-        var rel = absolute[rootWithSep.Length..].Replace(Path.DirectorySeparatorChar, '/');
-        var baseUrl = options.GithubBlobBaseUrl.TrimEnd('/');
-        return baseUrl + "/" + rel + fragment;
     }
 
     private static HtmlSanitizer BuildSanitizer()

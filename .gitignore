@@ -23,9 +23,6 @@ src/ScribanTutorial/wwwroot/lessons/**/*.html
 src/ScribanTutorial/wwwroot/lessons/**/02-datamodel.html
 # Per-exercise bundle.json the runtime fetches in one round trip.
 src/ScribanTutorial/wwwroot/lessons/**/bundle.json
-# ContentBuilder renders top-level repo docs into wwwroot/reference/ for the
-# About / Contribute pages. Sources stay at the repo root.
-src/ScribanTutorial/wwwroot/reference/
 
 # Local dev server logs
 *.log
