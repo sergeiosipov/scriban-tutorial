@@ -69,6 +69,12 @@
         </div>
     }
 
+    @* Three mutually-exclusive result panels:
+        - Pass:                 just the rendered output.
+        - Fail, template ran:   just the diff (each diff line carries the
+                                actual text, so a separate output panel
+                                would duplicate it).
+        - Fail, template didn't run (parse / runtime error): just the error. *@
     @if (_status == Status.Pass)
     {
         <div class="exercise__result exercise__result--pass">
@@ -76,23 +82,11 @@
             <pre class="exercise__pre"><code>@_output</code></pre>
         </div>
     }
-    else if (_status == Status.Fail)
+    else if (_status == Status.Fail && _diff is not null)
     {
         <div class="exercise__result exercise__result--fail">
-            <div class="exercise__result-label">Output</div>
-            <pre class="exercise__pre"><code>@_output</code></pre>
-            @if (!string.IsNullOrEmpty(_errors))
-            {
-                <div class="exercise__errors">
-                    <div class="exercise__result-label">Parse / runtime errors</div>
-                    <pre class="exercise__pre exercise__pre--err"><code>@_errors</code></pre>
-                </div>
-            }
-            @if (_diff is not null)
-            {
-                <div class="exercise__diff">
-                    <div class="exercise__result-label">Diff (expected vs. actual)</div>
-                    <pre class="exercise__pre exercise__pre--diff"><code>@foreach (var line in _diff.Lines)
+            <div class="exercise__result-label">Diff (expected vs. actual)</div>
+            <pre class="exercise__pre exercise__pre--diff"><code>@foreach (var line in _diff.Lines)
 {
     var cls = line.Type switch
     {
@@ -110,8 +104,13 @@
     };
     <span class="@cls">@(prefix)@(line.Text)<br /></span>
 }</code></pre>
-                </div>
-            }
+        </div>
+    }
+    else if (_status == Status.Fail && !string.IsNullOrEmpty(_errors))
+    {
+        <div class="exercise__result exercise__result--fail">
+            <div class="exercise__result-label">Parse / runtime errors</div>
+            <pre class="exercise__pre exercise__pre--err"><code>@_errors</code></pre>
         </div>
     }
 </section>
