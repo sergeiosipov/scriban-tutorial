@@ -66,9 +66,8 @@ The loop accepts named parameters: `offset:N`, `limit:N`, and `reversed`.
 
 :::example
 ```scriban
-{{- for $i in (4..9) limit:2 ~}}
-{{ $i }}
-{{- end -}}
+{{ for $i in (4..9) limit:2 }}{{ $i }}
+{{ end }}
 ```
 ```text
 4

@@ -25,7 +25,7 @@ block — the text between blocks is preserved verbatim.
 
 :::example
 ```scriban
-{{ x = 5 }}
+{{ x = 5 -}}
 {{ x }}
 {{ x + 1 }}
 ```
