@@ -92,7 +92,10 @@
         { "id": "string-vs-number", "path": "lessons/08-expressions/02-exercises/string-vs-number" },
         { "id": "ternary",          "path": "lessons/08-expressions/02-exercises/ternary" },
         { "id": "range",            "path": "lessons/08-expressions/02-exercises/range" },
-        { "id": "null-coalesce",    "path": "lessons/08-expressions/02-exercises/null-coalesce" }
+        { "id": "null-coalesce",    "path": "lessons/08-expressions/02-exercises/null-coalesce" },
+        { "id": "unary",            "path": "lessons/08-expressions/02-exercises/unary" },
+        { "id": "func-call",        "path": "lessons/08-expressions/02-exercises/func-call" },
+        { "id": "order-summary",    "path": "lessons/08-expressions/02-exercises/order-summary" }
       ]
     },
     {

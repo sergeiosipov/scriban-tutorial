@@ -1,1 +1,1 @@
-{{ a + b }} and {{ a * b }}
+{{ total - discount }} / {{ math.round((total - discount) * 1.2) }}
