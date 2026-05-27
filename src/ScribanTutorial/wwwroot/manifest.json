@@ -31,8 +31,8 @@
         { "id": "string-interpolation", "path": "lessons/03-literals/02-exercises/string-interpolation" },
         { "id": "string-verbatim",      "path": "lessons/03-literals/02-exercises/string-verbatim" },
         { "id": "number-hex-literal",   "path": "lessons/03-literals/02-exercises/number-hex-literal" },
-        { "id": "boolean-output",       "path": "lessons/03-literals/02-exercises/boolean-output" },
-        { "id": "null-renders-empty",   "path": "lessons/03-literals/02-exercises/null-renders-empty" }
+        { "id": "boolean-logic",        "path": "lessons/03-literals/02-exercises/boolean-logic" },
+        { "id": "null-fallback",        "path": "lessons/03-literals/02-exercises/null-fallback" }
       ]
     },
     {
