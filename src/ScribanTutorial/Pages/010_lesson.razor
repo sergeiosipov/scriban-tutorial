@@ -1,5 +1,6 @@
 @page "/lesson/{LessonId}"
 @inject ContentService Content
+@inject NavigationManager Nav
 @implements IDisposable
 
 <PageTitle>@(_lesson?.Entry.Title ?? "Lesson") · Scriban Tutorial</PageTitle>
@@ -43,12 +44,26 @@ else
 @code {
     [Parameter] public string LessonId { get; set; } = "";
 
+    // Lesson IDs that learners may have bookmarked or linked from outside
+    // the site. When the course inserts new lessons, the displaced IDs land
+    // here so the old URL keeps working instead of 404ing.
+    private static readonly Dictionary<string, string> LegacyLessonIds = new()
+    {
+        ["10-best-practices"] = "18-best-practices",
+    };
+
     private LessonContent? _lesson;
     private string? _error;
     private CancellationTokenSource? _cts;
 
     protected override async Task OnParametersSetAsync()
     {
+        if (LegacyLessonIds.TryGetValue(LessonId, out var current))
+        {
+            Nav.NavigateTo($"lesson/{current}", replace: true);
+            return;
+        }
+
         // Cancel any in-flight load if the user navigates between lessons quickly.
         _cts?.Cancel();
         _cts?.Dispose();

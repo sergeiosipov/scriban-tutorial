@@ -110,17 +110,17 @@
       ]
     },
     {
-      "id": "10-best-practices",
+      "id": "18-best-practices",
       "title": "Best practices",
-      "theoryPath": "lessons/10-best-practices/01-theory",
+      "theoryPath": "lessons/18-best-practices/01-theory",
       "exercises": [
-        { "id": "whitespace-list",     "path": "lessons/10-best-practices/02-exercises/whitespace-list" },
-        { "id": "for-last-separator",  "path": "lessons/10-best-practices/02-exercises/for-last-separator" },
-        { "id": "array-size-check",    "path": "lessons/10-best-practices/02-exercises/array-size-check" },
-        { "id": "invoice",             "path": "lessons/10-best-practices/02-exercises/invoice" },
-        { "id": "invoice-from-items",  "path": "lessons/10-best-practices/02-exercises/invoice-from-items" },
-        { "id": "transaction-rollup",  "path": "lessons/10-best-practices/02-exercises/transaction-rollup" },
-        { "id": "regex-redact",        "path": "lessons/10-best-practices/02-exercises/regex-redact" }
+        { "id": "whitespace-list",     "path": "lessons/18-best-practices/02-exercises/whitespace-list" },
+        { "id": "for-last-separator",  "path": "lessons/18-best-practices/02-exercises/for-last-separator" },
+        { "id": "array-size-check",    "path": "lessons/18-best-practices/02-exercises/array-size-check" },
+        { "id": "invoice",             "path": "lessons/18-best-practices/02-exercises/invoice" },
+        { "id": "invoice-from-items",  "path": "lessons/18-best-practices/02-exercises/invoice-from-items" },
+        { "id": "transaction-rollup",  "path": "lessons/18-best-practices/02-exercises/transaction-rollup" },
+        { "id": "regex-redact",        "path": "lessons/18-best-practices/02-exercises/regex-redact" }
       ]
     }
   ]
