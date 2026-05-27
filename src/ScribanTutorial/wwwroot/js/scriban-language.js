@@ -17,7 +17,7 @@ const OPERATORS_RE = /^(\?\?|\?\.|==|!=|<=|>=|&&|\|\||\.\.|[<>|=+\-*/%^!?:])/;
 
 export const scribanLanguage = StreamLanguage.define({
   name: "scriban",
-  startState: () => ({ inExpr: false, inString: null }),
+  startState: () => ({ inExpr: false, inString: null, inBlockComment: false }),
   token(stream, state) {
     if (!state.inExpr) {
       if (stream.match("{{-") || stream.match("{{")) {
@@ -38,8 +38,43 @@ export const scribanLanguage = StreamLanguage.define({
       return "string";
     }
 
+    // `## ... ##` block comment — ends at a matching `##` or at `}}`
+    // (don't consume the `}}`, the outer matcher closes the expression).
+    if (state.inBlockComment) {
+      while (!stream.eol()) {
+        if (stream.match("##")) { state.inBlockComment = false; return "comment"; }
+        if (stream.peek() === "}" && stream.string.charAt(stream.pos + 1) === "}") {
+          state.inBlockComment = false;
+          return "comment";
+        }
+        stream.next();
+      }
+      return "comment";
+    }
+
     if (stream.match(/^-?\}\}/)) { state.inExpr = false; return "brace"; }
-    if (stream.match(/^#[^\r\n]*/)) return "comment";
+    if (stream.match("##")) {
+      state.inBlockComment = true;
+      // Consume the rest of this line up to a closing `##` or `}}`.
+      while (!stream.eol()) {
+        if (stream.match("##")) { state.inBlockComment = false; return "comment"; }
+        if (stream.peek() === "}" && stream.string.charAt(stream.pos + 1) === "}") {
+          state.inBlockComment = false;
+          return "comment";
+        }
+        stream.next();
+      }
+      return "comment";
+    }
+    if (stream.peek() === "#") {
+      // `#` line comment — Scriban ends it at the next newline OR `}}`.
+      stream.next();
+      while (!stream.eol()) {
+        if (stream.peek() === "}" && stream.string.charAt(stream.pos + 1) === "}") break;
+        stream.next();
+      }
+      return "comment";
+    }
     if (stream.peek() === '"') { stream.next(); state.inString = '"'; return "string"; }
     if (stream.peek() === "'") { stream.next(); state.inString = "'"; return "string"; }
     if (stream.match(/^`[^`]*`/)) return "string";

@@ -39,8 +39,21 @@
       ]
     },
     "comments": {
+      "patterns": [
+        { "include": "#block-comment" },
+        { "include": "#line-comment" }
+      ]
+    },
+    "block-comment": {
+      "name": "comment.block.number-sign.scriban",
+      "begin": "##",
+      "end": "##|(?=\\}\\})",
+      "beginCaptures": { "0": { "name": "punctuation.definition.comment.scriban" } },
+      "endCaptures":   { "0": { "name": "punctuation.definition.comment.scriban" } }
+    },
+    "line-comment": {
       "name": "comment.line.number-sign.scriban",
-      "match": "#.*$"
+      "match": "#(?:[^\\r\\n}]|\\}(?!\\}))*"
     },
     "strings": {
       "patterns": [

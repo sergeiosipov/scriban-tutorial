@@ -118,15 +118,69 @@ public class ContentBuilderTests
     }
 
     [Fact]
-    public void Grammar_treats_hash_comment_as_comment_to_end_of_line()
+    public void Grammar_hash_comment_ends_at_closing_braces()
+    {
+        // Scriban itself stops a `#` line comment at the next newline OR `}}`,
+        // whichever comes first. The grammar must mirror that — otherwise the
+        // closing `}}` looks like a syntax error to the reader because it's
+        // painted as part of the comment.
+        var hl = NewHighlighter();
+        var html = hl.Highlight("{{ x # done }} after", "scriban");
+
+        Assert.Contains("hl-comment", html);
+        Assert.Contains("hl-brace\">}}", html);
+        // The comment span must not contain the closing braces.
+        var commentStart = html.IndexOf("hl-comment", StringComparison.Ordinal);
+        var commentSpan = html.Substring(commentStart, html.IndexOf("</span>", commentStart, StringComparison.Ordinal) - commentStart);
+        Assert.DoesNotContain("}}", commentSpan);
+    }
+
+    [Fact]
+    public void Grammar_double_hash_block_comment_ends_at_closing_double_hash()
     {
         var hl = NewHighlighter();
-        // Scriban itself parses a `#` to EOL — the closing `}}` on the
-        // SAME line is part of the comment. The grammar should match that
-        // behaviour (workaround: put the closing on a new line).
-        var html = hl.Highlight("{{ x # eats }} rest of line\n}}", "scriban");
+        var html = hl.Highlight("{{ \"A\"; ## block ## \"C\" }}", "scriban");
+
         Assert.Contains("hl-comment", html);
-        Assert.Contains("hl-variable", html);
+        // After the closing `##`, the "C" string and `}}` brace must
+        // tokenise normally — i.e. they're not eaten by the comment.
+        Assert.Contains("hl-string", html);
+        Assert.Contains("hl-brace\">}}", html);
+        var commentStart = html.IndexOf("hl-comment", StringComparison.Ordinal);
+        var commentEnd = html.IndexOf("</span>", commentStart, StringComparison.Ordinal);
+        var commentSpan = html.Substring(commentStart, commentEnd - commentStart);
+        Assert.DoesNotContain("\"C\"", commentSpan);
+        Assert.DoesNotContain("}}", commentSpan);
+    }
+
+    [Fact]
+    public void Grammar_unclosed_double_hash_block_comment_ends_at_closing_braces()
+    {
+        // Scriban accepts a `##` block comment without a matching `##` —
+        // the `}}` closes both the comment and the expression. Mirror that:
+        // the comment span must stop before the `}}`.
+        var hl = NewHighlighter();
+        var html = hl.Highlight("{{ ## unclosed }} after", "scriban");
+
+        Assert.Contains("hl-comment", html);
+        Assert.Contains("hl-brace\">}}", html);
+        var commentStart = html.IndexOf("hl-comment", StringComparison.Ordinal);
+        var commentEnd = html.IndexOf("</span>", commentStart, StringComparison.Ordinal);
+        var commentSpan = html.Substring(commentStart, commentEnd - commentStart);
+        Assert.DoesNotContain("}}", commentSpan);
+    }
+
+    [Fact]
+    public void Grammar_double_hash_block_comment_spans_lines()
+    {
+        var hl = NewHighlighter();
+        var html = hl.Highlight("{{ ## first\nsecond ## }}", "scriban");
+        var lines = html.Split('\n');
+        // Both source lines should tokenise as comment.
+        Assert.Contains("hl-comment", lines[0]);
+        Assert.Contains("hl-comment", lines[1]);
+        // The closing `}}` is still a brace.
+        Assert.Contains("hl-brace\">}}", html);
     }
 
     [Fact]
