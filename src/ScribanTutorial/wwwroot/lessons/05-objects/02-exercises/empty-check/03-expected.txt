@@ -1,2 +1,2 @@
-true
-false
+is cart empty? true
+is wishlist non-empty? true

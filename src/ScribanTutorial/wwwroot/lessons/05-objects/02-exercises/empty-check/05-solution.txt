@@ -1,2 +1,2 @@
-{{ a.empty? }}
-{{ b.empty? }}
+is cart empty? {{ cart == empty }}
+is wishlist non-empty? {{ !(wishlist == empty) }}
