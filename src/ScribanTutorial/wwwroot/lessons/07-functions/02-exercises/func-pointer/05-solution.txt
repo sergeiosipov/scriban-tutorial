@@ -1,0 +1,5 @@
+{{- func cube
+     ret $0 * $0 * $0
+   end
+   cb = @cube -}}
+{{ cb n }} / {{ cb 2 }}

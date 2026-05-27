@@ -75,7 +75,10 @@
         { "id": "func-simple",     "path": "lessons/07-functions/02-exercises/func-simple" },
         { "id": "func-parametric", "path": "lessons/07-functions/02-exercises/func-parametric" },
         { "id": "func-inline",     "path": "lessons/07-functions/02-exercises/func-inline" },
-        { "id": "func-anonymous",  "path": "lessons/07-functions/02-exercises/func-anonymous" }
+        { "id": "func-anonymous",  "path": "lessons/07-functions/02-exercises/func-anonymous" },
+        { "id": "pipe-chain",      "path": "lessons/07-functions/02-exercises/pipe-chain" },
+        { "id": "func-pointer",    "path": "lessons/07-functions/02-exercises/func-pointer" },
+        { "id": "format-users",    "path": "lessons/07-functions/02-exercises/format-users" }
       ]
     },
     {

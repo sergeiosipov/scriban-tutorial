@@ -1,0 +1,1 @@
+Ada: 90 | Babbage: 75 | Carl: 85

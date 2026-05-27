@@ -1,4 +1,4 @@
-{{ func sub
-     ret ??? - ???
-   end
-   sub 5 1 }}
+{{- ??? shout
+     ??? $0 | string.upcase | string.append "!"
+   ??? -}}
+{{ shout name }}

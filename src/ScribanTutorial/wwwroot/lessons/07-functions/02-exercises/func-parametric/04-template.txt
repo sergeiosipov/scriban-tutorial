@@ -1,4 +1,4 @@
-{{ func sub(???)
-     ret x - y - z
-   end
-   sub 10 3 }}
+{{- func make_url(???)
+     ret scheme + "://" + host + ":" + port + path
+   end -}}
+{{ make_url(???) }}

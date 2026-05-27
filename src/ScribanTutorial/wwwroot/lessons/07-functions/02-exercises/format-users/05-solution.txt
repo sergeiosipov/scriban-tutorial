@@ -1,0 +1,2 @@
+{{- format(u) = u.name + ": " + u.score
+   users | array.each @format | array.join " | " -}}
