@@ -1,0 +1,4 @@
+{{- with user
+     ???.full_name = ??? + " " + ???
+   end -}}
+{{ user.full_name }}

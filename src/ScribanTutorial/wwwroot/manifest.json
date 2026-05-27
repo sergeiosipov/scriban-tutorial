@@ -40,9 +40,10 @@
       "title": "Variables",
       "theoryPath": "lessons/04-variables/01-theory",
       "exercises": [
-        { "id": "hello",          "path": "lessons/04-variables/02-exercises/hello" },
-        { "id": "local-variable", "path": "lessons/04-variables/02-exercises/local-variable" },
-        { "id": "this-access",    "path": "lessons/04-variables/02-exercises/this-access" }
+        { "id": "hello",           "path": "lessons/04-variables/02-exercises/hello" },
+        { "id": "local-variable",  "path": "lessons/04-variables/02-exercises/local-variable" },
+        { "id": "this-access",     "path": "lessons/04-variables/02-exercises/this-access" },
+        { "id": "this-with-build", "path": "lessons/04-variables/02-exercises/this-with-build" }
       ]
     },
     {
