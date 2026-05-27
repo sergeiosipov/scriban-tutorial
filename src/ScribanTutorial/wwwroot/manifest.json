@@ -63,7 +63,6 @@
       "theoryPath": "lessons/06-arrays/01-theory",
       "exercises": [
         { "id": "array-index",         "path": "lessons/06-arrays/02-exercises/array-index" },
-        { "id": "array-size",          "path": "lessons/06-arrays/02-exercises/array-size" },
         { "id": "array-append",        "path": "lessons/06-arrays/02-exercises/array-append" },
         { "id": "array-with-property", "path": "lessons/06-arrays/02-exercises/array-with-property" }
       ]

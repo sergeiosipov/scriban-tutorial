@@ -1,4 +1,5 @@
-{{ letters = []
-   letters[0] = "a"
-   letters[1] = "b" -}}
-{{ letters[0] }}, {{ letters[1] }}
+{{ words = []
+   words[0] = first
+   words[1] = second
+   words[2] = third -}}
+{{ words[2] }}:{{ words[1] }}:{{ words[0] }}
