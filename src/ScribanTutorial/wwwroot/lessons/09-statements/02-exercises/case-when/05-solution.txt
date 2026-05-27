@@ -1,9 +1,10 @@
-{{- x = 5
-    case x
-      when 1, 2, 3
-        "Value is small"
-      when 5
-        "Value is five"
-      else
-        "Value is other"
-    end -}}
+{{- case code
+     when "US", "CA", "MX"
+       "Americas"
+     when "FR", "DE", "IT", "ES"
+       "Europe"
+     when "JP", "KR", "CN"
+       "Asia"
+     else
+       "Other"
+   end -}}

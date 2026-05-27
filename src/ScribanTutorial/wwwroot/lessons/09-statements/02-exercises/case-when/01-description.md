@@ -1,5 +1,11 @@
-`x` is `5`. Use a `case ... when ... end` block to print:
+Use a `case ... when ... end` block to translate a country code from the
+data model into a region:
 
-- `Value is small` when `x` is `1`, `2`, or `3`,
-- `Value is five` when `x` is `5`,
-- otherwise `Value is other`.
+- `"US"`, `"CA"`, `"MX"` → `"Americas"`
+- `"FR"`, `"DE"`, `"IT"`, `"ES"` → `"Europe"`
+- `"JP"`, `"KR"`, `"CN"` → `"Asia"`
+- anything else → `"Other"`
+
+The data carries `code = "DE"`, so the expected output is `Europe`.
+Use a single `when` arm with comma-separated values per region — that's
+what `case` was built for.

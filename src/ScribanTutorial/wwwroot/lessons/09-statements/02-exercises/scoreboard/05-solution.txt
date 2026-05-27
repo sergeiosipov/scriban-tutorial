@@ -1,0 +1,12 @@
+{{- capture board -}}
+{{- first = true
+   for p in players
+     if p.score == 0
+       continue
+     end
+     if !first; ", "; end
+     first = false
+     p.name + ": " + p.score
+   end -}}
+{{- end -}}
+{{ board | string.prepend "SCOREBOARD: " }}

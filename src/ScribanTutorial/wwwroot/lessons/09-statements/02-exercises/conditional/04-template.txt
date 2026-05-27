@@ -1,1 +1,9 @@
-{{ if ??? }}in stock ({{ stock }}){{ else }}out of stock{{ end }}
+{{- if score >= ???
+     "A"
+   ??? score >= ???
+     "B"
+   ??? score >= ???
+     "C"
+   else
+     "D"
+   end -}}

@@ -1,4 +1,4 @@
-{{- ??? greeting -}}
-Hello, world.
+{{- ??? headline -}}
+Welcome to {{ site }}, {{ user }}!
 {{- ??? -}}
-{{ greeting | string.upcase }}
+{{ headline | ??? | ??? " ***" }}

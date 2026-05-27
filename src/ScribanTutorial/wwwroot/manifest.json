@@ -112,7 +112,8 @@
         { "id": "for-last",        "path": "lessons/09-statements/02-exercises/for-last" },
         { "id": "while-loop",      "path": "lessons/09-statements/02-exercises/while-loop" },
         { "id": "break-continue",  "path": "lessons/09-statements/02-exercises/break-continue" },
-        { "id": "capture",         "path": "lessons/09-statements/02-exercises/capture" }
+        { "id": "capture",         "path": "lessons/09-statements/02-exercises/capture" },
+        { "id": "scoreboard",      "path": "lessons/09-statements/02-exercises/scoreboard" }
       ]
     },
     {

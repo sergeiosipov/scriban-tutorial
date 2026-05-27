@@ -1,1 +1,9 @@
-{{ if stock > 0 }}in stock ({{ stock }}){{ else }}out of stock{{ end }}
+{{- if score >= 90
+     "A"
+   else if score >= 80
+     "B"
+   else if score >= 70
+     "C"
+   else
+     "D"
+   end -}}

@@ -1,4 +1,4 @@
-{{- capture greeting -}}
-Hello, world.
+{{- capture headline -}}
+Welcome to {{ site }}, {{ user }}!
 {{- end -}}
-{{ greeting | string.upcase }}
+{{ headline | string.upcase | string.append " ***" }}

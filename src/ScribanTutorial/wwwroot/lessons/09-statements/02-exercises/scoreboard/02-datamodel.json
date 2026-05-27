@@ -1,0 +1,8 @@
+{
+  "players": [
+    { "name": "Ada",     "score": 90 },
+    { "name": "Babbage", "score": 0  },
+    { "name": "Carl",    "score": 85 },
+    { "name": "Dora",    "score": 70 }
+  ]
+}
