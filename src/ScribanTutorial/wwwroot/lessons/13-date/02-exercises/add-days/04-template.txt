@@ -1,0 +1,1 @@
+{{ start_date | date.parse | date.??? ??? | date.to_string `%Y-%m-%d` }}

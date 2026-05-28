@@ -1,0 +1,4 @@
+odd: apple
+even: banana
+odd: cherry
+even: date

@@ -1,0 +1,1 @@
+{{ iso | date.parse | date.to_string `%Y/%m/%d` }}

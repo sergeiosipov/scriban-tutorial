@@ -1,0 +1,2 @@
+{{- d = ts | date.parse -}}
+Y{{ d.Year }} M{{ d.Month }} D{{ d.Day }} @ {{ d.Hour }}:{{ d.Minute }}

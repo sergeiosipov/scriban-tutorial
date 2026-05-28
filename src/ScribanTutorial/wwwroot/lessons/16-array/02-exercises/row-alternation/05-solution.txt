@@ -1,0 +1,3 @@
+{{- for it in items ~}}
+{{ array.cycle ["odd","even"] }}: {{ it }}
+{{~ end -}}

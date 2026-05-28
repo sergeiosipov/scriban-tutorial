@@ -1,0 +1,1 @@
+{{ row | regex.split `\s*,\s*` }}

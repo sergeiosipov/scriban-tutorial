@@ -1,0 +1,2 @@
+{{- h = payload | string.??? -}}
+hash={{ h }} length={{ h.??? }}

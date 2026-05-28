@@ -1,0 +1,1 @@
+[{{ label | string.strip | string.pad_left 10 }}]

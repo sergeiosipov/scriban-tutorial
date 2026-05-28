@@ -1,0 +1,2 @@
+{{- clean = raw | array.compact -}}
+raw={{ raw | array.size }} clean={{ clean | array.size }} sorted={{ clean | array.sort }}

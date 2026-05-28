@@ -1,0 +1,2 @@
+name: {{ name | object.default "Anonymous" }}
+role: {{ role | object.default "Anonymous" }}

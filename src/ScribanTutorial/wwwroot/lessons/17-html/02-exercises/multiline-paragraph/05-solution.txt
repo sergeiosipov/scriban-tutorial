@@ -1,0 +1,1 @@
+<p>{{ body | html.newline_to_br }}</p>

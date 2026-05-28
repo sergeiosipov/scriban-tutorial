@@ -1,0 +1,2 @@
+{{- dt = d | date.??? -}}
+{{ dt | date.to_string `???` }}, day {{ dt.??? }} of year

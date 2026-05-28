@@ -1,0 +1,2 @@
+{{- h = payload | string.sha256 -}}
+hash={{ h }} length={{ h.size }}

@@ -1,0 +1,4 @@
+{{- a = timespan.??? h
+   b = timespan.??? m
+   combined = timespan.from_seconds (a.??? + b.???) -}}
+{{ combined }}

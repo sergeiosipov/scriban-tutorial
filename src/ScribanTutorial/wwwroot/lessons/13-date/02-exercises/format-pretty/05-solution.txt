@@ -1,0 +1,1 @@
+{{ d | date.parse | date.to_string `%a %d %b %Y` }}

@@ -1,0 +1,4 @@
+{{- func is_positive
+     ret $0 ??? 0
+   end -}}
+{{ xs | array.??? ???is_positive }}

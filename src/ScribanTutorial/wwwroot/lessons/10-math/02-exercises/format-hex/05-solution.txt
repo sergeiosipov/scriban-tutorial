@@ -1,0 +1,1 @@
+{{ "#" + (color | math.format "X6") }}

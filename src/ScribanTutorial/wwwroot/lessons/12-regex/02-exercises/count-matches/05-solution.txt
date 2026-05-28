@@ -1,0 +1,1 @@
+{{ (text | regex.matches `\b\w*\d\w*\b`).size }}

@@ -1,0 +1,2 @@
+{{- id = math.uuid -}}
+len={{ id.size }} is_number={{ id | math.is_number }}

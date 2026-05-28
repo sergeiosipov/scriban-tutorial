@@ -1,0 +1,3 @@
+{{- for k in (object.??? config) ~}}
+{{ k }}={{ config[???] }}
+{{~ end -}}

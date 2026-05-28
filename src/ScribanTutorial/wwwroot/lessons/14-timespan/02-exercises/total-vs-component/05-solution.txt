@@ -1,0 +1,3 @@
+{{- t = timespan.from_seconds seconds -}}
+component: {{ t.Minutes }}m {{ t.Seconds }}s
+total:     {{ t.TotalMinutes }} min / {{ t.TotalSeconds }} sec

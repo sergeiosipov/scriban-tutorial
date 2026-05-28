@@ -1,0 +1,1 @@
+{{ title | string.downcase | string.strip | string.handleize }}

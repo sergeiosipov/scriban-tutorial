@@ -1,0 +1,1 @@
+{{ products | array.map "name" | array.join " | " }}

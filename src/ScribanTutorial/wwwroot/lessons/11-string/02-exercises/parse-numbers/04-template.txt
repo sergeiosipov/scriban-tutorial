@@ -1,0 +1,1 @@
+{{ ((a_str | string.???) + (b_str | string.???)) / 2 }}

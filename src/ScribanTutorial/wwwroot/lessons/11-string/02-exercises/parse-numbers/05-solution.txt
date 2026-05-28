@@ -1,0 +1,1 @@
+{{ ((a_str | string.to_int) + (b_str | string.to_int)) / 2 }}

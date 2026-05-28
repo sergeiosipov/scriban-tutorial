@@ -1,0 +1,5 @@
+{{- masked = text
+   for d in 0..9
+     masked = masked | string.??? (d | string.???) "*"
+   end -}}
+{{ masked }}

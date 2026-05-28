@@ -1,0 +1,3 @@
+{{- for s in samples ~}}
+{{ s | object.??? }}/{{ s | object.??? }}
+{{~ end -}}

@@ -1,0 +1,203 @@
+The `array.*` module is the everyday toolkit for sequences — sort,
+filter, map, slice, join, deduplicate. 21 functions in total, most
+pipe-friendly.
+
+Upstream reference:
+[scriban.github.io/docs/builtins/array](https://scriban.github.io/docs/builtins/array/).
+
+## Building
+
+| Function | Effect |
+|---|---|
+| `array.add list v` | Returns a new list with `v` appended |
+| `array.add_range a b` | Concatenate two lists; same as `array.concat` |
+| `array.concat a b` | Concatenate two lists |
+| `array.insert_at list i v` | Insert `v` at index `i` |
+
+:::example
+```scriban
+{{ [1, 2, 3] | array.add 4 }}
+{{ [1, 2] | array.concat [3, 4] }}
+{{ ["a", "b", "c"] | array.insert_at 1 "X" }}
+```
+```text
+[1, 2, 3, 4]
+[1, 2, 3, 4]
+["a", "X", "b", "c"]
+```
+:::
+
+## Size and access
+
+| Function | Returns |
+|---|---|
+| `array.size list` | Element count |
+| `array.first list` | First element |
+| `array.last list` | Last element |
+
+:::example
+```scriban
+{{ items = [10, 20, 30, 40]
+   "size=" + (items | array.size) + " first=" + (items | array.first) + " last=" + (items | array.last) }}
+```
+```text
+size=4 first=10 last=40
+```
+:::
+
+## Slicing
+
+| Function | Effect |
+|---|---|
+| `array.limit list n` | Take first `n` elements |
+| `array.offset list n` | Drop first `n` elements |
+| `array.remove_at list i` | Drop element at index `i` |
+
+:::example
+```scriban
+{{ items = [10, 20, 30, 40, 50]
+   items | array.limit 3 }}
+{{ items | array.offset 2 }}
+{{ items | array.remove_at 1 }}
+```
+```text
+[10, 20, 30]
+[30, 40, 50]
+[10, 30, 40, 50]
+```
+:::
+
+## Ordering
+
+| Function | Effect |
+|---|---|
+| `array.reverse list` | Reverse the order |
+| `array.sort list member?` | Sort ascending; sort by `obj.member` when given |
+| `array.uniq list` | Deduplicate (preserves first occurrence) |
+
+:::example
+```scriban
+{{ [3, 1, 4, 1, 5, 9, 2, 6, 5] | array.sort }}
+{{ [3, 1, 4, 1, 5, 9, 2, 6, 5] | array.uniq }}
+{{ [{n: 3}, {n: 1}, {n: 2}] | array.sort "n" | array.map "n" }}
+```
+```text
+[1, 1, 2, 3, 4, 5, 5, 6, 9]
+[3, 1, 4, 5, 9, 2, 6]
+[1, 2, 3]
+```
+:::
+
+## Filter / map / each
+
+The higher-order trio. Each takes a list and a function reference
+(remember `@function_name` from
+[lesson 7](/scriban-tutorial/lesson/07-functions)):
+
+| Function | Effect |
+|---|---|
+| `array.filter list @fn` | Keep elements where `@fn(elem)` is truthy |
+| `array.each list @fn` | Transform every element by `@fn` |
+| `array.map list "member"` | Pluck a member out of each element |
+
+:::example
+```scriban
+{{ [" a", " b", " c"] | array.each @string.strip }}
+```
+```text
+["a", "b", "c"]
+```
+:::
+
+`array.map` is a shorthand that extracts a member name from each
+element — it's `array.each` specialised for object navigation:
+
+:::example
+```scriban
+{{ users = [{name: "Ada"}, {name: "Babbage"}, {name: "Carl"}]
+   users | array.map "name" | array.join ", " }}
+```
+```text
+Ada, Babbage, Carl
+```
+:::
+
+## Search
+
+| Function | Returns |
+|---|---|
+| `array.contains list v` | `true` if `v` ∈ `list` |
+| `array.any list @fn args?` | `true` if any element satisfies `@fn` |
+
+:::example
+```scriban
+{{ [1, 2, 3, 4] | array.contains 3 }} / {{ ["hi", "world"] | array.any @string.contains "or" }}
+```
+```text
+true / true
+```
+:::
+
+## Compaction
+
+| Function | Effect |
+|---|---|
+| `array.compact list` | Drop null entries |
+
+:::example
+```scriban
+{{ [1, null, 2, null, 3] | array.compact }}
+```
+```text
+[1, 2, 3]
+```
+:::
+
+## Combine
+
+| Function | Effect |
+|---|---|
+| `array.join list sep fn?` | Join into a string with separator |
+| `array.cycle list group?` | Cycle through elements across calls |
+
+`array.cycle` is the trick for alternating row classes in a loop:
+
+:::example
+```scriban
+{{ for x in 1..6 }}{{ array.cycle ["odd","even"] }} {{ end }}
+```
+```text
+odd even odd even odd even 
+```
+:::
+
+Each call to `array.cycle` advances internally to the next element,
+wrapping around at the end.
+
+## What about `array.any` returning a filtered subset?
+
+`array.any` does NOT return the matching elements — it returns a single
+boolean. To get the subset, use `array.filter`:
+
+:::example
+```scriban
+{{ ["", "hi", "", "yo"] | array.filter @string.empty }}
+```
+```text
+["", ""]
+```
+:::
+
+That returns the EMPTY strings (where `@string.empty` is truthy). To
+get the inverse (non-empty strings), define a small "not empty" helper
+function and filter on it:
+
+:::example
+```scriban
+{{ func is_set; ret !($0 | string.empty); end
+   ["", "hi", "", "yo"] | array.filter @is_set }}
+```
+```text
+["hi", "yo"]
+```
+:::

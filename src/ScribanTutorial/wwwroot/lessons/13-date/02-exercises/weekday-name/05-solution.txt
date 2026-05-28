@@ -1,0 +1,2 @@
+{{- dt = d | date.parse -}}
+{{ dt | date.to_string `%A` }}, day {{ dt.DayOfYear }} of year

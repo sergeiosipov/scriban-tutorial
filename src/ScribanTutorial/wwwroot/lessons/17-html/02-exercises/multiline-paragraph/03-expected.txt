@@ -1,0 +1,2 @@
+<p>line A<br />
+line B</p>

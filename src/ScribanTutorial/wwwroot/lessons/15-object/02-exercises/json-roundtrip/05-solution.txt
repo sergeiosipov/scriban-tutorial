@@ -1,0 +1,3 @@
+{{- o = raw | object.from_json
+   o.valid = true -}}
+{{ o | object.to_json }}

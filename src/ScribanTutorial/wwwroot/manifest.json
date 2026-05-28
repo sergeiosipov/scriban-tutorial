@@ -117,6 +117,104 @@
       ]
     },
     {
+      "id": "10-math",
+      "title": "Built-in: math",
+      "theoryPath": "lessons/10-math/01-theory",
+      "exercises": [
+        { "id": "arithmetic-chain", "path": "lessons/10-math/02-exercises/arithmetic-chain" },
+        { "id": "format-hex",       "path": "lessons/10-math/02-exercises/format-hex" },
+        { "id": "round-direction",  "path": "lessons/10-math/02-exercises/round-direction" },
+        { "id": "price-with-tax",   "path": "lessons/10-math/02-exercises/price-with-tax" },
+        { "id": "uuid-id",          "path": "lessons/10-math/02-exercises/uuid-id" }
+      ]
+    },
+    {
+      "id": "11-string",
+      "title": "Built-in: string",
+      "theoryPath": "lessons/11-string/01-theory",
+      "exercises": [
+        { "id": "slug",            "path": "lessons/11-string/02-exercises/slug" },
+        { "id": "trim-and-pad",    "path": "lessons/11-string/02-exercises/trim-and-pad" },
+        { "id": "find-replace",    "path": "lessons/11-string/02-exercises/find-replace" },
+        { "id": "extract-slice",   "path": "lessons/11-string/02-exercises/extract-slice" },
+        { "id": "parse-numbers",   "path": "lessons/11-string/02-exercises/parse-numbers" },
+        { "id": "sha256-checksum", "path": "lessons/11-string/02-exercises/sha256-checksum" }
+      ]
+    },
+    {
+      "id": "12-regex",
+      "title": "Built-in: regex",
+      "theoryPath": "lessons/12-regex/01-theory",
+      "exercises": [
+        { "id": "extract-groups", "path": "lessons/12-regex/02-exercises/extract-groups" },
+        { "id": "count-matches",  "path": "lessons/12-regex/02-exercises/count-matches" },
+        { "id": "swap-names",     "path": "lessons/12-regex/02-exercises/swap-names" },
+        { "id": "split-csv",      "path": "lessons/12-regex/02-exercises/split-csv" },
+        { "id": "escape-input",   "path": "lessons/12-regex/02-exercises/escape-input" }
+      ]
+    },
+    {
+      "id": "13-date",
+      "title": "Built-in: date",
+      "theoryPath": "lessons/13-date/01-theory",
+      "exercises": [
+        { "id": "parse-iso",     "path": "lessons/13-date/02-exercises/parse-iso" },
+        { "id": "add-days",      "path": "lessons/13-date/02-exercises/add-days" },
+        { "id": "format-pretty", "path": "lessons/13-date/02-exercises/format-pretty" },
+        { "id": "date-fields",   "path": "lessons/13-date/02-exercises/date-fields" },
+        { "id": "weekday-name",  "path": "lessons/13-date/02-exercises/weekday-name" }
+      ]
+    },
+    {
+      "id": "14-timespan",
+      "title": "Built-in: timespan",
+      "theoryPath": "lessons/14-timespan/01-theory",
+      "exercises": [
+        { "id": "duration-format",    "path": "lessons/14-timespan/02-exercises/duration-format" },
+        { "id": "total-vs-component", "path": "lessons/14-timespan/02-exercises/total-vs-component" },
+        { "id": "combine-times",      "path": "lessons/14-timespan/02-exercises/combine-times" },
+        { "id": "parse-duration",     "path": "lessons/14-timespan/02-exercises/parse-duration" }
+      ]
+    },
+    {
+      "id": "15-object",
+      "title": "Built-in: object",
+      "theoryPath": "lessons/15-object/01-theory",
+      "exercises": [
+        { "id": "type-inspect",     "path": "lessons/15-object/02-exercises/type-inspect" },
+        { "id": "default-value",    "path": "lessons/15-object/02-exercises/default-value" },
+        { "id": "walk-keys",        "path": "lessons/15-object/02-exercises/walk-keys" },
+        { "id": "json-roundtrip",   "path": "lessons/15-object/02-exercises/json-roundtrip" },
+        { "id": "format-versatile", "path": "lessons/15-object/02-exercises/format-versatile" }
+      ]
+    },
+    {
+      "id": "16-array",
+      "title": "Built-in: array",
+      "theoryPath": "lessons/16-array/01-theory",
+      "exercises": [
+        { "id": "sort-and-take",   "path": "lessons/16-array/02-exercises/sort-and-take" },
+        { "id": "unique-tags",     "path": "lessons/16-array/02-exercises/unique-tags" },
+        { "id": "filter-positive", "path": "lessons/16-array/02-exercises/filter-positive" },
+        { "id": "map-extract",     "path": "lessons/16-array/02-exercises/map-extract" },
+        { "id": "csv-line",        "path": "lessons/16-array/02-exercises/csv-line" },
+        { "id": "compact-list",    "path": "lessons/16-array/02-exercises/compact-list" },
+        { "id": "row-alternation", "path": "lessons/16-array/02-exercises/row-alternation" }
+      ]
+    },
+    {
+      "id": "17-html",
+      "title": "Built-in: html",
+      "theoryPath": "lessons/17-html/01-theory",
+      "exercises": [
+        { "id": "escape-output",        "path": "lessons/17-html/02-exercises/escape-output" },
+        { "id": "strip-tags",           "path": "lessons/17-html/02-exercises/strip-tags" },
+        { "id": "multiline-paragraph",  "path": "lessons/17-html/02-exercises/multiline-paragraph" },
+        { "id": "encode-query",         "path": "lessons/17-html/02-exercises/encode-query" },
+        { "id": "defence-in-depth",     "path": "lessons/17-html/02-exercises/defence-in-depth" }
+      ]
+    },
+    {
       "id": "18-best-practices",
       "title": "Best practices",
       "theoryPath": "lessons/18-best-practices/01-theory",

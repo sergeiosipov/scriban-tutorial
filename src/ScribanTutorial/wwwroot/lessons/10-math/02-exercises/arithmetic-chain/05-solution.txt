@@ -1,0 +1,1 @@
+{{ base | math.times 1.25 | math.minus 10 | math.divided_by 2 }}

@@ -1,0 +1,1 @@
+{{ name | regex.replace `(\w+)\s+(\w+)` `$2, $1` }}

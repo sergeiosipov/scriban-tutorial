@@ -1,0 +1,1 @@
+{ "untrusted": "Hello <script>alert(1)</script> & friends" }
