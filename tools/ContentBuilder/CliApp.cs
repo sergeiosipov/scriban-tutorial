@@ -60,9 +60,14 @@ internal static class CliApp
 
             var highlighter = new TextMateHighlighter(grammar, theme);
             var renderer = new MarkdownRenderer(highlighter);
-            var mdExit = BuildContent(input, renderer);
+            // Treat the grammar file's mtime as a staleness input for every
+            // .html output — when the grammar (or anyone bumps it to force a
+            // regen after a highlighter-code change) is newer than a rendered
+            // sibling, that sibling needs rebuilding.
+            var grammarMtime = File.GetLastWriteTimeUtc(grammar);
+            var mdExit = BuildContent(input, renderer, grammarMtime);
             if (mdExit != 0) return mdExit;
-            var dataExit = BuildDataModelHtml(input, highlighter);
+            var dataExit = BuildDataModelHtml(input, highlighter, grammarMtime);
             if (dataExit != 0) return dataExit;
             return BuildExerciseBundles(input);
         }
@@ -80,7 +85,14 @@ internal static class CliApp
         !File.Exists(output) ||
         File.GetLastWriteTimeUtc(output) < File.GetLastWriteTimeUtc(source);
 
-    private static int BuildContent(string lessonsDir, MarkdownRenderer renderer)
+    // Variant that also considers an "extra" source mtime (e.g. the grammar
+    // file) — true if output is missing or older than EITHER input.
+    private static bool IsStale(string source, string output, DateTime extraSourceMtime) =>
+        !File.Exists(output) ||
+        File.GetLastWriteTimeUtc(output) < File.GetLastWriteTimeUtc(source) ||
+        File.GetLastWriteTimeUtc(output) < extraSourceMtime;
+
+    private static int BuildContent(string lessonsDir, MarkdownRenderer renderer, DateTime grammarMtime)
     {
         if (!Directory.Exists(lessonsDir))
         {
@@ -93,7 +105,7 @@ internal static class CliApp
         foreach (var md in mdFiles)
         {
             var html = Path.ChangeExtension(md, ".html");
-            if (!IsStale(md, html)) continue;
+            if (!IsStale(md, html, grammarMtime)) continue;
             try
             {
                 var output = renderer.Render(File.ReadAllText(md));
@@ -114,7 +126,7 @@ internal static class CliApp
     // syntax-highlighted with the JSON grammar through TextMateSharp. The
     // ExerciseBlock data panel renders this so its colours match the
     // :::example JSON column instead of falling back to plain text.
-    private static int BuildDataModelHtml(string lessonsDir, TextMateHighlighter highlighter)
+    private static int BuildDataModelHtml(string lessonsDir, TextMateHighlighter highlighter, DateTime grammarMtime)
     {
         var jsonOpts = new System.Text.Json.JsonSerializerOptions
         {
@@ -126,7 +138,7 @@ internal static class CliApp
         foreach (var json in dataFiles)
         {
             var html = Path.Combine(Path.GetDirectoryName(json)!, "02-datamodel.html");
-            if (!IsStale(json, html)) continue;
+            if (!IsStale(json, html, grammarMtime)) continue;
             try
             {
                 using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(json));

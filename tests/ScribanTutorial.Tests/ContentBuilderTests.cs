@@ -136,6 +136,22 @@ public class ContentBuilderTests
     }
 
     [Fact]
+    public void Grammar_double_hash_block_comment_markers_are_painted_as_comment()
+    {
+        // The `##` markers carry the punctuation.definition.comment scope on
+        // top of comment.block; if the scope-map's generic `punctuation` rule
+        // wins (it used to), the markers render in default text colour while
+        // the comment body is green — visually disowning them.
+        var hl = NewHighlighter();
+        var html = hl.Highlight("{{ \"A\"; ## block ## \"C\" }}", "scriban");
+
+        // Both markers should land in hl-comment spans, not hl-punctuation.
+        Assert.DoesNotContain("hl-punctuation\">##", html);
+        // And the body between them should still be hl-comment.
+        Assert.Contains("hl-comment", html);
+    }
+
+    [Fact]
     public void Grammar_double_hash_block_comment_ends_at_closing_double_hash()
     {
         var hl = NewHighlighter();

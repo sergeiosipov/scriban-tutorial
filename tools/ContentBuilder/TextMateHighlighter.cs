@@ -39,6 +39,7 @@ internal sealed class TextMateHighlighter
         ("storage",                       "hl-keyword"),
         ("punctuation.section.embedded",  "hl-brace"),
         ("punctuation.definition.string", "hl-string"),
+        ("punctuation.definition.comment","hl-comment"),
         ("punctuation",                   "hl-punctuation"),
         ("support.type.property-name",    "hl-property"),
         ("support.class",                 "hl-type"),
