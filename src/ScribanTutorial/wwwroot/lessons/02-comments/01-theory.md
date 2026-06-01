@@ -29,10 +29,10 @@ comment emits nothing, and statements before and after it run normally:
 
 :::example
 ```scriban
-{{ "Inside start;"; ## This
+{{ 'Inside start;'; ## This
 is a multi
 line
-comment ##; "Inside end;" }}Outside
+comment ##; 'Inside end;' }}Outside
 ```
 ```text
 Inside start;Inside end;Outside
@@ -51,10 +51,10 @@ block — consuming any statements that were supposed to live after it:
 
 :::example
 ```scriban
-{{ "Inside start;"; ## This
+{{ 'Inside start;'; ## This
 is a multi
 line
-comment; "Inside end;" }}Outside
+comment; 'Inside end;' }}Outside
 ```
 ```text
 Inside start;Outside

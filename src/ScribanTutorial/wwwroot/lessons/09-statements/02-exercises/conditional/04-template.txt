@@ -1,9 +1,9 @@
 {{- if score >= ???
-     "A"
+     'A'
    ??? score >= ???
-     "B"
+     'B'
    ??? score >= ???
-     "C"
+     'C'
    else
-     "D"
+     'D'
    end -}}

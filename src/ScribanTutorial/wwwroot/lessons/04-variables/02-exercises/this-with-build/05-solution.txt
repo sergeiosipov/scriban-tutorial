@@ -1,4 +1,4 @@
 {{- with user
-     this.full_name = first + " " + last
+     this.full_name = first + ' ' + last
    end -}}
 {{ user.full_name }}

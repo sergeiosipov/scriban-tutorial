@@ -1,1 +1,1 @@
-{{ numbers | array.sort | array.limit 3 | array.join ", " }}
+{{ numbers | array.sort | array.limit 3 | array.join ', ' }}

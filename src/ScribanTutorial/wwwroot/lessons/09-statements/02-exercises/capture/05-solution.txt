@@ -1,4 +1,4 @@
 {{- capture headline -}}
 Welcome to {{ site }}, {{ user }}!
 {{- end -}}
-{{ headline | string.upcase | string.append " ***" }}
+{{ headline | string.upcase | string.append ' ***' }}

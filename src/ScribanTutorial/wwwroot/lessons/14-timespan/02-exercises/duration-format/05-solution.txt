@@ -1,2 +1,2 @@
 {{- t = timespan.from_minutes minutes -}}
-{{ t.Hours | math.format "D2" }}:{{ t.Minutes | math.format "D2" }}
+{{ t.Hours | math.format 'D2' }}:{{ t.Minutes | math.format 'D2' }}

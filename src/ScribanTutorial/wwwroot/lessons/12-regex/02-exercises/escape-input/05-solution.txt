@@ -1,1 +1,1 @@
-{{ text | regex.replace (query | regex.escape) "[$0]" }}
+{{ text | regex.replace (query | regex.escape) '[$0]' }}

@@ -1,10 +1,10 @@
 {{- case code
      when ???
-       "Americas"
+       'Americas'
      when ???
-       "Europe"
+       'Europe'
      when ???
-       "Asia"
+       'Asia'
      else
        ???
    end -}}

@@ -6,6 +6,9 @@ your control (data files, user input, third-party APIs).
 Upstream reference:
 [scriban.github.io/docs/builtins/html](https://scriban.github.io/docs/builtins/html/).
 
+**Return types.** All five functions return a new **string**; the
+input is never mutated.
+
 ## Why HTML escaping matters
 
 When a template substitutes a value into HTML markup, any `<`, `>`, `&`,
@@ -15,7 +18,7 @@ executes in the user's browser. `html.escape` is the canonical defence:
 
 :::example
 ```scriban
-{{ "<p>Hello & welcome!</p>" | html.escape }}
+{{ '<p>Hello & welcome!</p>' | html.escape }}
 ```
 ```text
 &lt;p&gt;Hello &amp; welcome!&lt;/p&gt;
@@ -40,7 +43,7 @@ preview:
 
 :::example
 ```scriban
-{{ "<p>Hello <b>world</b>!</p>" | html.strip }}
+{{ '<p>Hello <b>world</b>!</p>' | html.strip }}
 ```
 ```text
 Hello world!
@@ -58,7 +61,7 @@ paragraph that doesn't preserve whitespace:
 
 :::example
 ```scriban
-{{ "line one\nline two\nline three" | html.newline_to_br }}
+{{ 'line one\nline two\nline three' | html.newline_to_br }}
 ```
 ```text
 line one<br />
@@ -85,8 +88,8 @@ mostly-formed URL with a few troublesome characters in the path.
 
 :::example
 ```scriban
-{{ "ada lovelace@example.com" | html.url_encode }}
-{{ "/path/with spaces/<file>" | html.url_escape }}
+{{ 'ada lovelace@example.com' | html.url_encode }}
+{{ '/path/with spaces/<file>' | html.url_escape }}
 ```
 ```text
 ada%20lovelace%40example.com

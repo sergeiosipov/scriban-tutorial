@@ -1,1 +1,1 @@
-{{ "this is a text" | regex.split `\s+` }}
+{{ 'this is a text' | regex.split `\s+` }}

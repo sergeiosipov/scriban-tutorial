@@ -1,9 +1,9 @@
 {{- if score >= 90
-     "A"
+     'A'
    else if score >= 80
-     "B"
+     'B'
    else if score >= 70
-     "C"
+     'C'
    else
-     "D"
+     'D'
    end -}}

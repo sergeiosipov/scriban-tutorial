@@ -1,4 +1,4 @@
 {{- func shout
-     ret $0 | string.upcase | string.append "!"
+     ret $0 | string.upcase | string.append '!'
    end -}}
 {{ shout name }}

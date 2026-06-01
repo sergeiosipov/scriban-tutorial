@@ -1,1 +1,1 @@
-{{ path | string.split "." | array.last | string.prepend "." }}
+{{ path | string.split '.' | array.last | string.prepend '.' }}

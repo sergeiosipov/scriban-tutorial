@@ -62,7 +62,7 @@ plain text and `{{ ... }}` expressions inside it both render to output:
 {{ func greet }}
 Hello, {{ $0 }}! You will be {{ $1 + 1 }} next year.
 {{- end -}}
-{{ greet "Ada" 35 -}}
+{{ greet 'Ada' 35 -}}
 ```
 ```text
 
@@ -120,9 +120,9 @@ Named arguments come in alongside positional ones via `$.name`:
 :::example
 ```scriban
 {{ func join
-     ret $0 + ($.sep ?? ", ") + $1
+     ret $0 + ($.sep ?? ', ') + $1
    end
-   join "left" "right" sep:" | " }}
+   join 'left' 'right' sep:' | ' }}
 ```
 ```text
 left | right
@@ -154,10 +154,10 @@ others:
 
 :::example
 ```scriban
-{{ func make_url(host, scheme="https", port=443, path="/")
-     ret scheme + "://" + host + ":" + port + path
+{{ func make_url(host, scheme='https', port=443, path='/')
+     ret scheme + '://' + host + ':' + port + path
    end
-   make_url "example.com" port:8080 }}
+   make_url 'example.com' port:8080 }}
 ```
 ```text
 https://example.com:8080/
@@ -256,7 +256,7 @@ function with no arguments (often producing an error).
 :::example
 ```scriban
 {{ upper = @string.upcase
-   "ada" | upper }}
+   'ada' | upper }}
 ```
 ```text
 ADA
@@ -312,7 +312,7 @@ result as its first argument:
 
 :::example
 ```scriban
-{{ "  ada  " | string.strip | string.upcase | string.append "!" }}
+{{ '  ada  ' | string.strip | string.upcase | string.append '!' }}
 ```
 ```text
 ADA!

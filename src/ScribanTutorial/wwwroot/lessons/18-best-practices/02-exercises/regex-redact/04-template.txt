@@ -1,1 +1,1 @@
-{{ log | regex.replace ??? "[redacted]" }}
+{{ log | regex.replace ??? '[redacted]' }}

@@ -135,7 +135,7 @@ inside `while` loops.
 
 :::example
 ```scriban
-{{ for word in ["red", "green", "blue"] ~}}
+{{ for word in ['red', 'green', 'blue'] ~}}
 {{ for.index }}: {{ word }}{{ if !for.last }}, {{ end }}
 {{- end }}
 ```
@@ -223,9 +223,9 @@ name as if they were locals:
 
 :::example
 ```scriban
-{{ user = { name: "Ada" }
+{{ user = { name: 'Ada' }
    with user
-     this.role = "admin"
+     this.role = 'admin'
    end
    user.name }} is an {{ user.role }}
 ```
@@ -249,8 +249,8 @@ members can be reached two ways:
 
 :::example
 ```scriban
-{{ user = { first: "Ada", last: "Lovelace" }
-   key = "last"
+{{ user = { first: 'Ada', last: 'Lovelace' }
+   key = 'last'
    user.first }} {{ user[key] }}
 ```
 ```text

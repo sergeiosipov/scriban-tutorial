@@ -37,9 +37,9 @@ allowed — handy when reordering items in a code review:
 :::example
 ```scriban
 {{ fruits = [
-     "Orange",
-     "Banana",
-     "Apple",
+     'Orange',
+     'Banana',
+     'Apple',
    ]
    fruits[0] }} - {{ fruits[1] }} - {{ fruits[2] }}
 ```
@@ -55,7 +55,7 @@ first element is `array[0]`, not `array[1]`:
 
 :::example
 ```scriban
-{{ items = ["red", "green", "blue"]
+{{ items = ['red', 'green', 'blue']
    items[0] }} - {{ items[2] }}
 ```
 ```text
@@ -71,8 +71,8 @@ unused index:
 :::example
 ```scriban
 {{ list = []
-   list[0] = "a"
-   list[1] = "b"
+   list[0] = 'a'
+   list[1] = 'b'
    list }}
 ```
 ```text
@@ -94,7 +94,7 @@ thread metadata (a label, an id, a context) alongside the elements:
 :::example
 ```scriban
 {{ a = [5, 6, 7]
-   a.label = "x"
+   a.label = 'x'
    a.label }}-{{ a[0] }}
 ```
 ```text

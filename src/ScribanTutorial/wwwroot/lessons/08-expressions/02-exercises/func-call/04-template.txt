@@ -1,9 +1,9 @@
 {{- func longest
-     winner = ""
+     winner = ''
      for s in ???
        if s.size > winner.size; winner = s; end
      end
      ret winner
    end -}}
 {{ pick = longest a b c d
-   "pick: " + ??? + ", length: " + ???.size }}
+   'pick: ' + ??? + ', length: ' + ???.size }}

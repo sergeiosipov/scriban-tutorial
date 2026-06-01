@@ -1,10 +1,10 @@
 {{- case code
-     when "US", "CA", "MX"
-       "Americas"
-     when "FR", "DE", "IT", "ES"
-       "Europe"
-     when "JP", "KR", "CN"
-       "Asia"
+     when 'US', 'CA', 'MX'
+       'Americas'
+     when 'FR', 'DE', 'IT', 'ES'
+       'Europe'
+     when 'JP', 'KR', 'CN'
+       'Asia'
      else
-       "Other"
+       'Other'
    end -}}

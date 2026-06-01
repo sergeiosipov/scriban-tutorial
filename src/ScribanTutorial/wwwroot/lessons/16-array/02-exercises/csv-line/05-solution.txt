@@ -1,1 +1,1 @@
-{{ fields | array.each @string.strip | array.join "," }}
+{{ fields | array.each @string.strip | array.join ',' }}

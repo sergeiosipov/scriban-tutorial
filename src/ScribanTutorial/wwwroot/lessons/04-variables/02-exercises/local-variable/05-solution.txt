@@ -1,2 +1,2 @@
-{{ $greeting = "Welcome"
+{{ $greeting = 'Welcome'
    $greeting }}

@@ -5,32 +5,37 @@ walks, JSON conversion, and dynamic evaluation. Thirteen functions.
 Upstream reference:
 [scriban.github.io/docs/builtins/object](https://scriban.github.io/docs/builtins/object/).
 
+**Return types.** Every function in this module returns a new value;
+the input is never mutated. Returns vary by function — bool, int,
+string, array, or arbitrary value — see the `Returns` column on each
+table.
+
 ## Defaults and presence
 
-| Function | Returns |
-|---|---|
-| `object.default v fallback` | `v` if non-null AND non-empty, else `fallback` |
-| `object.has_key v k` | `true` if `v` has a member named `k` |
-| `object.has_value v k` | `true` if `v.k` exists AND is non-null |
+| Function | Returns | Effect |
+|---|---|---|
+| `object.default v fallback` | same type as `v` or `fallback` | `v` if non-null AND non-empty, else `fallback` |
+| `object.has_key v k` | bool | `true` if `v` has a member named `k` |
+| `object.has_value v k` | bool | `true` if `v.k` exists AND is non-null |
 
 :::example
 ```scriban
 {{ name = null
-   object.default name "Anonymous" }} / {{ object.default "Ada" "Anonymous" }}
+   object.default name 'Anonymous' }} / {{ object.default 'Ada' 'Anonymous' }}
 ```
 ```text
 Anonymous / Ada
 ```
 :::
 
-`object.default` differs from `??` in that it also treats `""` as
-"absent" — `"" | object.default "fallback"` returns `"fallback"`,
-whereas `"" ?? "fallback"` returns `""`.
+`object.default` differs from `??` in that it also treats `''` as
+"absent" — `'' | object.default 'fallback'` returns `'fallback'`,
+whereas `'' ?? 'fallback'` returns `''`.
 
 :::example
 ```scriban
-{{ user = { name: "Ada" }
-   object.has_key user "name" }} / {{ object.has_key user "email" }}
+{{ user = { name: 'Ada' }
+   object.has_key user 'name' }} / {{ object.has_key user 'email' }}
 ```
 ```text
 true / false
@@ -39,15 +44,15 @@ true / false
 
 ## Inspection
 
-| Function | Returns |
-|---|---|
-| `object.typeof v` | One of `string`, `boolean`, `number`, `array`, `iterator`, `object` |
-| `object.kind v` | Finer type — `int`, `double`, `bool`, `string`, `array`, `object`, etc. |
-| `object.size v` | Length for arrays/strings/iterators; member count for objects |
+| Function | Returns | Effect |
+|---|---|---|
+| `object.typeof v` | string | One of `string`, `boolean`, `number`, `array`, `iterator`, `object` |
+| `object.kind v` | string | Finer type — `int`, `double`, `bool`, `string`, `array`, `object`, etc. |
+| `object.size v` | int | Length for arrays/strings/iterators; member count for objects |
 
 :::example
 ```scriban
-{{ object.typeof "hi" }} / {{ object.typeof 42 }} / {{ object.typeof [1,2] }} / {{ object.typeof null }}
+{{ object.typeof 'hi' }} / {{ object.typeof 42 }} / {{ object.typeof [1,2] }} / {{ object.typeof null }}
 ```
 ```text
 string / number / array / 
@@ -69,14 +74,14 @@ int / double / bool
 
 For navigating an object whose shape is dynamic:
 
-| Function | Returns |
-|---|---|
-| `object.keys v` | Array of member names |
-| `object.values v` | Array of the corresponding values |
+| Function | Returns | Effect |
+|---|---|---|
+| `object.keys v` | array | Array of member names |
+| `object.values v` | array | Array of the corresponding values |
 
 :::example
 ```scriban
-{{ product = { name: "Widget", price: 9.99 }
+{{ product = { name: 'Widget', price: 9.99 }
    object.keys product }}
 {{ object.values product }}
 ```
@@ -91,7 +96,7 @@ template-authoring time:
 
 :::example
 ```scriban
-{{- product = { name: "Widget", price: 9.99 }
+{{- product = { name: 'Widget', price: 9.99 }
    for key in (object.keys product) ~}}
 {{ key }}={{ product[key] }}
 {{~ end -}}
@@ -104,13 +109,13 @@ price=9.99
 
 ## Formatting
 
-`object.format value format culture?` is the type-agnostic
-`math.format` — it works on numbers, dates, and anything else with a
-.NET `IFormattable` implementation:
+`object.format value format culture?` returns **string**. The
+type-agnostic cousin of `math.format` — works on numbers, dates, and
+anything else with a .NET `IFormattable` implementation:
 
 :::example
 ```scriban
-{{ 255 | object.format "X4" }} / {{ date.parse "2024-03-15" | object.format "yyyy-MM" }}
+{{ 255 | object.format 'X4' }} / {{ date.parse '2024-03-15' | object.format 'yyyy-MM' }}
 ```
 ```text
 00FF / 2024-03
@@ -125,10 +130,10 @@ strftime-style dates, use `date.to_string` instead.)
 
 Two functions convert between Scriban values and JSON strings:
 
-| Function | Effect |
-|---|---|
-| `object.from_json text` | Parse JSON into a Scriban value |
-| `object.to_json value` | Serialise a Scriban value to JSON |
+| Function | Returns | Effect |
+|---|---|---|
+| `object.from_json text` | any (value/array/object from JSON) | Parse JSON into a Scriban value |
+| `object.to_json value` | string | Serialise a Scriban value to JSON |
 
 :::example
 ```scriban
@@ -142,7 +147,7 @@ Two functions convert between Scriban values and JSON strings:
 
 :::example
 ```scriban
-{{ payload = { id: 42, tags: ["a", "b"] }
+{{ payload = { id: 42, tags: ['a', 'b'] }
    payload | object.to_json }}
 ```
 ```text
@@ -156,14 +161,14 @@ Two power-tool functions that interpret a string as Scriban code.
 Useful for late-bound expressions; risky if the string comes from
 untrusted input.
 
-| Function | Effect |
-|---|---|
-| `object.eval text` | Evaluate `text` as a Scriban EXPRESSION; return its value |
-| `object.eval_template text` | Evaluate `text` as a full Scriban TEMPLATE; return the rendered output |
+| Function | Returns | Effect |
+|---|---|---|
+| `object.eval text` | any (value of the expression) | Evaluate `text` as a Scriban EXPRESSION |
+| `object.eval_template text` | string (rendered output) | Evaluate `text` as a full Scriban TEMPLATE |
 
 :::example
 ```scriban
-{{ "1 + 2 * 3" | object.eval }} / {{ "x = 5; x * 2" | object.eval }}
+{{ '1 + 2 * 3' | object.eval }} / {{ 'x = 5; x * 2' | object.eval }}
 ```
 ```text
 7 / 10
@@ -172,8 +177,8 @@ untrusted input.
 
 :::example
 ```scriban
-{{ tpl = "Hello {{ name }}!"
-   data_name = "Ada"
+{{ tpl = 'Hello {{ name }}!'
+   data_name = 'Ada'
    name = data_name
    tpl | object.eval_template }}
 ```

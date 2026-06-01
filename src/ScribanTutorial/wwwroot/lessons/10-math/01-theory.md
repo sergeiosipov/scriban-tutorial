@@ -6,6 +6,11 @@ total.
 Upstream reference:
 [scriban.github.io/docs/builtins/math](https://scriban.github.io/docs/builtins/math/).
 
+**Return types.** Every function in this module returns a new value;
+the input is never mutated. Most return **numbers** (int or double
+following the input). Three exceptions: `math.format` and `math.uuid`
+return **string**; `math.is_number` returns **bool**.
+
 ## Basic arithmetic
 
 The four basic operators have pipe-friendly companions in the math
@@ -86,7 +91,7 @@ fixed-width display:
 
 :::example
 ```scriban
-{{ 255 | math.format "X4" }} / {{ 42 | math.format "D6" }} / {{ 0.125 | math.format "P1" }}
+{{ 255 | math.format 'X4' }} / {{ 42 | math.format 'D6' }} / {{ 0.125 | math.format 'P1' }}
 ```
 ```text
 00FF / 000042 / 12.5 %
@@ -102,7 +107,7 @@ versions insert a non-breaking space before the `%`.)
 
 :::example
 ```scriban
-{{ 255 | math.is_number }} / {{ "255" | math.is_number }}
+{{ 255 | math.is_number }} / {{ '255' | math.is_number }}
 ```
 ```text
 true / false
@@ -123,7 +128,7 @@ identifiers in generated output:
 :::example
 ```scriban
 {{ id = math.uuid
-   "id length is " + id.size }}
+   'id length is ' + id.size }}
 ```
 ```text
 id length is 36

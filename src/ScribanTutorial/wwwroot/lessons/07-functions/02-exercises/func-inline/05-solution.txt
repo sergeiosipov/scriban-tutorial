@@ -1,2 +1,2 @@
 {{- frame(s, c) = c + s + c
-   frame(text, "*") -}}
+   frame(text, '*') -}}

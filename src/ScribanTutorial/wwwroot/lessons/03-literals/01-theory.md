@@ -58,7 +58,7 @@ Supported escapes:
 
 :::example
 ```scriban
-{{ "line1\nline2\tindented" }}
+{{ 'line1\nline2\tindented' }}
 ```
 ```text
 line1
@@ -68,7 +68,7 @@ line2	indented
 
 :::example
 ```scriban
-{{ "letter \x42 then smörgåsbord" }}
+{{ 'letter \x42 then smörgåsbord' }}
 ```
 ```text
 letter B then smörgåsbord
@@ -87,7 +87,7 @@ literal, including `\`. The classic use case is regex patterns:
 
 :::example
 ```scriban
-{{ "this is a text" | regex.split `\s+` }}
+{{ 'this is a text' | regex.split `\s+` }}
 ```
 ```text
 ["this", "is", "a", "text"]
@@ -106,7 +106,7 @@ with both double and single quotes:
 
 :::example
 ```scriban
-{{ $"sum is {1 + 2}, name is {"Ada"}" }}
+{{ $"sum is {1 + 2}, name is {'Ada'}" }}
 ```
 ```text
 sum is 3, name is Ada
@@ -218,7 +218,7 @@ template render anything?" bugs. Three patterns to catch it:
 :::example
 ```scriban
 {{ x = null
-   x ?? "default" }} / {{ if x == null }}absent{{ else }}present{{ end }}
+   x ?? 'default' }} / {{ if x == null }}absent{{ else }}present{{ end }}
 ```
 ```text
 default / absent

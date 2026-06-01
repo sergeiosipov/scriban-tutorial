@@ -29,7 +29,7 @@ When the keys are valid identifiers, you can drop the quotes:
 
 :::example
 ```scriban
-{{ user = { first: "Ada", last: "Lovelace" }
+{{ user = { first: 'Ada', last: 'Lovelace' }
    user.first }}
 ```
 ```text
@@ -43,7 +43,7 @@ Convenient when you're pasting a literal block from a JSON document:
 
 :::example
 ```scriban
-{{ user = { "first": "Ada", "last": "Lovelace" }
+{{ user = { 'first': 'Ada', 'last': 'Lovelace' }
    user.first }}
 ```
 ```text
@@ -61,10 +61,10 @@ Long literals read more clearly stacked vertically, one member per line:
 :::example
 ```scriban
 {{ person = {
-     first: "Ada",
-     last: "Lovelace",
+     first: 'Ada',
+     last: 'Lovelace',
      age: 36,
-     fields: ["math", "computing"]
+     fields: ['math', 'computing']
    }
    person.first }} {{ person.last }}, {{ person.age }}
 ```
@@ -81,8 +81,8 @@ identifier:
 
 :::example
 ```scriban
-{{ user = { first_name: "Ada", last_name: "Lovelace" }
-   user.first_name }} ({{ user["last_name"] }})
+{{ user = { first_name: 'Ada', last_name: 'Lovelace' }
+   user.first_name }} ({{ user['last_name'] }})
 ```
 ```text
 Ada (Lovelace)
@@ -93,8 +93,8 @@ The bracket form earns its keep when the key is computed at runtime:
 
 :::example
 ```scriban
-{{ user = { first_name: "Ada", last_name: "Lovelace" }
-   key = "last_name"
+{{ user = { first_name: 'Ada', last_name: 'Lovelace' }
+   key = 'last_name'
    user[key] }}
 ```
 ```text
@@ -109,8 +109,8 @@ renders as the empty string just like a missing global:
 
 :::example
 ```scriban
-{{ user = { name: "Ada" }
-   "name=" + user.name + ", email=" + (user.email ?? "[unset]") }}
+{{ user = { name: 'Ada' }
+   'name=' + user.name + ', email=' + (user.email ?? '[unset]') }}
 ```
 ```text
 name=Ada, email=[unset]
@@ -143,9 +143,9 @@ adaptations of immutable .NET types:
 :::example
 ```scriban
 {{ box = {}
-   box.size = "medium"
+   box.size = 'medium'
    box.weight = 3
-   "size=" + box.size + ", weight=" + box.weight }}
+   'size=' + box.size + ', weight=' + box.weight }}
 ```
 ```text
 size=medium, weight=3
@@ -158,8 +158,8 @@ slot:
 
 :::example
 ```scriban
-{{ this.surname = "Lovelace"
-   name + " " + surname }}
+{{ this.surname = 'Lovelace'
+   name + ' ' + surname }}
 ```
 ```json
 { "name": "Ada" }
@@ -177,7 +177,7 @@ them when the data shape is nested and unreliable:
 
 :::example
 ```scriban
-{{ user.address?.city ?? "unknown" }}
+{{ user.address?.city ?? 'unknown' }}
 ```
 ```json
 { "user": { "first": "Ada" } }

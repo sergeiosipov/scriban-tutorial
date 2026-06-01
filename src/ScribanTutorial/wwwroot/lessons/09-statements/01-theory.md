@@ -22,7 +22,7 @@ without spelling out an explicit assignment:
 
 :::example
 ```scriban
-{{ "hello" }}
+{{ 'hello' }}
 ```
 ```text
 hello
@@ -90,13 +90,13 @@ Branch on a condition. `else if` chains, `else` catches the rest.
 :::example
 ```scriban
 {{ if score >= 90
-     "A"
+     'A'
    else if score >= 80
-     "B"
+     'B'
    else if score >= 70
-     "C"
+     'C'
    else
-     "D or below"
+     'D or below'
    end }}
 ```
 ```json
@@ -115,7 +115,7 @@ JavaScript or Python:
 
 :::example
 ```scriban
-{{ if 0 }}truthy{{ end }} / {{ if "" }}truthy{{ end }} / {{ if [] }}truthy{{ end }}
+{{ if 0 }}truthy{{ end }} / {{ if '' }}truthy{{ end }} / {{ if [] }}truthy{{ end }}
 ```
 ```text
 truthy / truthy / truthy
@@ -133,9 +133,9 @@ clarity or precedence:
 :::example
 ```scriban
 {{ if (a > 0 && b > 0) || force
-     "both"
+     'both'
    else
-     "no"
+     'no'
    end }}
 ```
 ```json
@@ -157,13 +157,13 @@ equality:
 {{ x = 5
    case x
      when 1, 2, 3
-       "low"
+       'low'
      when 4, 5, 6
-       "mid"
+       'mid'
      when 7, 8, 9
-       "high"
+       'high'
      else
-       "out of range"
+       'out of range'
    end }}
 ```
 ```text
@@ -186,7 +186,7 @@ element, with the loop variable bound to the current item.
 
 :::example
 ```scriban
-{{ for fruit in ["red", "green", "blue"] ~}}
+{{ for fruit in ['red', 'green', 'blue'] ~}}
 {{ for.index }}: {{ fruit }}{{ if !for.last }}, {{ end }}
 {{- end }}
 ```
@@ -250,8 +250,8 @@ Repeat while a condition stays truthy. `while.index`, `while.first`,
 ```scriban
 {{ $i = 0
    while $i < 3
-     if !while.first; ", "; end
-     "tick"
+     if !while.first; ', '; end
+     'tick'
      while.index
      $i = $i + 1
    end }}
@@ -379,9 +379,9 @@ variable. Convenient when you keep settings or context as one object:
 
 :::example
 ```scriban
-{{ settings = { greeting: "Hello", subject: "world" }
+{{ settings = { greeting: 'Hello', subject: 'world' }
    import settings
-   greeting + ", " + subject }}
+   greeting + ', ' + subject }}
 ```
 ```text
 Hello, world
@@ -427,7 +427,7 @@ calls the function with `$$` bound to the rendered body:
 :::example
 ```scriban
 {{ func box(tag) }}<{{ tag }}>{{ $$ }}</{{ tag }}>{{ end -}}
-{{ wrap box "div" -}}
+{{ wrap box 'div' -}}
 hello, world
 {{- end }}
 ```
@@ -453,11 +453,11 @@ the template doesn't run:
 :::example
 ```scriban
 {{ func first_word
-     for word in string.split($0, " ")
+     for word in string.split($0, ' ')
        ret word
      end
    end
-   first_word "hello world from Scriban" }}
+   first_word 'hello world from Scriban' }}
 ```
 ```text
 hello
@@ -475,9 +475,9 @@ position and emits its output. `include_join names sep` includes each
 of `names` and joins the results with `sep`.
 
 ```scriban
-{{ include "header.scriban" }}
-{{ include "body.scriban"   }}
-{{ include "footer.scriban" }}
+{{ include 'header.scriban' }}
+{{ include 'body.scriban'   }}
+{{ include 'footer.scriban' }}
 ```
 
 This composition pattern is the standard way real Scriban hosts

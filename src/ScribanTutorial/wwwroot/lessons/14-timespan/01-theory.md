@@ -5,18 +5,23 @@ functions, one parser, plus per-instance properties.
 Upstream reference:
 [scriban.github.io/docs/builtins/timespan](https://scriban.github.io/docs/builtins/timespan/).
 
+**Return types.** Every function in this module returns a new
+**TimeSpan** value; nothing mutates the input. The per-instance
+properties (`.Hours`, `.TotalMinutes`, etc.) return **int** for
+component accessors and **double** for total accessors.
+
 ## Constructors
 
-Six builders that produce a `TimeSpan` from a single unit:
+Six builders that each produce a new `TimeSpan` from a single unit:
 
-| Function | Returns |
-|---|---|
-| `timespan.from_days n` | n days |
-| `timespan.from_hours n` | n hours |
-| `timespan.from_minutes n` | n minutes |
-| `timespan.from_seconds n` | n seconds |
-| `timespan.from_milliseconds n` | n milliseconds |
-| `timespan.parse text` | TimeSpan parsed from `"d.HH:MM:SS"` or `"HH:MM:SS"` |
+| Function | Returns | Effect |
+|---|---|---|
+| `timespan.from_days n` | TimeSpan | n days |
+| `timespan.from_hours n` | TimeSpan | n hours |
+| `timespan.from_minutes n` | TimeSpan | n minutes |
+| `timespan.from_seconds n` | TimeSpan | n seconds |
+| `timespan.from_milliseconds n` | TimeSpan | n milliseconds |
+| `timespan.parse text` | TimeSpan | Parse from `'d.HH:MM:SS'` or `'HH:MM:SS'` |
 
 `n` can be fractional — `timespan.from_hours 1.5` is "one and a half
 hours". Rendered directly, a `TimeSpan` prints in `HH:MM:SS` form (or
@@ -67,7 +72,7 @@ between *clock time* and *duration*. A 90-minute interval has
 :::example
 ```scriban
 {{ t = timespan.from_minutes 90
-   "hours-comp=" + t.Hours + " min-comp=" + t.Minutes + " total-min=" + t.TotalMinutes }}
+   'hours-comp=' + t.Hours + ' min-comp=' + t.Minutes + ' total-min=' + t.TotalMinutes }}
 ```
 ```text
 hours-comp=1 min-comp=30 total-min=90
@@ -99,13 +104,13 @@ build a new `TimeSpan` from the result:
 
 :::example
 ```scriban
-{{ t = timespan.parse "1.02:30:00"
-   "days=" + t.Days + " hours=" + t.Hours + " minutes=" + t.Minutes }}
+{{ t = timespan.parse '1.02:30:00'
+   'days=' + t.Days + ' hours=' + t.Hours + ' minutes=' + t.Minutes }}
 ```
 ```text
 days=1 hours=2 minutes=30
 ```
 :::
 
-`"1.02:30:00"` reads as one day, two hours, thirty minutes — `1.26:30:00`
+`'1.02:30:00'` reads as one day, two hours, thirty minutes — `1.26:30:00`
 in totals.

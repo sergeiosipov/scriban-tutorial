@@ -1,1 +1,1 @@
-{{ "this is a text" | regex.split ??? }}
+{{ 'this is a text' | regex.split ??? }}

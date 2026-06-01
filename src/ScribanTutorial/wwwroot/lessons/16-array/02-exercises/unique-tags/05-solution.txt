@@ -1,1 +1,1 @@
-{{ tags | array.uniq | array.sort | array.join ", " }}
+{{ tags | array.uniq | array.sort | array.join ', ' }}

@@ -1,4 +1,4 @@
 {{- ??? shout
-     ??? $0 | string.upcase | string.append "!"
+     ??? $0 | string.upcase | string.append '!'
    ??? -}}
 {{ shout name }}

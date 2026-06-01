@@ -5,6 +5,12 @@ plus the per-instance properties for year/month/day/etc.
 Upstream reference:
 [scriban.github.io/docs/builtins/date](https://scriban.github.io/docs/builtins/date/).
 
+**Return types.** Every function in this module returns a new value;
+the input `DateTime` is never mutated. Most return **DateTime**
+(parse, now, all the `add_*` family); `date.to_string` and
+`date.parse_to_string` return **string**. Property accessors like
+`.Year` return **int**.
+
 ## A note on property names
 
 The upstream Scriban docs write date properties in `snake_case`
@@ -29,7 +35,7 @@ Both return a `DateTime` value. Rendered directly it formats like
 
 :::example
 ```scriban
-{{ today = date.parse "2024-03-15"
+{{ today = date.parse '2024-03-15'
    today | date.to_string `%Y-%m-%d` }}
 ```
 ```text
@@ -45,12 +51,12 @@ round-trip through the test runner.)
 
 `date.parse text pattern? culture?` reads a string into a `DateTime`.
 With no pattern, .NET's culture-aware parser figures out common shapes
-(`"2024-03-15"`, `"03/15/2024"`, `"15 Mar 2024"`, ISO 8601):
+(`'2024-03-15'`, `'03/15/2024'`, `'15 Mar 2024'`, ISO 8601):
 
 :::example
 ```scriban
-{{ d = date.parse "2024-03-15"
-   "Y=" + d.Year + " M=" + d.Month + " D=" + d.Day }}
+{{ d = date.parse '2024-03-15'
+   'Y=' + d.Year + ' M=' + d.Month + ' D=' + d.Day }}
 ```
 ```text
 Y=2024 M=3 D=15
@@ -61,7 +67,7 @@ For a pattern-driven parse, pass a format string (same shapes as
 `date.to_string`):
 
 ```scriban
-{{ date.parse "15/03/2024" `%d/%m/%Y` }}
+{{ date.parse '15/03/2024' `%d/%m/%Y` }}
 ```
 
 `date.parse_to_string` combines parse + format in one call when you're
@@ -85,7 +91,7 @@ PascalCase in this app):
 
 :::example
 ```scriban
-{{ d = date.parse "2024-03-15 13:45:00"
+{{ d = date.parse '2024-03-15 13:45:00'
    d.Hour }}:{{ d.Minute }} on day {{ d.DayOfYear }}
 ```
 ```text
@@ -112,7 +118,7 @@ amount. They don't mutate the source:
 
 :::example
 ```scriban
-{{ start = date.parse "2024-01-15"
+{{ start = date.parse '2024-01-15'
    later = start | date.add_months 3 | date.add_days 5
    later | date.to_string `%Y-%m-%d` }}
 ```
@@ -142,7 +148,7 @@ specifiers. The most common ones:
 
 :::example
 ```scriban
-{{ d = date.parse "2024-03-15 13:45:00"
+{{ d = date.parse '2024-03-15 13:45:00'
    d | date.to_string `%A, %B %d, %Y at %H:%M` }}
 ```
 ```text

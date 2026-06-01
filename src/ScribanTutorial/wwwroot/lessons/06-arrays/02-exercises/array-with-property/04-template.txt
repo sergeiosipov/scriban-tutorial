@@ -1,3 +1,3 @@
 {{ squares = [a * ???, b * ???, c * ???]
-   squares.??? = "powers" -}}
+   squares.??? = 'powers' -}}
 {{ squares.title }}: {{ squares[0] }}, {{ squares[1] }}, {{ squares[2] }}

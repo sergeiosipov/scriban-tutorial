@@ -186,13 +186,13 @@ function, but a plain object plus the null-coalesce idiom does the job:
 ```scriban
 {{ totals = {}
    for t in transactions
-     if t.status == "settled"
-       key = t.fund + " " + t.type
+     if t.status == 'settled'
+       key = t.fund + ' ' + t.type
        totals[key] = (totals[key] ?? 0) + t.amount
      end
    end
    for k in (object.keys totals)
-     k + ": " + totals[k]
+     k + ': ' + totals[k]
    end }}
 ```
 
@@ -211,7 +211,7 @@ is the workhorse — pass a verbatim backtick pattern so the backslashes
 don't double up:
 
 ```scriban
-{{ log | regex.replace `\d+\.\d+\.\d+\.\d+` "[redacted]" }}
+{{ log | regex.replace `\d+\.\d+\.\d+\.\d+` '[redacted]' }}
 ```
 
 For matching (rather than replacing), `regex.match` returns the first

@@ -1,1 +1,1 @@
-{{ !account_active ? "BLOCKED" : (is_admin && account_active) ? "VIP" : "NEW" }}
+{{ !account_active ? 'BLOCKED' : (is_admin && account_active) ? 'VIP' : 'NEW' }}

@@ -1,1 +1,1 @@
-{{ log | regex.replace `\d+\.\d+\.\d+\.\d+` "[redacted]" }}
+{{ log | regex.replace `\d+\.\d+\.\d+\.\d+` '[redacted]' }}

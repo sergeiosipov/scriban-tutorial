@@ -5,14 +5,22 @@ pipe-friendly.
 Upstream reference:
 [scriban.github.io/docs/builtins/array](https://scriban.github.io/docs/builtins/array/).
 
+**Return types.** Every function in this module returns a new value;
+the input list is never mutated. Most return **array**; a handful
+return scalar values — see the `Returns` column on each table.
+
+For true in-place mutation of an array, use index-assignment
+(`a[i] = v` from lesson 6) — that's the only form that writes into the
+existing list.
+
 ## Building
 
-| Function | Effect |
-|---|---|
-| `array.add list v` | Returns a NEW list with `v` appended |
-| `array.add_range a b` | Concatenate two lists into a NEW list; same as `array.concat` |
-| `array.concat a b` | Concatenate two lists into a NEW list |
-| `array.insert_at list i v` | Insert `v` at index `i`, returning a NEW list |
+| Function | Returns | Effect |
+|---|---|---|
+| `array.add list v` | array | NEW list with `v` appended |
+| `array.add_range a b` | array | Concatenate two lists into a NEW list; same as `array.concat` |
+| `array.concat a b` | array | Concatenate two lists into a NEW list |
+| `array.insert_at list i v` | array | Insert `v` at index `i`, returning a NEW list |
 
 :::example
 ```scriban
@@ -71,16 +79,16 @@ hot-loop accumulation.)
 
 ## Size and access
 
-| Function | Returns |
-|---|---|
-| `array.size list` | Element count |
-| `array.first list` | First element |
-| `array.last list` | Last element |
+| Function | Returns | Effect |
+|---|---|---|
+| `array.size list` | int | Element count |
+| `array.first list` | element (same type as list items) | First element |
+| `array.last list` | element (same type as list items) | Last element |
 
 :::example
 ```scriban
 {{ items = [10, 20, 30, 40]
-   "size=" + (items | array.size) + " first=" + (items | array.first) + " last=" + (items | array.last) }}
+   'size=' + (items | array.size) + ' first=' + (items | array.first) + ' last=' + (items | array.last) }}
 ```
 ```text
 size=4 first=10 last=40
@@ -89,11 +97,11 @@ size=4 first=10 last=40
 
 ## Slicing
 
-| Function | Effect |
-|---|---|
-| `array.limit list n` | Take first `n` elements |
-| `array.offset list n` | Drop first `n` elements |
-| `array.remove_at list i` | Drop element at index `i` |
+| Function | Returns | Effect |
+|---|---|---|
+| `array.limit list n` | array | Take first `n` elements |
+| `array.offset list n` | array | Drop first `n` elements |
+| `array.remove_at list i` | array | Drop element at index `i` |
 
 :::example
 ```scriban
@@ -111,17 +119,17 @@ size=4 first=10 last=40
 
 ## Ordering
 
-| Function | Effect |
-|---|---|
-| `array.reverse list` | Reverse the order |
-| `array.sort list member?` | Sort ascending; sort by `obj.member` when given |
-| `array.uniq list` | Deduplicate (preserves first occurrence) |
+| Function | Returns | Effect |
+|---|---|---|
+| `array.reverse list` | array | Reverse the order |
+| `array.sort list member?` | array | Sort ascending; sort by `obj.member` when given |
+| `array.uniq list` | array | Deduplicate (preserves first occurrence) |
 
 :::example
 ```scriban
 {{ [3, 1, 4, 1, 5, 9, 2, 6, 5] | array.sort }}
 {{ [3, 1, 4, 1, 5, 9, 2, 6, 5] | array.uniq }}
-{{ [{n: 3}, {n: 1}, {n: 2}] | array.sort "n" | array.map "n" }}
+{{ [{n: 3}, {n: 1}, {n: 2}] | array.sort 'n' | array.map 'n' }}
 ```
 ```text
 [1, 1, 2, 3, 4, 5, 5, 6, 9]
@@ -136,15 +144,15 @@ The higher-order trio. Each takes a list and a function reference
 (remember `@function_name` from
 [lesson 7](/scriban-tutorial/lesson/07-functions)):
 
-| Function | Effect |
-|---|---|
-| `array.filter list @fn` | Keep elements where `@fn(elem)` is truthy |
-| `array.each list @fn` | Transform every element by `@fn` |
-| `array.map list "member"` | Pluck a member out of each element |
+| Function | Returns | Effect |
+|---|---|---|
+| `array.filter list @fn` | array | Keep elements where `@fn(elem)` is truthy |
+| `array.each list @fn` | array | Transform every element by `@fn` |
+| `array.map list 'member'` | array | Pluck a member out of each element |
 
 :::example
 ```scriban
-{{ [" a", " b", " c"] | array.each @string.strip }}
+{{ [' a', ' b', ' c'] | array.each @string.strip }}
 ```
 ```text
 ["a", "b", "c"]
@@ -156,8 +164,8 @@ element — it's `array.each` specialised for object navigation:
 
 :::example
 ```scriban
-{{ users = [{name: "Ada"}, {name: "Babbage"}, {name: "Carl"}]
-   users | array.map "name" | array.join ", " }}
+{{ users = [{name: 'Ada'}, {name: 'Babbage'}, {name: 'Carl'}]
+   users | array.map 'name' | array.join ', ' }}
 ```
 ```text
 Ada, Babbage, Carl
@@ -166,14 +174,14 @@ Ada, Babbage, Carl
 
 ## Search
 
-| Function | Returns |
-|---|---|
-| `array.contains list v` | `true` if `v` ∈ `list` |
-| `array.any list @fn args?` | `true` if any element satisfies `@fn` |
+| Function | Returns | Effect |
+|---|---|---|
+| `array.contains list v` | bool | `true` if `v` ∈ `list` |
+| `array.any list @fn args?` | bool | `true` if any element satisfies `@fn` |
 
 :::example
 ```scriban
-{{ [1, 2, 3, 4] | array.contains 3 }} / {{ ["hi", "world"] | array.any @string.contains "or" }}
+{{ [1, 2, 3, 4] | array.contains 3 }} / {{ ['hi', 'world'] | array.any @string.contains 'or' }}
 ```
 ```text
 true / true
@@ -182,9 +190,9 @@ true / true
 
 ## Compaction
 
-| Function | Effect |
-|---|---|
-| `array.compact list` | Drop null entries |
+| Function | Returns | Effect |
+|---|---|---|
+| `array.compact list` | array | Drop null entries |
 
 :::example
 ```scriban
@@ -197,16 +205,16 @@ true / true
 
 ## Combine
 
-| Function | Effect |
-|---|---|
-| `array.join list sep fn?` | Join into a string with separator |
-| `array.cycle list group?` | Cycle through elements across calls |
+| Function | Returns | Effect |
+|---|---|---|
+| `array.join list sep fn?` | string | Join into a string with separator |
+| `array.cycle list group?` | element (same type as list items) | Cycle through elements across calls |
 
 `array.cycle` is the trick for alternating row classes in a loop:
 
 :::example
 ```scriban
-{{ for x in 1..6 }}{{ array.cycle ["odd","even"] }} {{ end }}
+{{ for x in 1..6 }}{{ array.cycle ['odd','even'] }} {{ end }}
 ```
 ```text
 odd even odd even odd even 
@@ -223,7 +231,7 @@ boolean. To get the subset, use `array.filter`:
 
 :::example
 ```scriban
-{{ ["", "hi", "", "yo"] | array.filter @string.empty }}
+{{ ['', 'hi', '', 'yo'] | array.filter @string.empty }}
 ```
 ```text
 ["", ""]
@@ -237,7 +245,7 @@ function and filter on it:
 :::example
 ```scriban
 {{ func is_set; ret !($0 | string.empty); end
-   ["", "hi", "", "yo"] | array.filter @is_set }}
+   ['', 'hi', '', 'yo'] | array.filter @is_set }}
 ```
 ```text
 ["hi", "yo"]

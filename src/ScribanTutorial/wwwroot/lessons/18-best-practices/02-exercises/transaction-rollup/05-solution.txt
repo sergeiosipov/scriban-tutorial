@@ -1,7 +1,7 @@
 {{- totals = {}
     for t in transactions
-      if t.status == "settled"
-        key = t.fund + " " + t.type
+      if t.status == 'settled'
+        key = t.fund + ' ' + t.type
         totals[key] = (totals[key] ?? 0) + t.amount
       end
     end -}}

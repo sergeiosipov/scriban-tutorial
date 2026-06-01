@@ -1,2 +1,2 @@
 {{- t = timespan.??? minutes -}}
-{{ t.??? | math.format "D2" }}:{{ t.??? | math.format "D2" }}
+{{ t.??? | math.format 'D2' }}:{{ t.??? | math.format 'D2' }}

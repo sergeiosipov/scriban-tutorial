@@ -1,2 +1,2 @@
 {{- total = math.round(qty * unit_price) -}}
-qty={{ qty }}, total={{ "$" + ??? }}, code={{ discount_code ??? "none" }}, banner=[{{ discount_code ??? " SAVINGS APPLIED " }}]
+qty={{ qty }}, total={{ '$' + ??? }}, code={{ discount_code ??? 'none' }}, banner=[{{ discount_code ??? ' SAVINGS APPLIED ' }}]

@@ -20,7 +20,7 @@ The simplest expression — a name. Plus the path variants.
 
 :::example
 ```scriban
-{{ user.name }} - {{ user["role"] }} - {{ tags[0] }} - {{ matrix[1][2] }}
+{{ user.name }} - {{ user['role'] }} - {{ tags[0] }} - {{ matrix[1][2] }}
 ```
 ```json
 { "user": { "name": "Ada", "role": "admin" }, "tags": ["x","y","z"], "matrix": [[1,2,3],[4,5,6]] }
@@ -138,7 +138,7 @@ raise an error:
 
 :::example
 ```scriban
-{{ "ab" + "c" }} | {{ "ha" * 3 }} | {{ "x"+"y"+"z" + (3+2) }}
+{{ 'ab' + 'c' }} | {{ 'ha' * 3 }} | {{ 'x'+'y'+'z' + (3+2) }}
 ```
 ```text
 abc | hahaha | xyz5
@@ -155,7 +155,7 @@ differently:
 
 :::example
 ```scriban
-{{ "5" + 3 }} | {{ 5 + 3 }} | {{ "qty=" + 5 }}
+{{ '5' + 3 }} | {{ 5 + 3 }} | {{ 'qty=' + 5 }}
 ```
 ```text
 53 | 8 | qty=5
@@ -193,7 +193,7 @@ is truthy, `b` otherwise:
 
 :::example
 ```scriban
-{{ price > 100 ? "expensive" : "ok" }} | {{ (price > 50 && active) ? "VIP" : "STD" }}
+{{ price > 100 ? 'expensive' : 'ok' }} | {{ (price > 50 && active) ? 'VIP' : 'STD' }}
 ```
 ```json
 { "price": 250, "active": true }
@@ -244,7 +244,7 @@ Unary `-` binds tighter than binary `-`, so `-x - 1` reads as `(-x) - 1`.
 
 :::example
 ```scriban
-{{ (1..5).size }} | {{ (1..<5) | array.join "," }} | {{ (0..9)[3] }}
+{{ (1..5).size }} | {{ (1..<5) | array.join ',' }} | {{ (0..9)[3] }}
 ```
 ```text
 5 | 1,2,3,4 | 3
@@ -265,7 +265,7 @@ range starts at 0).
 :::example
 ```scriban
 {{ x = 5; y = null
-   x ?? "fallback" }} | {{ y ?? "fallback" }} | {{ x ?! "shown" }} | {{ y ?! "missing" }}_end
+   x ?? 'fallback' }} | {{ y ?? 'fallback' }} | {{ x ?! 'shown' }} | {{ y ?! 'missing' }}_end
 ```
 ```text
 5 | fallback | shown | _end
@@ -283,7 +283,7 @@ function returns. Three call forms (recap from [lesson 7](/scriban-tutorial/less
 
 :::example
 ```scriban
-{{ "  ada  " | string.strip | string.upcase }} | {{ string.upcase("ada") }} | {{ string.upcase "ada" }}
+{{ '  ada  ' | string.strip | string.upcase }} | {{ string.upcase('ada') }} | {{ string.upcase 'ada' }}
 ```
 ```text
 ADA | ADA | ADA
@@ -296,13 +296,13 @@ of arguments:
 :::example
 ```scriban
 {{ func longest
-     winner = ""
+     winner = ''
      for s in $
        if s.size > winner.size; winner = s; end
      end
      ret winner
    end
-   longest "go" "python" "javascript" "rust" }}
+   longest 'go' 'python' 'javascript' 'rust' }}
 ```
 ```text
 javascript

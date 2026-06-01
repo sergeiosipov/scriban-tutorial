@@ -1,1 +1,1 @@
-hex={{ n | object.format "X4" }} month={{ d | date.parse | object.format "yyyy-MM" }}
+hex={{ n | object.format 'X4' }} month={{ d | date.parse | object.format 'yyyy-MM' }}

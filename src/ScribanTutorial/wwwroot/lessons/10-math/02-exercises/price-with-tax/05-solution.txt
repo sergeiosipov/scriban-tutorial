@@ -1,1 +1,1 @@
-{{ price | math.times (1 + tax_rate) | math.round 2 | math.format "N2" }}
+{{ price | math.times (1 + tax_rate) | math.round 2 | math.format 'N2' }}

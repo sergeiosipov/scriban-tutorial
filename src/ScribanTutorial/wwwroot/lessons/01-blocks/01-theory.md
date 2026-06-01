@@ -163,7 +163,7 @@ first non-whitespace character.
 
 :::example
 ```scriban
-Trailing whitespace        {{- "stripped" -}}        and leading.
+Trailing whitespace        {{- 'stripped' -}}        and leading.
 ```
 ```text
 Trailing whitespacestrippedand leading.
@@ -273,7 +273,7 @@ never see it — they ran before evaluation.
 So in:
 
 ```scriban
-Start{{"\n"}}{{-for x in 1..3-}}{{"\n"}}    <{{x}}>{{"\n"}}{{-end-}}{{"\n"}}End
+Start{{'\n'}}{{-for x in 1..3-}}{{'\n'}}    <{{x}}>{{'\n'}}{{-end-}}{{'\n'}}End
 ```
 
 The `-` characters scan adjacent **static** whitespace and find none —
