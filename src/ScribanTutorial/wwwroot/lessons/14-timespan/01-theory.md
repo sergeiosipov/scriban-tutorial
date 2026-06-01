@@ -112,5 +112,5 @@ days=1 hours=2 minutes=30
 ```
 :::
 
-`'1.02:30:00'` reads as one day, two hours, thirty minutes — `1.26:30:00`
-in totals.
+`'1.02:30:00'` reads as one day, two hours, thirty minutes — 26 hours
+30 minutes in total (TotalHours = 26.5).

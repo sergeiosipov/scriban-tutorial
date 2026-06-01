@@ -310,7 +310,7 @@ Exit the surrounding loop early (`break`) or skip to the next iteration
 ```
 :::
 
-`continue` skipped the even VALUES (2, 4, 6); `break` exited once `n > 5`.
+`continue` skipped the even VALUES (2, 4); `break` exited once `n > 5`.
 Output: just the odd values up to 5.
 
 ---
