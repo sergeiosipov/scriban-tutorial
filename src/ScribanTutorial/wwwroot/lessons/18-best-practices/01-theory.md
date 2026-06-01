@@ -49,11 +49,89 @@ Three patterns earn their keep:
   parens matter: without them, Scriban parses the expression as
   `array.size (items > 0)` and the comparison fails at runtime.
 
+## Single quotes by default for string literals
+
+Scriban accepts `'..'` and `".."` interchangeably for non-interpolated
+strings. **Prefer single quotes** as the default for ordinary string
+literals — reserve double quotes for strings whose body contains a `'`.
+Three reasons that compound across a long template:
+
+1. **Less quote-noise in object literals.** Compare
+   `{ name: 'Ada', role: 'admin' }` with
+   `{ name: "Ada", role: "admin" }`. The single-quoted form reads more
+   like data and less like nested syntax.
+2. **Visual distinction from interpolated strings.** A single-quoted
+   literal is **never** interpolated — no need to scan the body for
+   `{` to know if Scriban will evaluate something inside. Interpolated
+   strings stand out as `$"..."` / `$'...'`.
+3. **HTML attributes embed cleanly.** `'<a href="/foo">link</a>'`
+   needs zero escapes; `"<a href=\"/foo\">link</a>"` is the same value
+   with four extra characters per attribute.
+
+The rule of thumb: pick the quote style that lets the body sit literal
+with no `\"` or `\'` escapes. Single quotes win most of the time.
+
 ## Numbers vs strings
 
-`{{ 5 + 3 }}` is `8`. `{{ "5" + 3 }}` is `"53"`. Always check the JSON
+`{{ 5 + 3 }}` is `8`. `{{ '5' + 3 }}` is `'53'`. Always check the JSON
 shape — `"qty": "4"` and `"qty": 4` behave differently in templates and
 the bug shows up only at the operator boundary.
+
+## Accumulating in a loop: mutate in place, don't copy
+
+Most `array.*` and `string.*` operations return a NEW value — the
+original is untouched. That's the default behaviour you want for
+one-off transforms. Inside a loop, it becomes a quiet performance trap:
+
+```scriban
+{{- a = []
+   for n in 1..10000
+     a = a | array.add n   # ← new array every iteration
+   end -}}
+```
+
+By iteration 10,000 you've allocated 10,000 arrays. The shape of the
+work is O(N²) (each copy walks the growing tail) and you've handed the
+garbage collector 10,000 short-lived objects. `array.add_range`,
+`array.concat`, and `array.insert_at` all behave the same way — they
+all return new arrays.
+
+**For true in-place append, use index assignment** (covered in
+[lesson 6](/scriban-tutorial/lesson/06-arrays) and revisited in
+[lesson 16](/scriban-tutorial/lesson/16-array)):
+
+```scriban
+{{- a = []
+   for n in 1..10000
+     a[a.size] = n   # ← writes into the existing array
+   end -}}
+```
+
+`a[a.size] = v` writes to the slot one past the current end. The array
+grows by one and no copies are made. Use this pattern for every
+hot-loop accumulator that needs a list.
+
+### Same idea, other modules
+
+- **Strings**: `s + 'x'` and `s | string.append 'x'` both return new
+  strings. For lots of small appends, build into an array and join at
+  the end (`array.join ''`). Or use [`capture`](/scriban-tutorial/lesson/09-statements)
+  to render a block into a variable — the engine streams into the
+  capture buffer instead of re-allocating per concat.
+- **Dates**: `date.add_*` returns a new `DateTime` per call. Templates
+  rarely chain enough of these to matter, but in a long loop, compute
+  the offset once (`days_since = i; d | date.add_days days_since`)
+  rather than nesting calls.
+- **Objects**: members assigned with `o.x = v` DO mutate in place —
+  that's the recommended pattern for accumulating into a map (see
+  the `transaction-rollup` exercise below). The contrast with arrays
+  is intentional: object member assignment is a write, array `add` is
+  a copy.
+
+The takeaway: when you see `x = x | something y` in a loop, ask whether
+`something` returns a new value. If it does, see if there's an
+in-place form (index assignment for arrays, member assignment for
+objects) before reaching for it.
 
 ## Pre-compute where you can
 

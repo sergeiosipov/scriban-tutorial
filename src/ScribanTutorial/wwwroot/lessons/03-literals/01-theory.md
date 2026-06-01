@@ -6,22 +6,43 @@ function call. Scriban has four kinds: strings, numbers, booleans, and
 
 Three forms.
 
-### Regular: `"..."` and `'..'`
+### Regular: `'..'` and `"..."`
 
-Double-quoted and single-quoted strings are interchangeable. They both
-process backslash escapes, so use single quotes when the string itself
-contains `"`, and double when it contains `'`:
+Double-quoted and single-quoted strings are functionally interchangeable.
+Both process backslash escapes; both produce the same value.
+
+**Project convention: prefer single quotes** for ordinary string literals
+that don't need interpolation and don't themselves contain a `'`. Three
+small wins that compound across a long template:
+
+1. Less visual quote-noise inside object literals, which already use
+   identifier-style keys: `{ name: 'Ada', role: 'admin' }` reads more
+   like data than `{ name: "Ada", role: "admin" }`.
+2. Clear visual separation from the interpolated form `$"..."` — if a
+   string is single-quoted, you know at a glance it's NOT being
+   interpolated, no need to scan the contents for `{`.
+3. HTML attributes — values like `'<a href="/foo">link</a>'` embed
+   the `"` literally with zero escapes. The double-quoted equivalent
+   would be `"<a href=\"/foo\">link</a>"`.
+
+Use double quotes when the string itself contains a `'` — `"don't"` is
+nicer than `'don\'t'`:
 
 :::example
 ```scriban
-{{ "She said \"hi\"" }}
 {{ 'She said "hi"' }}
+{{ "don't" }}
+{{ 'href="/foo"' }}
 ```
 ```text
 She said "hi"
-She said "hi"
+don't
+href="/foo"
 ```
 :::
+
+Pick the quote style so the string body doesn't need the `\"` or `\'`
+escape — single quotes by default, double when the body contains a `'`.
 
 Supported escapes:
 

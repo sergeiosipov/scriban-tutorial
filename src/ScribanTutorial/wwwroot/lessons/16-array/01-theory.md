@@ -9,16 +9,16 @@ Upstream reference:
 
 | Function | Effect |
 |---|---|
-| `array.add list v` | Returns a new list with `v` appended |
-| `array.add_range a b` | Concatenate two lists; same as `array.concat` |
-| `array.concat a b` | Concatenate two lists |
-| `array.insert_at list i v` | Insert `v` at index `i` |
+| `array.add list v` | Returns a NEW list with `v` appended |
+| `array.add_range a b` | Concatenate two lists into a NEW list; same as `array.concat` |
+| `array.concat a b` | Concatenate two lists into a NEW list |
+| `array.insert_at list i v` | Insert `v` at index `i`, returning a NEW list |
 
 :::example
 ```scriban
 {{ [1, 2, 3] | array.add 4 }}
 {{ [1, 2] | array.concat [3, 4] }}
-{{ ["a", "b", "c"] | array.insert_at 1 "X" }}
+{{ ['a', 'b', 'c'] | array.insert_at 1 'X' }}
 ```
 ```text
 [1, 2, 3, 4]
@@ -26,6 +26,48 @@ Upstream reference:
 ["a", "X", "b", "c"]
 ```
 :::
+
+### Don't use these in a tight loop
+
+**All four functions above return a NEW array.** The original is left
+untouched. That's harmless for one-off building, but it's a
+memory-and-time foot-gun inside a loop:
+
+```scriban
+{{- a = []
+   for n in 1..10000
+     a = a | array.add n        # ← creates a NEW 1-, 2-, 3-, ... N-element array per iter
+   end -}}
+```
+
+By iteration 10,000 you've allocated 10,000 arrays — total `O(N²)`
+copy work, with the older arrays only kept alive briefly before garbage
+collection. Slow and memory-thrashy.
+
+**For true in-place append, use index-assignment** (lesson 6's
+`a[i] = v` form). It mutates the existing array — no copy, no
+short-lived garbage:
+
+:::example
+```scriban
+{{- a = []
+   for n in 1..5
+     a[a.size] = n
+   end -}}
+{{ a }}
+```
+```text
+[1, 2, 3, 4, 5]
+```
+:::
+
+`a[a.size] = n` writes to the slot one past the current end — that's
+how lesson 6 introduced array append. The same `a[i] = v` form lets
+you mutate any element, not just append.
+
+(Note: `array.insert_at` ALSO returns a new array — it's not a
+mutate-in-place alternative. Use index-assignment for any
+hot-loop accumulation.)
 
 ## Size and access
 
