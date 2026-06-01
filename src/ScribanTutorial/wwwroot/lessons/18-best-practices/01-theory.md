@@ -222,7 +222,7 @@ The full filter list is at <https://scriban.github.io/docs/built-ins/>.
 
 ## The capstones
 
-The exercises below pull everything together. There are four, in rough
+The capstone exercises pull everything together. There are four, in rough
 order of difficulty:
 
 1. **`invoice`** — data-model fields and member access only; subtotals
