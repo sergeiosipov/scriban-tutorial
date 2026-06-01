@@ -24,6 +24,20 @@ internal static class CliApp
                 return SolutionVerifier.Verify(args[1]);
             }
 
+            // --regenerate-outputs <lessons-dir>: re-derive every :::example
+            // text panel and every 03-expected.txt from the template that
+            // produces it. Read-only on templates/data/solutions; halts before
+            // writing anything if any template fails to parse or render.
+            if (args[0] == "--regenerate-outputs")
+            {
+                if (args.Length < 2)
+                {
+                    Console.Error.WriteLine("--regenerate-outputs requires a lessons directory path.");
+                    return 2;
+                }
+                return OutputRegenerator.Run(args[1]);
+            }
+
             string? input = null;
             string? grammar = null;
             string theme = "light";
@@ -221,5 +235,6 @@ internal static class CliApp
         Console.WriteLine("Usage:");
         Console.WriteLine("  ContentBuilder --input <lessons-dir> --grammar <scriban.tmLanguage.json> [--theme light|dark]");
         Console.WriteLine("  ContentBuilder --verify <exercise-dir>");
+        Console.WriteLine("  ContentBuilder --regenerate-outputs <lessons-dir>");
     }
 }
