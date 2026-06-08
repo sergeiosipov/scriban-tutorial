@@ -41,6 +41,12 @@
                     <span class="nav-menu__label">Playground</span>
                 </NavLink>
             </li>
+            <li class="nav-menu__item">
+                <NavLink class="nav-menu__link" href="search">
+                    <span class="nav-menu__num" aria-hidden="true">⌕</span>
+                    <span class="nav-menu__label">Search</span>
+                </NavLink>
+            </li>
             @foreach (var (lesson, index) in _manifest.Lessons.Select((l, i) => (l, i + 1)))
             {
                 var state = GetLessonState(lesson);

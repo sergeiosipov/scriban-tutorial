@@ -1,0 +1,129 @@
+@page "/search"
+@inject SearchService Search
+
+<PageTitle>Search · Scriban Tutorial</PageTitle>
+
+<article class="search">
+    <header class="search__header">
+        <h1>Search</h1>
+        <p class="search__intro">
+            Search every lesson and exercise — theory prose <em>and</em> the
+            template and solution code — to find where a built-in like
+            <code>string.upcase</code> or a keyword like <code>for.last</code>
+            is used.
+        </p>
+    </header>
+
+    <input @ref="_input"
+           class="search__input"
+           type="search"
+           autocomplete="off"
+           spellcheck="false"
+           placeholder="Search the course… (e.g. regex.replace, array.sort, capture)"
+           aria-label="Search the course"
+           @bind="_query"
+           @bind:event="oninput"
+           @bind:after="Recompute" />
+
+    @if (_loadError)
+    {
+        <p class="search__error" role="alert">
+            The search index couldn't be loaded. Try reloading the page.
+        </p>
+    }
+    else if (_docs is null)
+    {
+        <p class="search__meta" role="status">Loading the search index…</p>
+    }
+    else if (_terms.Count == 0)
+    {
+        <p class="search__meta">Type to search @_docs.Count indexed pages.</p>
+    }
+    else if (_hits.Count == 0)
+    {
+        <p class="search__meta">No matches for “@_query”.</p>
+    }
+    else
+    {
+        <p class="search__meta">
+            @_hits.Count match@(_hits.Count == 1 ? "" : "es") for “@_query”.
+        </p>
+        <ul class="search__results">
+            @foreach (var hit in _hits)
+            {
+                <li class="search__hit">
+                    <a class="search__hit-link" href="@hit.Doc.Url">
+                        <span class="search__hit-head">
+                            <span class="search__hit-kind search__hit-kind--@hit.Doc.Kind">
+                                @KindLabel(hit.Doc.Kind)
+                            </span>
+                            <span class="search__hit-title">
+                                @hit.Doc.LessonTitle@(hit.Doc.Kind == "exercise" ? $" · {hit.Doc.ExerciseId}" : "")
+                            </span>
+                        </span>
+                        <span class="search__snippet">@foreach (var seg in SearchIndexQuery.Highlight(hit.Snippet, _terms))
+{
+    if (seg.Hit)
+    {
+        <mark>@seg.Text</mark>
+    }
+    else
+    {
+        @seg.Text
+    }
+}</span>
+                    </a>
+                </li>
+            }
+        </ul>
+    }
+</article>
+
+@code {
+    // Deep-linkable: /search?q=regex keeps the query in the URL so a search
+    // can be bookmarked or shared.
+    [SupplyParameterFromQuery(Name = "q")]
+    public string? Q { get; set; }
+
+    private ElementReference _input;
+    private IReadOnlyList<SearchDoc>? _docs;
+    private bool _loadError;
+
+    private string _query = "";
+    private IReadOnlyList<string> _terms = Array.Empty<string>();
+    private IReadOnlyList<SearchHit> _hits = Array.Empty<SearchHit>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(Q)) _query = Q!;
+        try
+        {
+            _docs = await Search.LoadAsync();
+        }
+        catch
+        {
+            _loadError = true;
+        }
+        Recompute();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try { await _input.FocusAsync(); }
+        catch { /* navigated away before the input mounted — nothing to focus */ }
+    }
+
+    private void Recompute()
+    {
+        _terms = SearchIndexQuery.SplitTerms(_query);
+        _hits = _docs is null ? Array.Empty<SearchHit>() : SearchIndexQuery.Query(_docs, _query);
+    }
+
+    private static string KindLabel(string kind) => kind switch
+    {
+        "theory" => "Theory",
+        "exercise" => "Exercise",
+        _ => kind,
+    };
+}

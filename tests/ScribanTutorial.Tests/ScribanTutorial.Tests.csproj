@@ -31,6 +31,8 @@
              Link="Shared\ScribanRunner.cs" />
     <Compile Include="..\..\src\ScribanTutorial\Services\Models.cs"
              Link="Shared\Models.cs" />
+    <Compile Include="..\..\src\ScribanTutorial\Services\SearchIndex.cs"
+             Link="Shared\SearchIndex.cs" />
     <Compile Include="..\..\tools\ContentBuilder\MarkdownRenderer.cs"
              Link="Shared\MarkdownRenderer.cs" />
     <Compile Include="..\..\tools\ContentBuilder\TextMateHighlighter.cs"

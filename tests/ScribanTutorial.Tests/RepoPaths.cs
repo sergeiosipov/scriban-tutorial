@@ -11,8 +11,10 @@ namespace ScribanTutorial.Tests;
 internal static class RepoPaths
 {
     public static string RepoRoot { get; } = ResolveRepoRoot();
-    public static string LessonsDir => Path.Combine(RepoRoot, "src", "ScribanTutorial", "wwwroot", "lessons");
-    public static string ManifestPath => Path.Combine(RepoRoot, "src", "ScribanTutorial", "wwwroot", "manifest.json");
+    public static string WwwrootDir => Path.Combine(RepoRoot, "src", "ScribanTutorial", "wwwroot");
+    public static string LessonsDir => Path.Combine(WwwrootDir, "lessons");
+    public static string ManifestPath => Path.Combine(WwwrootDir, "manifest.json");
+    public static string SearchIndexPath => Path.Combine(WwwrootDir, "search-index.json");
     public static string ScribanGrammarPath => Path.Combine(RepoRoot, "tools", "ContentBuilder", "grammars", "scriban.tmLanguage.json");
 
     private static string ResolveRepoRoot([CallerFilePath] string thisFile = "")

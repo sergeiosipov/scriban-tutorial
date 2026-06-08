@@ -34,6 +34,12 @@ public sealed class PageOrder
         ["contribute"] = "Contribute a lesson",
     };
 
+    // Routes that are real pages but deliberately sit outside the linear
+    // prev/next walk — utilities you jump to, not steps you progress through.
+    // Search is reachable from the sidebar and home, never via Previous/Next.
+    private static readonly HashSet<string> _excludedFromLinearOrder =
+        new(StringComparer.OrdinalIgnoreCase) { "search" };
+
     private IReadOnlyList<PageEntry>? _cached;
 
     public PageOrder(ContentService content) => _content = content;
@@ -77,6 +83,7 @@ public sealed class PageOrder
                 }
                 else
                 {
+                    if (_excludedFromLinearOrder.Contains(route)) continue;
                     result.Add(new PageEntry(route, ResolveTitle(route)));
                 }
             }

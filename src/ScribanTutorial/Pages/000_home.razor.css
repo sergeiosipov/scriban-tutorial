@@ -55,12 +55,14 @@
    reads at a glance. */
 .home__lesson-link--about,
 .home__lesson-link--playground,
+.home__lesson-link--search,
 .home__lesson-link--contribute {
     background: color-mix(in srgb, var(--accent) 4%, var(--bg));
     border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
 }
 .home__lesson-link--about .home__lesson-num,
 .home__lesson-link--playground .home__lesson-num,
+.home__lesson-link--search .home__lesson-num,
 .home__lesson-link--contribute .home__lesson-num {
     color: var(--accent, #2563eb);
 }

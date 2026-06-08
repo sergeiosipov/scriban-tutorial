@@ -1,6 +1,7 @@
 @page "/lesson/{LessonId}"
 @inject ContentService Content
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 @implements IDisposable
 
 <PageTitle>@(_lesson?.Entry.Title ?? "Lesson") · Scriban Tutorial</PageTitle>
@@ -55,6 +56,9 @@ else
     private LessonContent? _lesson;
     private string? _error;
     private CancellationTokenSource? _cts;
+    // The fragment we've already scrolled to for the current lesson load, so
+    // re-renders (progress saves, theme flips) don't re-jump the page.
+    private string? _scrolledTo;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -72,6 +76,7 @@ else
 
         _lesson = null;
         _error = null;
+        _scrolledTo = null;
         StateHasChanged();
         try
         {
@@ -90,6 +95,32 @@ else
             Console.Error.WriteLine($"LessonPage: load failed for lesson '{LessonId}' ({ex.GetType().Name})");
             _error = "Could not load the lesson content. Try reloading.";
         }
+    }
+
+    // Honour a "#exercise-<slug>" deep link (e.g. from a search result) once the
+    // lesson's exercises have actually rendered — Blazor's own fragment handling
+    // fires at navigation time, before the async content exists.
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_lesson is null) return;
+        var fragment = GetFragment();
+        if (string.IsNullOrEmpty(fragment) || fragment == _scrolledTo) return;
+        _scrolledTo = fragment;
+        try
+        {
+            await JS.InvokeVoidAsync("scrollToAnchor", fragment);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"LessonPage: scroll to '{fragment}' failed — {ex.GetType().Name}");
+        }
+    }
+
+    private string GetFragment()
+    {
+        var uri = Nav.Uri;
+        var hashIdx = uri.IndexOf('#');
+        return hashIdx >= 0 ? uri[(hashIdx + 1)..] : "";
     }
 
     public void Dispose()

@@ -28,6 +28,13 @@ else
                 <span class="home__lesson-count">live editor</span>
             </a>
         </li>
+        <li class="home__lesson">
+            <a class="home__lesson-link home__lesson-link--search" href="search">
+                <span class="home__lesson-num">Search</span>
+                <span class="home__lesson-title">Find a function, keyword, or topic</span>
+                <span class="home__lesson-count">full-text</span>
+            </a>
+        </li>
         @{ var n = 0; }
         @foreach (var lesson in _manifest.Lessons)
         {

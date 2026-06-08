@@ -72,4 +72,28 @@ public class BuildTargetTest
         Assert.True(missing.Count == 0 && stale.Count == 0,
             $"missing: [{string.Join(", ", missing)}]; stale: [{string.Join(", ", stale)}]");
     }
+
+    [Fact]
+    public void Search_index_exists_and_is_fresh_against_all_sources()
+    {
+        var index = RepoPaths.SearchIndexPath;
+        Assert.True(File.Exists(index), $"missing search index: {index}");
+        var indexTime = File.GetLastWriteTimeUtc(index);
+
+        // The index is derived from the manifest plus every theory/description
+        // .md and every template/solution .txt. If any of those is newer than
+        // the index, the SearchIndexBuilder pass didn't run after an edit.
+        var sources = new List<string> { RepoPaths.ManifestPath };
+        sources.AddRange(Directory.EnumerateFiles(RepoPaths.LessonsDir, "*.md", SearchOption.AllDirectories));
+        sources.AddRange(Directory.EnumerateFiles(RepoPaths.LessonsDir, "04-template.txt", SearchOption.AllDirectories));
+        sources.AddRange(Directory.EnumerateFiles(RepoPaths.LessonsDir, "05-solution.txt", SearchOption.AllDirectories));
+
+        var stale = sources
+            .Where(File.Exists)
+            .Where(s => File.GetLastWriteTimeUtc(s) > indexTime)
+            .ToList();
+
+        Assert.True(stale.Count == 0,
+            $"search index is older than: [{string.Join(", ", stale)}]");
+    }
 }

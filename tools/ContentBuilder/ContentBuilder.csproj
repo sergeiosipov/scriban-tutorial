@@ -27,6 +27,8 @@
              Link="Shared\JsonToScriban.cs" />
     <Compile Include="..\..\src\ScribanTutorial\Services\ScribanRunner.cs"
              Link="Shared\ScribanRunner.cs" />
+    <Compile Include="..\..\src\ScribanTutorial\Services\SearchIndex.cs"
+             Link="Shared\SearchIndex.cs" />
   </ItemGroup>
 
 </Project>

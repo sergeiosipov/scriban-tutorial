@@ -1,0 +1,125 @@
+.search {
+    max-width: 760px;
+}
+
+.search__header {
+    margin-bottom: 1.25rem;
+}
+
+.search__intro {
+    color: var(--muted);
+    margin: 0.4rem 0 0;
+    line-height: 1.55;
+}
+
+.search__intro code {
+    font-family: var(--code-font-family);
+    font-size: 0.85em;
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 4px;
+    padding: 0.05em 0.35em;
+}
+
+.search__input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.7rem 0.9rem;
+    font-size: 1rem;
+    color: var(--fg);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search__input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.search__meta {
+    color: var(--muted);
+    margin: 1.1rem 0;
+    font-size: 0.9rem;
+}
+
+.search__error {
+    color: var(--fail);
+    margin: 1.1rem 0;
+}
+
+.search__results {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.search__hit {
+    margin: 0;
+}
+
+.search__hit-link {
+    display: block;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    background: var(--bg);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 80ms ease;
+}
+
+.search__hit-link:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow);
+    transform: translateY(-1px);
+}
+
+.search__hit-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    margin-bottom: 0.35rem;
+}
+
+.search__hit-kind {
+    flex: none;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.12rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+}
+
+.search__hit-kind--exercise {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+
+.search__hit-title {
+    font-weight: 600;
+    color: var(--fg);
+}
+
+.search__snippet {
+    display: block;
+    font-family: var(--code-font-family);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--muted);
+    word-break: break-word;
+}
+
+.search__snippet mark {
+    background: var(--accent);
+    color: var(--bg);
+    border-radius: 3px;
+    padding: 0 0.12em;
+}

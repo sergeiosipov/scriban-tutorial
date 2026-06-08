@@ -83,7 +83,9 @@ internal static class CliApp
             if (mdExit != 0) return mdExit;
             var dataExit = BuildDataModelHtml(input, highlighter, grammarMtime);
             if (dataExit != 0) return dataExit;
-            return BuildExerciseBundles(input);
+            var bundleExit = BuildExerciseBundles(input);
+            if (bundleExit != 0) return bundleExit;
+            return SearchIndexBuilder.Run(input);
         }
         catch (Exception ex)
         {

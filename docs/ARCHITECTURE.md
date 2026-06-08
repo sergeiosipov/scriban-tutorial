@@ -37,11 +37,13 @@ piece in depth.
 │      ├─ "/"                  → 000_home               │
 │      ├─ "/about"             → 001_about              │
 │      ├─ "/playground"        → 002_playground         │
+│      ├─ "/search"            → 003_search             │
 │      ├─ "/lesson/{LessonId}" → 010_lesson             │
 │      └─ "/contribute"        → 999_contribute-a-lesson│
 │                                                       │
 │  Singleton services (per WASM tab)                    │
 │    ├─ ContentService  — manifest + lazy lesson load   │
+│    ├─ SearchService   — search-index.json → /search   │
 │    ├─ PageOrder       — reflects over Pages namespace,│
 │    │                    sorts by type name, expands   │
 │    │                    lesson slot from manifest;    │
@@ -61,13 +63,14 @@ piece in depth.
 
 [`tools/ContentBuilder/`](../tools/ContentBuilder/) is a .NET 10 console tool the
 WASM project's `BuildContent` MSBuild target invokes before publish. It does
-three passes, each with mtime-based staleness so unchanged files cost nothing:
+four passes, each with mtime-based staleness so unchanged files cost nothing:
 
 | Pass | Walks | Emits |
 |---|---|---|
 | Markdown → HTML (lessons) | every `*.md` under `wwwroot/lessons/` | `*.html` sibling |
 | Data-model pretty-print | every `02-datamodel.json` | `02-datamodel.html` sibling (syntax-highlighted JSON) |
 | Exercise bundling | every `05-solution.txt` (= every exercise dir) | `bundle.json` sibling with all six runtime inputs inline |
+| Search index | manifest + each theory `.md` and every exercise description / template / solution | one whole-corpus `wwwroot/search-index.json` the `/search` page fetches once ([SearchIndexBuilder.cs](../tools/ContentBuilder/SearchIndexBuilder.cs)) |
 
 Markdown rendering uses [Markdig](https://www.nuget.org/packages/Markdig) with
 `UsePipeTables`, `UseAutoLinks`, `UseEmphasisExtras`, `UseCustomContainers`,
@@ -88,7 +91,13 @@ The tool also has a `--verify <exercise-path>` subcommand
 ([SolutionVerifier.cs](../tools/ContentBuilder/SolutionVerifier.cs)) that runs the
 canonical solution against the data model and compares to the expected file.
 
-All generated artifacts (`*.html`, `bundle.json`) are gitignored.
+The search index combines theory prose with each exercise's template and
+solution code, so a query for a built-in like `regex.replace` surfaces both the
+lesson that explains it and every exercise whose solution calls it. Because it's
+one whole-corpus file derived from the manifest plus every lesson source, *any*
+lessons edit can stale it — not just a sibling edit.
+
+All generated artifacts (`*.html`, `bundle.json`, `search-index.json`) are gitignored.
 
 ## Run time: Blazor WASM SPA
 
@@ -118,6 +127,7 @@ into the navigation order (see [Linear page order](#linear-page-order) below):
 - `/` → [`000_home.razor`](../src/ScribanTutorial/Pages/000_home.razor) (course index)
 - `/about` → [`001_about.razor`](../src/ScribanTutorial/Pages/001_about.razor) (security threat model + known issues, authored inline)
 - `/playground` → [`002_playground.razor`](../src/ScribanTutorial/Pages/002_playground.razor) (free-form Scriban editor)
+- `/search` → [`003_search.razor`](../src/ScribanTutorial/Pages/003_search.razor) (full-text search over lessons + exercises; routable but kept out of the linear prev/next walk)
 - `/lesson/{LessonId}` → [`010_lesson.razor`](../src/ScribanTutorial/Pages/010_lesson.razor) (theory + N exercises)
 - `/contribute` → [`999_contribute-a-lesson.razor`](../src/ScribanTutorial/Pages/999_contribute-a-lesson.razor) (non-programmer walkthrough + full authoring reference, authored inline)
 
@@ -136,6 +146,11 @@ becomes class `_000_home`), and expands the dynamic
 `/lesson/{LessonId}` slot into one entry per manifest lesson at the
 position the file (`010_lesson.razor`) sorts to.
 
+A page can be routable yet opt out of this linear walk: `PageOrder` keeps an
+`_excludedFromLinearOrder` set (currently just `search`), so the `/search`
+utility page never shows up as a Previous/Next target even though its file
+(`003_search.razor`) would otherwise sort between Playground and the lessons.
+
 Each page just writes `<PageNav />` at the bottom. The
 [`PageNav`](../src/ScribanTutorial/Pages/PageNav.razor) component reads
 the current route from `NavigationManager`, asks `PageOrder` for
@@ -151,6 +166,7 @@ WASM is single-threaded (single scope per tab), so no synchronisation is needed.
 | Service | What it owns |
 |---|---|
 | [`ContentService`](../src/ScribanTutorial/Services/ContentService.cs) | Manifest (memoised). Per-lesson `LessonContent` cache (`ConcurrentDictionary<lessonId, Task<LessonContent>>`). Lazy-fetches each lesson's `theory.html` + one `bundle.json` per exercise. Cancellation tokens guard the page-level await; inner fetches run uncancelled so the cache never holds a faulted task. |
+| [`SearchService`](../src/ScribanTutorial/Services/SearchService.cs) | Fetches the build-time `search-index.json` once (memoised, same shape as the manifest), then answers `/search` queries in memory through the pure `SearchIndexQuery` ranking. |
 | [`PageOrder`](../src/ScribanTutorial/Services/PageOrder.cs) | Computes the linear page order via reflection over the `ScribanTutorial.Pages` namespace. Sorts by type name (the numeric file prefixes survive into the generated identifier), expands the lesson slot from the manifest, and exposes `GetPrevNextAsync(route)`. |
 | [`ProgressService`](../src/ScribanTutorial/Services/ProgressService.cs) | localStorage wrapper + in-memory mirror. `GetAllForLessonAsync` hydrates the mirror once per lesson via one `listKeysWithPrefix + N gets` JS roundtrip, then serves from memory. `SaveAsync` / `ResetAsync` write both stores in lockstep and raise `Changed`. NavMenu subscribes for indicator updates. |
 | [`ThemeService`](../src/ScribanTutorial/Services/ThemeService.cs) | Reads the `<html data-theme>` set by `theme-boot.js`, persists toggles. Raises `Changed` so listeners (NavMenu) re-render. |
@@ -162,6 +178,7 @@ Stateless helpers shared with `ContentBuilder` via `<Compile Link…>`:
 | [`ScribanRunner`](../src/ScribanTutorial/Services/ScribanRunner.cs) | One source of truth for parse + ScriptObject + render. `LoopLimit=100_000`, `RecursiveLimit=100`, output capped at 250 KB. Friendly "Data model isn't valid JSON: …" for `JsonException`. Used by ExerciseBlock, Playground, and `--verify`. |
 | [`JsonToScriban`](../src/ScribanTutorial/Services/JsonToScriban.cs) | JSON `Element` → Scriban `ScriptObject`. Distinguishes long from double (the bug that previously turned all integers into floats is locked down by [JsonToScribanTests](../tests/ScribanTutorial.Tests/JsonToScribanTests.cs)). |
 | [`ContentNormalize`](../src/ScribanTutorial/Services/ContentNormalize.cs) | CRLF→LF + trailing-newline trim before output comparison. Both the runtime and `--verify` use this. |
+| [`SearchIndexQuery`](../src/ScribanTutorial/Services/SearchIndex.cs) | The `SearchDoc` record + pure ranking / snippet / highlight logic. `ContentBuilder`'s `SearchIndexBuilder` emits the index, `SearchService` queries it, `SearchIndexQueryTests` exercises it — one shared source. |
 | [`CodeEditorHandle`](../src/ScribanTutorial/Services/CodeEditorHandle.cs) | Per-page wrapper around `js/editor.js`. Imports the module once, tracks mounted element IDs, tears them all down in `DisposeAsync`. |
 
 ## Pages and components
@@ -171,11 +188,15 @@ generated class names match the linear navigation order (see
 [Linear page order](#linear-page-order)):
 
 - `000_home.razor` (`/`) — course index. Lists About / Playground /
-  lessons / Contribute as cards.
+  Search / lessons / Contribute as cards.
 - `001_about.razor` (`/about`) — security threat model, dependency
   pins, known issues, course coverage — all authored inline as Razor
   markup.
 - `002_playground.razor` (`/playground`) — free-form Scriban editor.
+- `003_search.razor` (`/search`) — full-text search over lesson theory
+  and exercise code; results deep-link to `lesson/{id}#exercise-{slug}`,
+  and `010_lesson` scrolls the target exercise into view after its async
+  content renders (`js/nav-scroll.js`).
 - `010_lesson.razor` (`/lesson/{LessonId}`) — theory + N exercises.
 - `999_contribute-a-lesson.razor` (`/contribute`) — non-programmer
   walkthrough + full authoring reference, authored inline as Razor
@@ -235,6 +256,7 @@ src/ScribanTutorial/wwwroot/
   404.html
   .nojekyll                    # GitHub Pages: don't run Jekyll, keep _framework/
   manifest.json                # course manifest (lessons + exercises)
+  search-index.json            # whole-corpus search index (built, gitignored)
   css/app.css                  # tokens, layout, .hl-* highlight palette
   js/
     spa-redirect.js            # GitHub Pages 404 → SPA route
@@ -242,6 +264,7 @@ src/ScribanTutorial/wwwroot/
     theme.js                   # ThemeService JS interop
     progress.js                # ProgressService JS interop
     editor.js                  # CodeMirror mount/destroy/setValue
+    nav-scroll.js              # scroll a deep-linked #exercise into view
     scriban-language.js        # Scriban StreamLanguage
     json-language.js           # JSON StreamLanguage
   lib/codemirror/              # vendored ESM modules
@@ -273,7 +296,8 @@ test assembly compiles the same source the app runs.
 | `ScribanRunnerTests` | Render path, parse-error reporting, the "Data model isn't valid JSON" friendly message, the 250 KB output cap. |
 | `ExerciseSolutionTests` | Data-driven: every exercise's canonical solution rendered against its data model must match expected output. Add an exercise → it gets a test free. Plus structural smoke tests on the manifest. |
 | `ContentBuilderTests` | `MarkdownRenderer` :::example block emits three panels in the right order with the right language- classes; the sanitiser strips `<script>`, `on*=`, `javascript:`, `<iframe>`; per-edge grammar regression locks; `TextMateHighlighter` produces `.hl-brace`, `.hl-variable`, `.hl-operator`, `.hl-type` spans for a known snippet. |
-| `BuildTargetTest` | Every lesson `.md` has a fresh `.html` sibling, every exercise has a fresh `bundle.json`. Catches the "BuildContent MSBuild target stopped running" failure mode without a full publish. |
+| `SearchIndexQueryTests` | The pure search ranking: AND across terms, function references found inside solution code, title hits outranking body-only hits, snippet/highlight correctness. |
+| `BuildTargetTest` | Every lesson `.md` has a fresh `.html` sibling, every exercise has a fresh `bundle.json`, and `search-index.json` is no older than the manifest or any lesson source. Catches the "BuildContent MSBuild target stopped running" failure mode without a full publish. |
 
 Run: `dotnet test` from the repo root.
 
