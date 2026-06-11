@@ -1,0 +1,7 @@
+{
+  "month": "June 2026",
+  "events": [
+    { "name": "Sprint Review", "date": "2026-06-15" },
+    { "name": "Demo Day", "date": "2026-06-28" }
+  ]
+}

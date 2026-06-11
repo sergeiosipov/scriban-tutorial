@@ -1,0 +1,6 @@
+{{ month }}:
+{{ for event in events -}}
+- {{ event.name }} ({{ event.date }})
+{{ ??? -}}
+No events this month.
+{{ end -}}

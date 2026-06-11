@@ -1,0 +1,4 @@
+{{- capture label ~}}
+{{ first }} {{ last }}, {{ city }}
+{{~ end -}}
+{{ label | string.upcase }}
