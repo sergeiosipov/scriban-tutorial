@@ -11,6 +11,14 @@ Upstream reference:
 properties (`.Hours`, `.TotalMinutes`, etc.) return **int** for
 component accessors and **double** for total accessors.
 
+**Daily drivers vs look-up material.** The constructors you'll reach
+for first are `timespan.from_days` and `timespan.from_hours`; the
+properties `.TotalDays` and `.TotalHours` cover most "how far apart are
+these dates?" computations. The remaining constructors
+(`from_minutes`, `from_seconds`, `from_milliseconds`), `timespan.parse`,
+and `timespan.zero` are available when precision demands them — scan
+the table once, then look them up as needed.
+
 ## Module members
 
 Seven members in total: five `from_*` builders that each produce a new

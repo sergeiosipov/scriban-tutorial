@@ -11,6 +11,17 @@ gives the specific type — most return **string**, a handful return
 **bool** (predicates), **int** (size, index_of, parsers), or **array**
 (split).
 
+**Daily drivers vs look-up material.** With 47 functions this is the
+largest module — don't try to memorise all of it. The handful you'll
+use in almost every real template: `string.upcase`, `string.downcase`,
+`string.strip`, `string.split`, `string.replace`, `string.append`,
+`string.prepend`, `string.contains`, `string.starts_with`, and
+`string.to_int`. The hashing functions (`string.sha256`,
+`string.hmac_sha256`, etc.), encoding (`string.base64_encode`),
+and look-up-heavy utilities (`string.handleize`, `string.truncate`,
+`string.pad_left`) are reference material — bookmark the section and
+come back when you need them.
+
 ## Case transformations
 
 | Function | Returns | Effect | Example |

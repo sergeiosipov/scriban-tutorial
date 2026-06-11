@@ -119,6 +119,13 @@ the engine pre-populates several locals:
 
 ### Loop state: `for.*` and `while.*`
 
+> **Preview — skim now, use in [lesson 9](/scriban-tutorial/lesson/09-statements).**
+> The table below lists the iteration-state fields available inside `for`
+> and `while` blocks. You won't write a loop until lesson 9; this
+> reference is here so the taxonomy exists when you do. Only `for.index`
+> and `for.last` appear regularly — the rest are available but rarely
+> needed in practice.
+
 `for` and `while` blocks expose iteration state through special
 read-only objects:
 
