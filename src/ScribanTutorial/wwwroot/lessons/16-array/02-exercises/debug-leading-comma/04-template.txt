@@ -1,0 +1,5 @@
+{{- csv = '' -}}
+{{- for item in items -}}
+{{ csv = csv | string.append ', ' | string.append item -}}
+{{- end -}}
+{{ csv }}

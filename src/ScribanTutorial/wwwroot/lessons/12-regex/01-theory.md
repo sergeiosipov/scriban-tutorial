@@ -9,6 +9,14 @@ Upstream reference:
 **Return types.** Every function in this module returns a new value;
 the input is never mutated.
 
+**Daily drivers vs look-up material.** The three functions you'll use
+most often are `regex.replace` (the workhorse for find-and-replace with
+capture groups), `regex.match` (first match + groups), and
+`regex.escape` (make user-supplied input safe to embed in a larger
+pattern). `regex.split` is handy when whitespace-tolerant splitting is
+the point. `regex.matches` (all matches) and `regex.unescape` come up
+rarely — look them up when needed.
+
 | Function | Returns |
 |---|---|
 | `regex.match` | array (full match + capture groups; empty array on no match) |

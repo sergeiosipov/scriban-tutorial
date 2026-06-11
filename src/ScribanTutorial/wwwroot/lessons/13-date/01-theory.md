@@ -11,6 +11,14 @@ the input `DateTime` is never mutated. Most return **DateTime**
 `date.parse_to_string` return **string**. Property accessors like
 `.Year` return **int**.
 
+**Daily drivers vs look-up material.** In practice you'll mostly use
+`date.parse` (turn a string into a date), `date.to_string` (format it
+for output), and `date.add_days` (shift by a number of days). The
+remaining `add_*` variants (`add_months`, `add_hours`, etc.) and the
+`.DayOfYear` property are reference items — worth knowing they exist,
+but you'll look them up when the need arises rather than memorising
+them today.
+
 ## A note on property names
 
 The upstream Scriban docs write date properties in `snake_case`

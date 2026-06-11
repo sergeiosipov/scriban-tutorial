@@ -13,6 +13,17 @@ For true in-place mutation of an array, use index-assignment
 (`a[i] = v` from lesson 6) — that's the only form that writes into the
 existing list.
 
+**Daily drivers vs look-up material.** The functions you'll use in
+almost every real template: `array.sort`, `array.filter`, `array.each`,
+`array.map`, `array.join`, `array.size`, `array.first`, `array.last`,
+and `array.uniq`. `array.compact` (drop nulls) and `array.limit` (take
+first N) earn their place once you're dealing with real data. The
+building functions (`array.add`, `array.concat`, `array.insert_at`)
+are useful in one-off contexts but O(N²) in loops — prefer
+index-assignment there (the warning in the *Building* section below).
+`array.cycle` and `array.any` are reference items: look them up when
+alternating row classes or existence-checking is exactly what you need.
+
 ## Building
 
 | Function | Returns | Effect |

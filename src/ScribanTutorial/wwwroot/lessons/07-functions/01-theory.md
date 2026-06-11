@@ -326,3 +326,11 @@ is a transform with one input, and the order matches reading direction.
 
 `a | f b c` is the same as `f a b c` — pipe slips `a` into the first
 slot, not the last.
+
+The `string.*` built-ins used in pipes (`strip`, `upcase`, `prepend`,
+`append`, and many more) are covered in
+[lesson 11](/scriban-tutorial/lesson/11-string); the `array.*` functions
+(`each`, `join`, `sort`, …) are in
+[lesson 16](/scriban-tutorial/lesson/16-array). For the complete
+`module.function` catalog, visit the
+[/reference](/scriban-tutorial/reference) page.

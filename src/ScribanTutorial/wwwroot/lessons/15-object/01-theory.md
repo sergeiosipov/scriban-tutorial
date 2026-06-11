@@ -10,6 +10,16 @@ the input is never mutated. Returns vary by function — bool, int,
 string, array, or arbitrary value — see the `Returns` column on each
 table.
 
+**Daily drivers vs look-up material.** Four functions appear in
+real templates constantly: `object.default` (a safer null-fallback than
+`??` when empty strings also count), `object.keys` (walk an
+unknown-shape object), `object.size` (count members or items), and
+`object.typeof` (branch on type). The JSON conversion pair
+(`object.from_json`, `object.to_json`) and the dynamic-evaluation pair
+(`object.eval`, `object.eval_template`) are specialised power tools —
+scan them so you know they exist, and reach for them when nothing
+simpler fits.
+
 ## Defaults and presence
 
 | Function | Returns | Effect |

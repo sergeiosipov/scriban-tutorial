@@ -9,6 +9,15 @@ Upstream reference:
 **Return types.** All five functions return a new **string**; the
 input is never mutated.
 
+**Daily drivers vs look-up material.** This is the course's smallest
+built-in module. In practice you'll use two functions constantly:
+`html.escape` (escape special characters before embedding in HTML) and
+`html.url_encode` (percent-encode a query-string value). The remaining
+three — `html.strip` (remove tags to get plain text), `html.newline_to_br`
+(turn `\n` into `<br />`), and `html.url_escape` (gentle URL clean-up)
+— are genuinely useful but more situational; scan the section so you
+know they exist.
+
 ## Why HTML escaping matters
 
 When a template substitutes a value into HTML markup, any `<`, `>`, `&`,

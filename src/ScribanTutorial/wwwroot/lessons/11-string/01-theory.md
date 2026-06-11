@@ -11,7 +11,24 @@ gives the specific type — most return **string**, a handful return
 **bool** (predicates), **int** (size, index_of, parsers), or **array**
 (split).
 
+**Daily drivers vs look-up material.** With 47 functions this is the
+largest module — don't try to memorise all of it. The handful you'll
+use in almost every real template: `string.upcase`, `string.downcase`,
+`string.strip`, `string.split`, `string.replace`, `string.append`,
+`string.prepend`, `string.contains`, `string.starts_with`, and
+`string.to_int`. The hashing functions (`string.sha256`,
+`string.hmac_sha256`, etc.), encoding (`string.base64_encode`),
+and look-up-heavy utilities (`string.handleize`, `string.truncate`,
+`string.pad_left`) are reference material — bookmark the section and
+come back when you need them.
+
 ## Case transformations
+
+Reach for these when normalising text for display: uppercasing a
+header, lowercasing a search term before comparing, or title-casing
+user-entered names. `string.equals_ignore_case` is the right choice
+for equality checks that should be case-insensitive without mutating
+either side.
 
 | Function | Returns | Effect | Example |
 |---|---|---|---|
@@ -32,6 +49,11 @@ Hello World
 
 ## Whitespace
 
+Reach for these when data arrives with extra padding — user input,
+CSV cells, imported text — or when building fixed-width columns.
+`strip` is the default first pass; `pad_left` / `pad_right` are for
+generating aligned tabular output.
+
 | Function | Returns | Effect | Example |
 |---|---|---|---|
 | `string.strip x` | string | Trim both sides | `'  ada  ' \| string.strip` → `ada` |
@@ -51,6 +73,12 @@ Hello World
 :::
 
 ## Inspection and search
+
+Reach for these when you need to branch on what a string contains
+without changing it: guard against empty fields (`empty`, `whitespace`),
+drive routing logic on a URL path (`starts_with`, `ends_with`), or
+locate a delimiter before slicing (`index_of`). These are read-only —
+they never modify the input.
 
 Predicates and look-ups that return information ABOUT a string without
 changing it:
@@ -75,6 +103,12 @@ true / 7
 :::
 
 ## Slicing and truncation
+
+Reach for `string.slice` when the format is fixed and you know
+exactly where the piece you want starts (area code from a phone
+number, first two chars of an ISO code, digits before a separator).
+Reach for `string.truncate` / `string.truncatewords` when generating
+list previews or UI summaries that need a hard character or word cap.
 
 | Function | Returns | Effect | Example |
 |---|---|---|---|
@@ -115,6 +149,11 @@ The quick...
 
 ## Replace and remove
 
+Reach for these when you need to rewrite content in-place: swap a
+delimiter, redact a token, or clean up a known pattern. For pattern-
+based replacements (anything with wildcards or character classes), use
+`regex.replace` from lesson 12 instead.
+
 | Function | Returns | Effect | Example |
 |---|---|---|---|
 | `string.replace x m r` | string | Replace all occurrences | `'a-b-c' \| string.replace '-' '/'` → `a/b/c` |
@@ -133,6 +172,12 @@ hi, world, hello
 :::
 
 ## Combine and split
+
+Reach for `string.append` / `string.prepend` when building a string
+from labelled parts — they read left-to-right in a pipe chain. Reach
+for `string.split` when a delimited value (CSV field, path, tag list)
+needs to become an array so you can loop over it or pass it through
+`array.*` filters.
 
 | Function | Returns | Effect | Example |
 |---|---|---|---|
@@ -154,6 +199,11 @@ b
 
 ## Conversion to numbers
 
+Reach for these when JSON data arrives with numeric fields typed as
+strings — a common pattern in form submissions and legacy APIs. Parse
+once, then do all your arithmetic with the result; arithmetic on the
+original string will silently concatenate instead of add.
+
 | Function | Returns | Effect | Example |
 |---|---|---|---|
 | `string.to_int x` | int (32-bit) | Parse decimal integer | `'42' \| string.to_int` → `42` |
@@ -172,6 +222,10 @@ b
 
 ## Pluralisation
 
+Reach for this whenever you display a count next to a noun:
+`{{ count | string.pluralize 'result' 'results' }}` saves an `if`
+branch and reads cleanly in the template.
+
 `string.pluralize n singular plural` returns **string** — picks the
 form by count:
 
@@ -185,6 +239,11 @@ item, items
 :::
 
 ## URL-style normalisation
+
+Reach for `string.handleize` when you need a URL-safe slug from
+arbitrary user text (product names, article titles, tag labels).
+`string.literal` and `string.escape` are diagnostic tools — useful
+when debugging what escape sequences a string actually contains.
 
 | Function | Returns | Effect | Example |
 |---|---|---|---|
@@ -203,6 +262,11 @@ hello-world-123
 
 ## Encoding
 
+Reach for `string.base64_encode` when you need to embed binary
+content (images, small files) in text output, or when an API or
+email header expects base64 instead of raw bytes. `base64_decode` is
+the inverse for reading encoded input back.
+
 `string.base64_encode` and `string.base64_decode` both return **string**.
 Round-tripping:
 
@@ -216,6 +280,12 @@ aGVsbG8= / hello
 :::
 
 ## Hashing
+
+Reach for `string.sha256` when you need a deterministic fingerprint
+of a string — cache keys, ETag headers, content-addressed filenames.
+Reach for `string.hmac_sha256` when the output must be verifiable but
+tamper-resistant (webhook signatures, signed tokens). The MD5 and
+SHA-1 variants are legacy — fast non-cryptographic checksums only.
 
 Seven hashing helpers — four digests and three keyed (HMAC) variants —
 useful for cache keys and integrity checks. The

@@ -215,23 +215,49 @@ The full filter list is at <https://scriban.github.io/docs/builtins/>.
 
 ## The capstones
 
-The capstone exercises pull everything together. There are four, in rough
-order of difficulty:
+The capstone exercises pull everything together in three tiers — each
+tier raises the integration depth:
 
-1. **`invoice`** — data-model fields and member access only; subtotals
-   and the grand total arrive pre-computed.
-2. **`regex-redact`** — strip IPv4 addresses out of a log line with
-   `regex.replace` and a verbatim pattern. A single-function drill, but
-   the pattern syntax takes a moment.
-3. **`invoice-from-items`** — same shape as `invoice`, but the data
-   carries only `qty`, a decimal `unit_price`, and an ISO `issued`
-   date. The template computes each subtotal via an inline function,
-   accumulates the grand total in `$grand`, and integrates the
-   formatting lessons: `math.format 'N2'` for the money columns,
-   `date.parse` + `date.to_string` for the header date.
-4. **`transaction-rollup`** — group-by aggregation: four fund
-   transactions are filtered by status and merged by
-   fund+direction into one line per group.
+### Warm-ups (single-concept drills at lesson difficulty)
 
-If you can read all four without squinting, you're ready to write
-Scriban for real.
+1. **`whitespace-list`** — whitespace control, greedy vs gentle strip.
+   *Skills: block whitespace, `{{- -}}` / `{{~ ~}}`.*
+2. **`for-last-separator`** — clean separators without trailing punctuation.
+   *Skills: `for`, `for.last`, conditional text.*
+3. **`array-size-check`** — null-safe empty-array guard before a loop.
+   *Skills: `(array.size x) > 0`, defensive patterns.*
+
+### Single-module integrations
+
+4. **`invoice`** — render a pre-computed invoice from a data model.
+   *Skills: member access, loop over line items, number display.*
+5. **`regex-redact`** — redact IPv4 addresses from a log line.
+   *Skills: `regex.replace` with a verbatim pattern.*
+
+### Multi-module integrations (the real test)
+
+6. **`invoice-from-items`** — compute totals and format everything in-template.
+   *Skills: inline function, loop accumulator (`$grand`), `math.format`,
+   `date.parse` + `date.to_string`.*
+7. **`transaction-rollup`** — group-by aggregation: filter, merge into a
+   map, then render one line per group.
+   *Skills: `for`, `if`, object-as-map accumulator, `object.keys`.*
+
+If you can work through the multi-module capstones without squinting,
+you're ready to write Scriban for real.
+
+## The 80/20 rule for the standard library
+
+After seventeen lessons you've seen roughly 120 built-in functions. In
+day-to-day templating, 80% of the work is done by around 20 of them.
+The short list: `string.upcase`, `string.strip`, `string.split`,
+`string.replace`, `string.to_int`; `math.round`, `math.format`;
+`date.parse`, `date.to_string`, `date.add_days`; `array.sort`,
+`array.filter`, `array.each`, `array.map`, `array.join`, `array.size`;
+`object.keys`, `object.default`; `regex.replace`; `html.escape`.
+
+The rest of the library is genuine reference material. You don't need
+to memorise it — the [/reference](/scriban-tutorial/reference) page and
+the upstream docs are right there when you need an unusual function.
+The payoff of having worked through each module lesson is that you know
+which bucket a problem falls into, so you find the right tool quickly.

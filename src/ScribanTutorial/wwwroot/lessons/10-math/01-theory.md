@@ -11,6 +11,15 @@ the input is never mutated. Most return **numbers** (int or double
 following the input). Three exceptions: `math.format` and `math.uuid`
 return **string**; `math.is_number` returns **bool**.
 
+**Daily drivers vs look-up material.** The three functions you'll reach
+for in almost every real template are `math.round`, `math.abs`, and
+`math.format`. The pipe-form arithmetic functions (`math.plus`,
+`math.times`, etc.) are useful in pipe chains but the infix operators
+(`a + b`, `a * b`) usually read more naturally outside of pipes. The
+rest of this module (`math.uuid`, `math.random`, `math.is_number`)
+covers specialised needs — scan the tables so you know they exist, but
+don't feel you need to memorise them now.
+
 ## Basic arithmetic
 
 The four basic operators have pipe-friendly companions in the math

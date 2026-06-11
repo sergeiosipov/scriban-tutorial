@@ -111,7 +111,7 @@
     {
       "id": "09-statements",
       "title": "Statements",
-      "description": "Control flow: if and case, every flavour of for loop, while, capture, and the scope statements.",
+      "description": "Control flow: if and case, every flavour of for loop, while, break, and continue.",
       "theoryPath": "lessons/09-statements/01-theory",
       "exercises": [
         { "id": "compound-assign",     "title": "Update stats in place",        "path": "lessons/09-statements/02-exercises/compound-assign" },
@@ -125,10 +125,18 @@
         { "id": "while-loop",          "title": "Manual counting with while",   "path": "lessons/09-statements/02-exercises/while-loop" },
         { "id": "tablerow-grid",       "title": "Tablerow product grid",        "path": "lessons/09-statements/02-exercises/tablerow-grid" },
         { "id": "break-continue",      "title": "Skip and exit early",          "path": "lessons/09-statements/02-exercises/break-continue" },
-        { "id": "capture",             "title": "Capture output for piping",    "path": "lessons/09-statements/02-exercises/capture" },
-        { "id": "this-with-build",     "title": "Build fields with 'with'",     "path": "lessons/09-statements/02-exercises/this-with-build" },
-        { "id": "import-settings",     "title": "Import settings object",       "path": "lessons/09-statements/02-exercises/import-settings" },
         { "id": "scoreboard",          "title": "Build a filtered scoreboard",  "path": "lessons/09-statements/02-exercises/scoreboard" }
+      ]
+    },
+    {
+      "id": "09-composition",
+      "title": "Scope and composition",
+      "description": "Output capture, readonly variables, import, with, wrap, ret, and include — constructs for managing scope and assembling templates from pieces.",
+      "theoryPath": "lessons/09-composition/01-theory",
+      "exercises": [
+        { "id": "capture",         "title": "Capture output for piping",  "path": "lessons/09-composition/02-exercises/capture" },
+        { "id": "this-with-build", "title": "Build fields with 'with'",   "path": "lessons/09-composition/02-exercises/this-with-build" },
+        { "id": "import-settings", "title": "Import settings object",     "path": "lessons/09-composition/02-exercises/import-settings" }
       ]
     },
     {
@@ -159,7 +167,8 @@
         { "id": "parse-numbers",       "title": "Average two numeric strings",   "path": "lessons/11-string/02-exercises/parse-numbers" },
         { "id": "starts-with-routing", "title": "Prefix and suffix routing",     "path": "lessons/11-string/02-exercises/starts-with-routing" },
         { "id": "sha256-checksum",     "title": "Hash and verify length",        "path": "lessons/11-string/02-exercises/sha256-checksum" },
-        { "id": "hmac-sign",           "title": "Sign with HMAC",                "path": "lessons/11-string/02-exercises/hmac-sign" }
+        { "id": "hmac-sign",           "title": "Sign with HMAC",                "path": "lessons/11-string/02-exercises/hmac-sign" },
+        { "id": "capture-label",       "title": "Capture and upcase a label",    "path": "lessons/11-string/02-exercises/capture-label" }
       ]
     },
     {
@@ -188,7 +197,8 @@
         { "id": "date-fields",    "title": "Read PascalCase date parts",   "path": "lessons/13-date/02-exercises/date-fields" },
         { "id": "weekday-name",   "title": "Weekday and day of year",      "path": "lessons/13-date/02-exercises/weekday-name" },
         { "id": "days-until",     "title": "Days until deadline",          "path": "lessons/13-date/02-exercises/days-until" },
-        { "id": "now-structural", "title": "Structural now check",         "path": "lessons/13-date/02-exercises/now-structural" }
+        { "id": "now-structural",      "title": "Structural now check",          "path": "lessons/13-date/02-exercises/now-structural" },
+        { "id": "no-events-fallback", "title": "For-else fallback for empty events", "path": "lessons/13-date/02-exercises/no-events-fallback" }
       ]
     },
     {
@@ -231,7 +241,8 @@
         { "id": "map-extract",     "title": "Pluck names with map",          "path": "lessons/16-array/02-exercises/map-extract" },
         { "id": "csv-line",        "title": "Strip cells, join commas",      "path": "lessons/16-array/02-exercises/csv-line" },
         { "id": "compact-list",    "title": "Clean out the nulls",           "path": "lessons/16-array/02-exercises/compact-list" },
-        { "id": "row-alternation", "title": "Stripe rows with cycle",        "path": "lessons/16-array/02-exercises/row-alternation" }
+        { "id": "row-alternation",     "title": "Stripe rows with cycle",        "path": "lessons/16-array/02-exercises/row-alternation" },
+        { "id": "debug-leading-comma", "title": "Debug a leading separator",     "path": "lessons/16-array/02-exercises/debug-leading-comma" }
       ]
     },
     {
@@ -258,6 +269,7 @@
         { "id": "array-size-check",   "title": "Guard against empty arrays",        "path": "lessons/18-best-practices/02-exercises/array-size-check" },
         { "id": "invoice",            "title": "Render a small invoice",            "path": "lessons/18-best-practices/02-exercises/invoice" },
         { "id": "regex-redact",       "title": "Redact IPs from logs",              "path": "lessons/18-best-practices/02-exercises/regex-redact" },
+        { "id": "log-pipeline",       "title": "Filter and redact a log pipeline",  "path": "lessons/18-best-practices/02-exercises/log-pipeline" },
         { "id": "invoice-from-items", "title": "Compute invoice totals in-template","path": "lessons/18-best-practices/02-exercises/invoice-from-items" },
         { "id": "transaction-rollup", "title": "Group and sum transactions",        "path": "lessons/18-best-practices/02-exercises/transaction-rollup" }
       ]

@@ -1,0 +1,11 @@
+{{- func redact(line)
+     ret line | regex.replace `\d+\.\d+\.\d+\.\d+` '[IP]'
+   end
+   func is_error(line)
+     ret line | string.contains 'ERROR'
+   end
+   errors = logs | array.filter @is_error
+   redacted = errors | array.each @redact -}}
+{{- for e in redacted -}}
+{{ e }}
+{{ end -}}

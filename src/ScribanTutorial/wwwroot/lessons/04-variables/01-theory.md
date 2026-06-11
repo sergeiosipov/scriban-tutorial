@@ -119,33 +119,9 @@ the engine pre-populates several locals:
 
 ### Loop state: `for.*` and `while.*`
 
-`for` and `while` blocks expose iteration state through special
-read-only objects:
-
-| Inside `for` | Meaning |
-|---|---|
-| `for.index` | 0-based iteration counter |
-| `for.rindex` | reverse counter — counts down to 0 on the last iteration |
-| `for.first` / `for.last` | `true` on first / last iteration |
-| `for.length` | total iterations |
-| `for.changed` | `true` when the current item differs from the previous one |
-| `for.even` / `for.odd` | parity of `for.index` |
-
-`while.index`, `while.first`, `while.even`, `while.odd` work the same way
-inside `while` loops.
-
-:::example
-```scriban
-{{ for word in ['red', 'green', 'blue'] ~}}
-{{ for.index }}: {{ word }}{{ if !for.last }}, {{ end }}
-{{- end }}
-```
-```text
-0: red, 1: green, 2: blue
-```
-:::
-
-Full coverage of these blocks is in [lesson 9](/scriban-tutorial/lesson/09-statements).
+`for` and `while` expose iteration metadata (`for.index`, `for.last`,
+`while.index`, etc.) — covered fully in the Loops section of
+[lesson 9](/scriban-tutorial/lesson/09-statements).
 
 ## Scope: when assignments stay local vs leak global
 

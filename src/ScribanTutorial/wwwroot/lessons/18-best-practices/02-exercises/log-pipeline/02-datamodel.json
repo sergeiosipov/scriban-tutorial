@@ -1,0 +1,8 @@
+{
+  "logs": [
+    "INFO 192.168.1.1 login-ok",
+    "ERROR 10.0.0.5 auth-failed",
+    "INFO 172.16.0.3 logout-ok",
+    "ERROR 192.168.2.7 timeout"
+  ]
+}
