@@ -111,7 +111,7 @@
     {
       "id": "09-statements",
       "title": "Statements",
-      "description": "Control flow: if and case, every flavour of for loop, while, capture, and the scope statements.",
+      "description": "Control flow: if and case, every flavour of for loop, while, break, and continue.",
       "theoryPath": "lessons/09-statements/01-theory",
       "exercises": [
         { "id": "compound-assign",     "title": "Update stats in place",        "path": "lessons/09-statements/02-exercises/compound-assign" },
@@ -125,10 +125,18 @@
         { "id": "while-loop",          "title": "Manual counting with while",   "path": "lessons/09-statements/02-exercises/while-loop" },
         { "id": "tablerow-grid",       "title": "Tablerow product grid",        "path": "lessons/09-statements/02-exercises/tablerow-grid" },
         { "id": "break-continue",      "title": "Skip and exit early",          "path": "lessons/09-statements/02-exercises/break-continue" },
-        { "id": "capture",             "title": "Capture output for piping",    "path": "lessons/09-statements/02-exercises/capture" },
-        { "id": "this-with-build",     "title": "Build fields with 'with'",     "path": "lessons/09-statements/02-exercises/this-with-build" },
-        { "id": "import-settings",     "title": "Import settings object",       "path": "lessons/09-statements/02-exercises/import-settings" },
         { "id": "scoreboard",          "title": "Build a filtered scoreboard",  "path": "lessons/09-statements/02-exercises/scoreboard" }
+      ]
+    },
+    {
+      "id": "09-composition",
+      "title": "Scope and composition",
+      "description": "Output capture, readonly variables, import, with, wrap, ret, and include — constructs for managing scope and assembling templates from pieces.",
+      "theoryPath": "lessons/09-composition/01-theory",
+      "exercises": [
+        { "id": "capture",         "title": "Capture output for piping",  "path": "lessons/09-composition/02-exercises/capture" },
+        { "id": "this-with-build", "title": "Build fields with 'with'",   "path": "lessons/09-composition/02-exercises/this-with-build" },
+        { "id": "import-settings", "title": "Import settings object",     "path": "lessons/09-composition/02-exercises/import-settings" }
       ]
     },
     {
