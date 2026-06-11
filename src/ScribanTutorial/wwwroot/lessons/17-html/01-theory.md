@@ -77,10 +77,10 @@ line three
 
 Two URL-encoders for different parts of a URL:
 
-| Function | Encodes |
-|---|---|
-| `html.url_encode x` | Percent-encodes characters not safe in a URL query/path component (more aggressive — used for individual parameter values) |
-| `html.url_escape x` | Percent-encodes characters that aren't allowed at all in URLs (less aggressive — used to make an already-shaped URL safe) |
+| Function | Returns | Encodes |
+|---|---|---|
+| `html.url_encode x` | string | Percent-encodes characters not safe in a URL query/path component (more aggressive — used for individual parameter values) |
+| `html.url_escape x` | string | Percent-encodes characters that aren't allowed at all in URLs (less aggressive — used to make an already-shaped URL safe) |
 
 The difference is subtle and matters in edge cases. Use `url_encode`
 when building a query-string value; use `url_escape` when you have a

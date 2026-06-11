@@ -105,15 +105,15 @@ PascalCase in this app):
 Seven `add_*` functions return a new `DateTime` shifted by the given
 amount. They don't mutate the source:
 
-| Function | Adds |
-|---|---|
-| `date.add_years d n` | n years |
-| `date.add_months d n` | n months |
-| `date.add_days d n` | n days |
-| `date.add_hours d n` | n hours |
-| `date.add_minutes d n` | n minutes |
-| `date.add_seconds d n` | n seconds |
-| `date.add_milliseconds d n` | n milliseconds |
+| Function | Returns | Adds |
+|---|---|---|
+| `date.add_years d n` | DateTime | n years |
+| `date.add_months d n` | DateTime | n months |
+| `date.add_days d n` | DateTime | n days |
+| `date.add_hours d n` | DateTime | n hours |
+| `date.add_minutes d n` | DateTime | n minutes |
+| `date.add_seconds d n` | DateTime | n seconds |
+| `date.add_milliseconds d n` | DateTime | n milliseconds |
 
 `n` can be negative — `add_days d (-7)` is "one week earlier." (The
 parentheses around `-7` matter: without them the `-` reads as

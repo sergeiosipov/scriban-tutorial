@@ -18,13 +18,13 @@ module. They're rarely cleaner than the binary forms (`a + b`, `a - b`,
 etc.), but they shine in pipe chains where each step transforms the
 value flowing through:
 
-| Function | Operator equivalent | Example |
-|---|---|---|
-| `math.plus a b` | `a + b` | `{{ 1 \| math.plus 2 }}` → `3` |
-| `math.minus a b` | `a - b` | `{{ 5 \| math.minus 2 }}` → `3` |
-| `math.times a b` | `a * b` | `{{ 2 \| math.times 3 }}` → `6` |
-| `math.divided_by a b` | `a / b`, floored when divisor is int | `{{ 8.4 \| math.divided_by 2 }}` → `4` |
-| `math.modulo a b` | `a % b` | `{{ 11 \| math.modulo 10 }}` → `1` |
+| Function | Returns | Operator equivalent | Example |
+|---|---|---|---|
+| `math.plus a b` | number | `a + b` | `{{ 1 \| math.plus 2 }}` → `3` |
+| `math.minus a b` | number | `a - b` | `{{ 5 \| math.minus 2 }}` → `3` |
+| `math.times a b` | number | `a * b` | `{{ 2 \| math.times 3 }}` → `6` |
+| `math.divided_by a b` | number | `a / b`, floored when divisor is int | `{{ 8.4 \| math.divided_by 2 }}` → `4` |
+| `math.modulo a b` | number | `a % b` | `{{ 11 \| math.modulo 10 }}` → `1` |
 
 :::example
 ```scriban
@@ -43,11 +43,11 @@ subtracted → `115`.
 `math.ceil`, `math.floor`, and `math.round` cover the three standard
 behaviours:
 
-| Function | Effect | Example |
-|---|---|---|
-| `math.ceil x` | Round up | `{{ 4.2 \| math.ceil }}` → `5` |
-| `math.floor x` | Round down | `{{ 4.8 \| math.floor }}` → `4` |
-| `math.round x precision?` | Round to N decimal places (default 0) | `{{ 4.5612 \| math.round 2 }}` → `4.56` |
+| Function | Returns | Effect | Example |
+|---|---|---|---|
+| `math.ceil x` | number | Round up | `{{ 4.2 \| math.ceil }}` → `5` |
+| `math.floor x` | number | Round down | `{{ 4.8 \| math.floor }}` → `4` |
+| `math.round x precision?` | number | Round to N decimal places (default 0) | `{{ 4.5612 \| math.round 2 }}` → `4.56` |
 
 :::example
 ```scriban
