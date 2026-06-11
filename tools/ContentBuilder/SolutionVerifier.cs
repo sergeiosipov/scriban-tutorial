@@ -38,18 +38,48 @@ internal static class SolutionVerifier
 
         var actual = ContentNormalize.Normalize(result.Output);
         var want   = ContentNormalize.Normalize(expected);
-        if (string.Equals(actual, want, StringComparison.Ordinal))
+        if (!string.Equals(actual, want, StringComparison.Ordinal))
         {
-            Console.WriteLine($"--verify OK ({exerciseDir})");
-            return 0;
+            Console.Error.WriteLine($"--verify FAIL ({exerciseDir}): output differs from expected.");
+            Console.Error.WriteLine("--- expected ---");
+            Console.Error.WriteLine(want);
+            Console.Error.WriteLine("--- actual ---");
+            Console.Error.WriteLine(actual);
+            Console.Error.WriteLine("----------------");
+            return 1;
         }
 
-        Console.Error.WriteLine($"--verify FAIL ({exerciseDir}): output differs from expected.");
-        Console.Error.WriteLine("--- expected ---");
-        Console.Error.WriteLine(want);
-        Console.Error.WriteLine("--- actual ---");
-        Console.Error.WriteLine(actual);
-        Console.Error.WriteLine("----------------");
-        return 1;
+        // Hidden validation cases (optional 06-cases.json): their expected
+        // outputs are DERIVED from this very solution at bundle time, so there
+        // is nothing stored to compare against — derivation IS the contract.
+        // The check --verify owns is that the solution renders cleanly against
+        // every case.
+        int? caseCount = null;
+        var casesPath = Path.Combine(exerciseDir, "06-cases.json");
+        if (File.Exists(casesPath))
+        {
+            var caseModels = CliApp.TryLoadCaseModels(casesPath, out var caseError);
+            if (caseModels is null)
+            {
+                Console.Error.WriteLine($"--verify: {caseError}");
+                return 2;
+            }
+            for (var i = 0; i < caseModels.Count; i++)
+            {
+                var caseResult = ScribanRunner.Run(solution, caseModels[i]);
+                if (!caseResult.Ok)
+                {
+                    Console.Error.WriteLine(
+                        $"--verify FAIL ({exerciseDir}): case {i} of 06-cases.json failed to render — {caseResult.Errors}");
+                    return 1;
+                }
+            }
+            caseCount = caseModels.Count;
+        }
+
+        Console.WriteLine($"--verify OK ({exerciseDir})");
+        if (caseCount is not null)
+            Console.WriteLine($"cases: {caseCount} rendered OK");
+        return 0;
     }
 }

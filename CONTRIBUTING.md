@@ -31,8 +31,11 @@ build-time tools, the test suite, the deployment pipeline.
 - .NET 10.0.x SDK — `winget install Microsoft.DotNet.SDK.10` on Windows.
 - `wasm-tools` workload — `dotnet workload install wasm-tools`.
 
-No Node, npm, or external bundler. CodeMirror 6 is vendored under
-[`src/ScribanTutorial/wwwroot/lib/codemirror/`](src/ScribanTutorial/wwwroot/lib/codemirror/).
+No Node, npm, or bundler needed to build or run. CodeMirror 6 is vendored
+under [`src/ScribanTutorial/wwwroot/lib/codemirror/`](src/ScribanTutorial/wwwroot/lib/codemirror/)
+and the editor ships pre-bundled (see [CodeMirror vendoring](#codemirror-vendoring-and-the-editor-bundle));
+re-bundling is only needed when editor sources change and uses a standalone
+esbuild binary, no Node install.
 
 ## Running locally
 
@@ -75,16 +78,23 @@ piece of state lives.
 
 `dotnet build` runs the `BuildContent` MSBuild target before computing
 static web assets. That target invokes
-[`tools/ContentBuilder/`](tools/ContentBuilder/), which does three
-mtime-driven passes:
+[`tools/ContentBuilder/`](tools/ContentBuilder/), which runs a prune step and
+then six mtime-driven build passes — the core three are:
 
 | Pass | Walks | Emits |
 |---|---|---|
-| Markdown → HTML | every `*.md` under `wwwroot/lessons/` | `*.html` sibling |
+| Markdown → HTML | every `*.md` under `wwwroot/lessons/` | `*.html` sibling (theory files also get a `01-theory.toc.json` outline sidecar) |
 | Data-model pretty-print | every `02-datamodel.json` | `02-datamodel.html` sibling |
-| Exercise bundling | every `05-solution.txt` (= every exercise dir) | `bundle.json` with all six inputs |
+| Exercise bundling | every `05-solution.txt` (= every exercise dir) | `bundle.json` with all runtime inputs; when the optional `06-cases.json` (hidden validation cases) is present, each case's expected output is derived from the solution and embedded as a `cases` array |
 
-All generated artifacts (`*.html`, `bundle.json`) are gitignored.
+The remaining passes emit `search-index.json`, `reference.json`, and
+`sitemap.xml` — the full pass table is in
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+All generated artifacts (`*.html`, `bundle.json`, `01-theory.toc.json`,
+the indexes, `sitemap.xml`) are gitignored. Lesson source files and the
+unbundled editor sources are also excluded from publish — the deployed
+site ships only the generated content plus the editor bundle.
 
 The About and Contribute pages' bodies are authored directly in their
 respective `.razor` files (`Pages/001_about.razor`,
@@ -94,7 +104,9 @@ respective `.razor` files (`Pages/001_about.razor`,
 ContentBuilder also has a `--verify <exercise-path>` subcommand for
 checking a single exercise's canonical solution against its expected
 output — used by the lesson-author workflow on the rendered Contribute
-page.
+page. It also validates the optional `06-cases.json` (must be a JSON
+array of objects, and the solution must render cleanly against every
+case).
 
 ## Test suite
 
@@ -111,10 +123,13 @@ so the test assembly compiles the same source the app runs.
 |---|---|
 | `ContentNormalizeTests` | CRLF / trailing-newline normalisation. |
 | `JsonToScribanTests` | JSON → ScriptObject conversion (incl. the int-vs-float fix). |
-| `ScribanRunnerTests` | Render path, parse errors, JSON-error message, 250 KB output cap. |
-| `ExerciseSolutionTests` | **Data-driven from the manifest** — every exercise's canonical solution must render to its expected output. Add an exercise → it gets a test for free. |
-| `ContentBuilderTests` | `MarkdownRenderer` :::example layout, link rewriter, sanitiser; `TextMateHighlighter` snippet correctness; per-edge grammar regression locks. |
-| `BuildTargetTest` | Every `.md` has a fresh `.html` sibling, every exercise has a fresh `bundle.json`, every reference doc rendered into `wwwroot/reference/`. Catches the "MSBuild target stopped running" failure mode. |
+| `ScribanRunnerTests` | Render path, parse errors, JSON-error message, the in-flight 250 KB output cap. |
+| `ExerciseSolutionTests` | **Data-driven from the manifest** — every exercise's canonical solution must render to its expected output, plus every hidden validation case in an optional `06-cases.json`. Add an exercise → it gets a test for free. |
+| `ExampleSolutionTests` | **Data-driven from the theory files** — every `:::example` with an Output panel re-renders and must match. |
+| `ContentBuilderTests` | `MarkdownRenderer` :::example layout, "Try in playground" link, sanitiser; heading ids; `TextMateHighlighter` snippet correctness; per-edge grammar regression locks. |
+| `SearchIndexQueryTests` | The pure search ranking — AND across terms, solution-code hits, title boosts, snippet/highlight correctness. |
+| `ReferenceIndexBuilderTests` | The built-in table parser behind `reference.json` — row classification, section anchors, slugs. |
+| `BuildTargetTest` | Every `.md` has a fresh `.html` sibling (+ `01-theory.toc.json` for theory), every exercise a fresh `bundle.json` (`06-cases.json` counts as a staleness source), and `search-index.json` / `reference.json` / `sitemap.xml` are no staler than their sources. Catches the "MSBuild target stopped running" failure mode. |
 
 CI gates the deploy on `dotnet test` going green.
 
@@ -123,16 +138,29 @@ CI gates the deploy on `dotnet test` going green.
 Housekeeping notes about how the project itself is wired — read before
 opening a PR that touches the embedded editor or the deployment pipeline.
 
-### CodeMirror vendoring
+### CodeMirror vendoring and the editor bundle
 
 Vendored under [`src/ScribanTutorial/wwwroot/lib/codemirror/`](src/ScribanTutorial/wwwroot/lib/codemirror/)
-as 11 ESM files resolved through an importmap in `index.html`. Bumps are
-scripted via [`tools/Vendor-CodeMirror.ps1`](tools/Vendor-CodeMirror.ps1)
+as 11 ESM files. They are *bundling inputs only*: at runtime the app
+imports a single pre-bundled, minified module,
+[`wwwroot/js/editor.bundle.min.js`](src/ScribanTutorial/wwwroot/js/editor.bundle.min.js),
+built offline with a standalone esbuild 0.25.5 binary (no Node install —
+the procedure, alias flags, and sanity checks are in
+[`wwwroot/lib/codemirror/VERSION.txt`](src/ScribanTutorial/wwwroot/lib/codemirror/VERSION.txt)).
+There is no importmap in `index.html`, and the unbundled sources
+(`js/editor.js`, the two language modules, the `lib/codemirror/` tree)
+stay in the repo but are excluded from publish via `Content Remove`
+entries in the csproj.
+
+Bumps are scripted via [`tools/Vendor-CodeMirror.ps1`](tools/Vendor-CodeMirror.ps1)
 — edit the `$packages` table with the new version pin, run the script,
 update [`wwwroot/lib/codemirror/VERSION.txt`](src/ScribanTutorial/wwwroot/lib/codemirror/VERSION.txt)
-to match, and commit the bumped files + VERSION.txt in one PR. The
-script reports a SHA-256 prefix per file so two runs on a clean checkout
-can be diff-compared.
+to match, re-run the bundling step from VERSION.txt, and commit the
+bumped files + VERSION.txt + the regenerated `editor.bundle.min.js` in
+one PR. The script reports a SHA-256 prefix per file so two runs on a
+clean checkout can be diff-compared. The same rule applies to any edit
+of `js/editor.js` or the language modules: re-bundle and commit the
+bundle together with the source change.
 
 The `codemirror` umbrella package is intentionally *not* vendored: its
 `basicSetup` would drag in `@codemirror/search`,

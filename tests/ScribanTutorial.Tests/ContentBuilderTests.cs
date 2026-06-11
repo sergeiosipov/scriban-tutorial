@@ -213,6 +213,71 @@ public class ContentBuilderTests
     }
 
     [Fact]
+    public void MarkdownRenderer_gives_headings_github_style_ids_that_survive_the_sanitizer()
+    {
+        // The in-lesson TOC and the /reference page deep-link to lesson
+        // sections via these ids. The sanitizer's default attribute allowlist
+        // does NOT include id — BuildSanitizer must add it explicitly, or the
+        // anchors silently vanish from every theory page.
+        const string markdown = """
+            ## Whitespace control
+
+            Some prose.
+
+            ### The `for` loop
+
+            More prose.
+            """;
+
+        var renderer = new MarkdownRenderer(NewHighlighter());
+        var result = renderer.RenderWithHeadings(markdown);
+
+        Assert.Contains("<h2 id=\"whitespace-control\"", result.Html);
+        Assert.Contains("<h3 id=\"the-for-loop\"", result.Html);
+
+        Assert.Equal(2, result.Headings.Count);
+        Assert.Equal(new RenderedHeading("whitespace-control", "Whitespace control", 2), result.Headings[0]);
+        Assert.Equal(new RenderedHeading("the-for-loop", "The for loop", 3), result.Headings[1]);
+    }
+
+    [Fact]
+    public void MarkdownRenderer_emits_a_try_in_playground_link_with_the_encoded_template_and_data()
+    {
+        const string markdown = """
+            :::example
+            ```scriban
+            {{ user.name | string.upcase }}
+            ```
+            ```json
+            { "user": { "name": "Ada" } }
+            ```
+            ```text
+            ADA
+            ```
+            :::
+            """;
+
+        var renderer = new MarkdownRenderer(NewHighlighter());
+        var html = renderer.Render(markdown);
+
+        // The link must survive sanitising (relative href, allowed tag).
+        Assert.Contains("example__try", html);
+        var marker = "href=\"playground#try=";
+        var start = html.IndexOf(marker, StringComparison.Ordinal);
+        Assert.True(start >= 0, "try-link href missing or stripped by the sanitizer");
+
+        // Round-trip the fragment: base64url(UTF8(JSON { t, d })).
+        start += marker.Length;
+        var end = html.IndexOf('"', start);
+        var encoded = html[start..end].Replace('-', '+').Replace('_', '/');
+        encoded = encoded.PadRight(encoded.Length + (4 - encoded.Length % 4) % 4, '=');
+        using var payload = System.Text.Json.JsonDocument.Parse(
+            Convert.FromBase64String(encoded));
+        Assert.Equal("{{ user.name | string.upcase }}", payload.RootElement.GetProperty("t").GetString());
+        Assert.Contains("Ada", payload.RootElement.GetProperty("d").GetString());
+    }
+
+    [Fact]
     public void MarkdownRenderer_strips_dangerous_html_from_author_content()
     {
         // Defence-in-depth: content under wwwroot/lessons/ is author-controlled

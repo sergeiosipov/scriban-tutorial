@@ -83,6 +83,21 @@ true / 7
 | `string.truncate x len ellipsis?` | string | Truncate w/ `…` (default) | `'hello world' \| string.truncate 8` → `hello... ` |
 | `string.truncatewords x n ellipsis?` | string | Truncate to first `n` words | `'a b c d e' \| string.truncatewords 3` → `a b c...` |
 
+`string.slice` is the substring workhorse — here it pulls the area
+code out of a phone number:
+
+:::example
+```scriban
+{{ phone | string.slice 0 3 }}
+```
+```json
+{ "phone": "415-555-1234" }
+```
+```text
+415
+```
+:::
+
 `string.truncate` keeps the ellipsis WITHIN the length budget, so
 `truncate 'hello world' 8` produces `'hello...'` (8 chars), not
 `'hello wo...'`.
@@ -202,7 +217,8 @@ aGVsbG8= / hello
 
 ## Hashing
 
-Six hashing helpers, useful for cache keys and integrity checks. The
+Seven hashing helpers — four digests and three keyed (HMAC) variants —
+useful for cache keys and integrity checks. The
 HMAC variants take a secret key. **All return string** (hex-encoded
 digest).
 

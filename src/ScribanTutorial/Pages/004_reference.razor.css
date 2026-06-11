@@ -1,0 +1,133 @@
+.reference {
+    max-width: 860px;
+}
+
+.reference__header {
+    margin-bottom: 1.25rem;
+}
+
+.reference__intro {
+    color: var(--muted);
+    margin: 0.4rem 0 0;
+    line-height: 1.55;
+}
+
+.reference__filter {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.7rem 0.9rem;
+    font-size: 1rem;
+    color: var(--fg);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.reference__filter:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.reference__count {
+    color: var(--muted);
+    margin: 1.1rem 0;
+    font-size: 0.9rem;
+}
+
+.reference__error {
+    color: var(--fail);
+    margin: 1.1rem 0;
+}
+
+.reference__module {
+    margin: 1.75rem 0;
+}
+
+.reference__module-title {
+    font-size: 1.15rem;
+    margin: 0 0 0.6rem;
+}
+
+.reference__module-title a {
+    color: var(--fg);
+    text-decoration: none;
+}
+
+.reference__module-title a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+.reference__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.reference__table th,
+.reference__table td {
+    border: 1px solid var(--border);
+    padding: 0.45em 0.7em;
+    text-align: left;
+    vertical-align: top;
+}
+
+.reference__table th {
+    background: var(--code-bg);
+}
+
+.reference__name code,
+.reference__returns code {
+    font-family: var(--code-font-family);
+    font-size: 0.85em;
+    white-space: nowrap;
+}
+
+.reference__name a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.reference__name a:hover {
+    text-decoration: underline;
+}
+
+.reference__returns code {
+    color: var(--muted);
+}
+
+.reference__desc {
+    line-height: 1.5;
+}
+
+/* Properties and format specifiers belong in the tables but shouldn't
+   compete with the functions — smaller and dimmer. */
+.reference__row--minor td {
+    font-size: 0.85em;
+    color: var(--muted);
+}
+
+.reference__row--minor .reference__name a {
+    color: color-mix(in srgb, var(--accent) 70%, var(--muted));
+}
+
+.reference__example {
+    display: block;
+    margin-top: 0.35rem;
+    font-family: var(--code-font-family);
+    font-size: 0.82em;
+    line-height: 1.5;
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 4px;
+    padding: 0.2em 0.45em;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--fg);
+}
+
+.reference__row--minor .reference__example {
+    color: var(--muted);
+}

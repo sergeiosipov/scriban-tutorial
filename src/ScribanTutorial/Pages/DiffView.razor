@@ -1,7 +1,8 @@
 @using DiffPlex.DiffBuilder.Model
 
-<pre class="diff"><code>@foreach (var line in Diff.Lines)
+<pre class="diff"><code>@for (var i = 0; i < Diff.Lines.Count && i < MaxLines; i++)
 {
+    var line = Diff.Lines[i];
     var cls = line.Type switch
     {
         ChangeType.Inserted => "diff__line diff__line--ins",
@@ -17,8 +18,15 @@
         _                    => "  ",
     };
     <span class="@cls">@(prefix)@(line.Text)<br /></span>
+}@if (Diff.Lines.Count > MaxLines)
+{
+    <span class="diff__line diff__line--summary">... diff truncated — @(Diff.Lines.Count - MaxLines) more lines</span>
 }</code></pre>
 
 @code {
+    // Render cap: past a couple hundred rows a diff stops informing and
+    // starts freezing the page — one summary row replaces the long tail.
+    private const int MaxLines = 200;
+
     [Parameter, EditorRequired] public DiffPaneModel Diff { get; set; } = default!;
 }

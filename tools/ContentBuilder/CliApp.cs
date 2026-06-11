@@ -1,3 +1,5 @@
+using ScribanTutorial.Services;
+
 namespace ContentBuilder;
 
 internal static class CliApp
@@ -79,13 +81,19 @@ internal static class CliApp
             // regen after a highlighter-code change) is newer than a rendered
             // sibling, that sibling needs rebuilding.
             var grammarMtime = File.GetLastWriteTimeUtc(grammar);
+            var pruneExit = PruneStaleArtifacts(input);
+            if (pruneExit != 0) return pruneExit;
             var mdExit = BuildContent(input, renderer, grammarMtime);
             if (mdExit != 0) return mdExit;
             var dataExit = BuildDataModelHtml(input, highlighter, grammarMtime);
             if (dataExit != 0) return dataExit;
             var bundleExit = BuildExerciseBundles(input);
             if (bundleExit != 0) return bundleExit;
-            return SearchIndexBuilder.Run(input);
+            var searchExit = SearchIndexBuilder.Run(input);
+            if (searchExit != 0) return searchExit;
+            var refExit = ReferenceIndexBuilder.Run(input);
+            if (refExit != 0) return refExit;
+            return SitemapBuilder.Run(input);
         }
         catch (Exception ex)
         {
@@ -108,6 +116,12 @@ internal static class CliApp
         File.GetLastWriteTimeUtc(output) < File.GetLastWriteTimeUtc(source) ||
         File.GetLastWriteTimeUtc(output) < extraSourceMtime;
 
+    private static readonly System.Text.Json.JsonSerializerOptions _tocOpts = new()
+    {
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
+
     private static int BuildContent(string lessonsDir, MarkdownRenderer renderer, DateTime grammarMtime)
     {
         if (!Directory.Exists(lessonsDir))
@@ -121,11 +135,20 @@ internal static class CliApp
         foreach (var md in mdFiles)
         {
             var html = Path.ChangeExtension(md, ".html");
-            if (!IsStale(md, html, grammarMtime)) continue;
+            // Theory files also get a .toc.json sidecar (h2/h3 outline) that
+            // feeds the in-lesson table of contents.
+            var toc = Path.GetFileName(md).Equals("01-theory.md", StringComparison.OrdinalIgnoreCase)
+                ? Path.Combine(Path.GetDirectoryName(md)!, "01-theory.toc.json")
+                : null;
+            var fresh = !IsStale(md, html, grammarMtime)
+                        && (toc is null || !IsStale(md, toc, grammarMtime));
+            if (fresh) continue;
             try
             {
-                var output = renderer.Render(File.ReadAllText(md));
-                File.WriteAllText(html, output);
+                var rendered = renderer.RenderWithHeadings(File.ReadAllText(md));
+                File.WriteAllText(html, rendered.Html);
+                if (toc is not null)
+                    File.WriteAllText(toc, System.Text.Json.JsonSerializer.Serialize(rendered.Headings, _tocOpts));
                 regenerated++;
             }
             catch (Exception ex)
@@ -135,6 +158,45 @@ internal static class CliApp
             }
         }
         Console.WriteLine($"ContentBuilder: scanned {mdFiles.Length} .md files, regenerated {regenerated}.");
+        return 0;
+    }
+
+    // Delete generated artifacts whose source files are gone — retired
+    // exercises and renamed/removed lessons would otherwise leave stale
+    // .html/bundle.json/toc.json behind forever (gitignored, so invisible to
+    // git status, but shipped by any local publish). Runs before the build
+    // passes so they never see orphaned directories.
+    private static int PruneStaleArtifacts(string lessonsDir)
+    {
+        if (!Directory.Exists(lessonsDir)) return 0;
+        var removed = 0;
+        foreach (var file in Directory.EnumerateFiles(lessonsDir, "*", SearchOption.AllDirectories).ToArray())
+        {
+            var name = Path.GetFileName(file);
+            var dir = Path.GetDirectoryName(file)!;
+            var source = name switch
+            {
+                "02-datamodel.html"  => Path.Combine(dir, "02-datamodel.json"),
+                "bundle.json"        => Path.Combine(dir, "05-solution.txt"),
+                "01-theory.toc.json" => Path.Combine(dir, "01-theory.md"),
+                _ when name.EndsWith(".html", StringComparison.OrdinalIgnoreCase)
+                                     => Path.ChangeExtension(file, ".md"),
+                _ => null,
+            };
+            if (source is null || File.Exists(source)) continue;
+            File.Delete(file);
+            removed++;
+        }
+        // Sweep directories left empty by the deletions, deepest first.
+        foreach (var dir in Directory.EnumerateDirectories(lessonsDir, "*", SearchOption.AllDirectories)
+                                     .OrderByDescending(d => d.Length)
+                                     .ToArray())
+        {
+            if (!Directory.EnumerateFileSystemEntries(dir).Any())
+                Directory.Delete(dir);
+        }
+        if (removed > 0)
+            Console.WriteLine($"ContentBuilder: pruned {removed} generated files with no source.");
         return 0;
     }
 
@@ -177,6 +239,13 @@ internal static class CliApp
     // Bundle every exercise's six runtime source files into a single bundle.json
     // sibling so ContentService.FetchLessonAsync hits one URL per exercise
     // instead of six. Drops a 2-exercise lesson from 13 fetches to 3.
+    //
+    // An exercise may also carry an OPTIONAL 06-cases.json — a JSON array of
+    // alternative data-model objects ("hidden validation cases"). Their
+    // expected outputs are never hand-written: each one is DERIVED here by
+    // rendering the canonical solution against the case. The bundle then gains
+    // a trailing "cases" array of { dataModel, expected }; without the file
+    // the property is omitted entirely and the bundle shape is unchanged.
     private static int BuildExerciseBundles(string lessonsDir)
     {
         var bundleOpts = new System.Text.Json.JsonSerializerOptions
@@ -200,24 +269,62 @@ internal static class CliApp
                 Path.Combine(dir, "05-solution.txt"),
             };
             if (!sources.All(File.Exists)) continue;
+            // 06-cases.json is optional, but when present it is a staleness
+            // source like the six core files — editing it regenerates the bundle.
+            var casesPath = Path.Combine(dir, "06-cases.json");
+            var hasCases = File.Exists(casesPath);
+            var stalenessSources = hasCases ? sources.Append(casesPath).ToArray() : sources;
             var bundlePath = Path.Combine(dir, "bundle.json");
             if (File.Exists(bundlePath))
             {
                 var bundleTime = File.GetLastWriteTimeUtc(bundlePath);
-                var newestSrc = sources.Max(File.GetLastWriteTimeUtc);
-                if (bundleTime >= newestSrc) continue;
+                var newestSrc = stalenessSources.Max(File.GetLastWriteTimeUtc);
+                // A deleted 06-cases.json leaves no mtime to trip on, so a
+                // bundle still carrying a "cases" property must rebuild too.
+                var orphanedCases = !hasCases &&
+                    File.ReadAllText(bundlePath).Contains("\"cases\":[", StringComparison.Ordinal);
+                if (bundleTime >= newestSrc && !orphanedCases) continue;
             }
             try
             {
-                var bundle = new
+                var solutionText = File.ReadAllText(sources[5]);
+                List<object>? caseEntries = null;
+                if (hasCases)
                 {
-                    description    = File.ReadAllText(sources[0]),
-                    dataModel      = File.ReadAllText(sources[1]),
-                    dataModelHtml  = File.ReadAllText(sources[2]),
-                    expected       = File.ReadAllText(sources[3]),
-                    template       = File.ReadAllText(sources[4]),
-                    solution       = File.ReadAllText(sources[5]),
-                };
+                    var caseModels = TryLoadCaseModels(casesPath, out var caseError);
+                    if (caseModels is null)
+                    {
+                        Console.Error.WriteLine($"ContentBuilder: {caseError}");
+                        return 1;
+                    }
+                    caseEntries = new List<object>(caseModels.Count);
+                    for (var i = 0; i < caseModels.Count; i++)
+                    {
+                        var run = ScribanRunner.Run(solutionText, caseModels[i]);
+                        if (!run.Ok)
+                        {
+                            Console.Error.WriteLine(
+                                $"ContentBuilder: solution for {dir} failed to render case {i} of {casesPath} — {run.Errors}");
+                            return 1;
+                        }
+                        caseEntries.Add(new
+                        {
+                            dataModel = caseModels[i],
+                            expected  = ContentNormalize.Normalize(run.Output),
+                        });
+                    }
+                }
+
+                var description   = File.ReadAllText(sources[0]);
+                var dataModel     = File.ReadAllText(sources[1]);
+                var dataModelHtml = File.ReadAllText(sources[2]);
+                var expected      = File.ReadAllText(sources[3]);
+                var template      = File.ReadAllText(sources[4]);
+                // Two anonymous shapes so "cases" is omitted entirely for a
+                // caseless exercise; the six core fields keep their order in both.
+                object bundle = caseEntries is null
+                    ? new { description, dataModel, dataModelHtml, expected, template, solution = solutionText }
+                    : new { description, dataModel, dataModelHtml, expected, template, solution = solutionText, cases = caseEntries };
                 File.WriteAllText(bundlePath,
                     System.Text.Json.JsonSerializer.Serialize(bundle, bundleOpts));
                 regenerated++;
@@ -230,6 +337,50 @@ internal static class CliApp
         }
         Console.WriteLine($"ContentBuilder: scanned {solutionFiles.Length} exercises, regenerated {regenerated} bundles.");
         return 0;
+    }
+
+    private static readonly System.Text.Json.JsonSerializerOptions _compactCaseOpts = new()
+    {
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
+
+    // Parses an exercise's optional 06-cases.json. The contract: a JSON ARRAY
+    // of data-model OBJECTS, nothing else. Returns one compact-serialised JSON
+    // string per case (bundles never carry author whitespace), or null plus a
+    // human-readable error naming the file. Shared by the bundle pass and
+    // --verify so both enforce the identical shape.
+    internal static List<string>? TryLoadCaseModels(string casesPath, out string? error)
+    {
+        System.Text.Json.JsonDocument doc;
+        try
+        {
+            doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(casesPath));
+        }
+        catch (System.Text.Json.JsonException ex)
+        {
+            error = $"{casesPath} is not valid JSON — {ex.Message}";
+            return null;
+        }
+        using (doc)
+        {
+            if (doc.RootElement.ValueKind != System.Text.Json.JsonValueKind.Array)
+            {
+                error = $"{casesPath} must be a JSON array of data-model objects, not {doc.RootElement.ValueKind}.";
+                return null;
+            }
+            var models = new List<string>();
+            foreach (var element in doc.RootElement.EnumerateArray())
+            {
+                if (element.ValueKind != System.Text.Json.JsonValueKind.Object)
+                {
+                    error = $"{casesPath}: case {models.Count} must be a JSON object, not {element.ValueKind}.";
+                    return null;
+                }
+                models.Add(System.Text.Json.JsonSerializer.Serialize(element, _compactCaseOpts));
+            }
+            error = null;
+            return models;
+        }
     }
 
     private static void PrintUsage()

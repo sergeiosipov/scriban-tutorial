@@ -1,0 +1,3 @@
+{{- opened_at = date.parse opened
+   due = opened_at + (timespan.from_days sla_days) -}}
+Due {{ due | date.to_string `%Y-%m-%d %H:%M` }}

@@ -85,6 +85,28 @@ toolkit live under the `array.*` built-in module — see
 [lesson 16](/scriban-tutorial/lesson/16-array). The lessons up to that
 point only need indexing and append-by-index.
 
+## Mutating data-model arrays in place
+
+Arrays that arrive through the data model are just as writable as
+template-built ones: assigning to an existing index replaces that
+element in place (and assigning one past the end appends).
+
+:::example
+```scriban
+{{ items[1] = 'replaced'
+   items }}
+```
+```json
+{ "items": ["red", "green", "blue"] }
+```
+```text
+["red", "replaced", "blue"]
+```
+:::
+
+The one thing a data-model array will *not* accept is an attached named
+property (next section) — that requires an array built in the template.
+
 ## Arrays as objects: arrays with properties
 
 A Scriban array can also carry attached named properties — it's a list

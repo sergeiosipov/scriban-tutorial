@@ -9,3 +9,7 @@ data model into a region:
 The data carries `code = "DE"`, so the expected output is `Europe`.
 Use a single `when` arm with comma-separated values per region — that's
 what `case` was built for.
+
+Heads up: your template is also checked against hidden inputs covering
+every other country code, so solve it with real logic rather than
+printing the expected text.

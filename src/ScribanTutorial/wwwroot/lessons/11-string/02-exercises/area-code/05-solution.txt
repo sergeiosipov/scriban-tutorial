@@ -1,0 +1,1 @@
+area={{ phone | string.slice 0 3 }} line={{ phone | string.slice 8 }}

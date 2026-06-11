@@ -1,1 +1,1 @@
-{{ 'this is a text' | regex.split `\s+` }}
+{{ `C:\Users\you\notes.txt` }}

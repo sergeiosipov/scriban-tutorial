@@ -1,7 +1,8 @@
 Invoice for Ada Lovelace
+Issued 15 Mar 2026
 ------------------------
-widget (x3): $30
-gadget (x2): $50
-sprocket (x1): $12
+widget (x3): $29.97
+gadget (x2): $49.00
+sprocket (x1): $12.00
 ------------------------
-Total: $92
+Total: $90.97

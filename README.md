@@ -17,8 +17,11 @@ lessons by editing files only.
 - .NET 10.0.x SDK — `winget install Microsoft.DotNet.SDK.10` on Windows
 - `wasm-tools` workload — `dotnet workload install wasm-tools`
 
-No Node, npm, or external bundler needed. CodeMirror 6 is vendored under
-`src/ScribanTutorial/wwwroot/lib/codemirror/`.
+No Node, npm, or bundler needed to build or run. CodeMirror 6 is vendored
+under `src/ScribanTutorial/wwwroot/lib/codemirror/`, and the editor ships as
+a single pre-bundled module (`wwwroot/js/editor.bundle.min.js`) committed to
+the repo — re-bundling is only needed when the editor sources change, via a
+standalone esbuild binary (procedure in `wwwroot/lib/codemirror/VERSION.txt`).
 
 ## Run it locally
 
@@ -38,38 +41,62 @@ what CI runs.
 ```
 ┌────────────── Build time (dotnet build) ──────────────┐
 │  tools/ContentBuilder/                                │
+│    ├─ prunes generated files whose sources are gone   │
 │    ├─ scans wwwroot/lessons/**/*.md                   │
 │    ├─ Markdig + custom :::example renderer            │
 │    ├─ TextMateSharp colours fenced code blocks        │
 │    ├─ writes *.html siblings + 02-datamodel.html      │
-│    └─ writes per-exercise bundle.json (all six        │
-│         runtime inputs in one fetchable blob)         │
+│    ├─ writes 01-theory.toc.json (h2/h3 outline)       │
+│    ├─ writes per-exercise bundle.json (all runtime    │
+│    │    inputs + hidden-case outputs derived from     │
+│    │    the solution, in one fetchable blob)          │
+│    └─ writes search-index.json + reference.json       │
+│         + sitemap.xml (all under wwwroot/)            │
 │  Triggered by a BuildContent MSBuild target           │
 └──────────────────────────┬────────────────────────────┘
-                           │ pre-rendered .html + bundle.json
+                           │ pre-rendered .html + bundle/index sidecars
                            ▼
 ┌──────────────── Runtime (browser) ────────────────────┐
 │  App.razor → <Router>                                 │
 │      ├─ "/"                  → 000_home               │
 │      ├─ "/about"             → 001_about              │
 │      ├─ "/playground"        → 002_playground         │
+│      ├─ "/search"            → 003_search             │
+│      ├─ "/reference"         → 004_reference          │
 │      ├─ "/lesson/{LessonId}" → 010_lesson             │
 │      └─ "/contribute"        → 999_contribute-a-lesson│
 │                                                       │
 │  Singletons                                           │
-│    ├─ ContentService  — manifest + lazy lesson load   │
-│    ├─ PageOrder       — auto prev/next from page      │
-│    │                    file-name prefixes + manifest │
-│    ├─ ProgressService — localStorage + in-mem mirror  │
-│    └─ ThemeService    — light / dark, persisted       │
+│    ├─ ContentService   — manifest + lazy lesson load  │
+│    ├─ SearchService    — search-index.json → /search  │
+│    ├─ ReferenceService — reference.json → /reference  │
+│    ├─ PageOrder        — auto prev/next from page     │
+│    │                     file-name prefixes + manifest│
+│    ├─ ProgressService  — localStorage + in-mem mirror │
+│    └─ ThemeService     — light / dark, persisted      │
 │                                                       │
 │  ExerciseBlock + Playground                           │
-│    ├─ CodeMirror 6 editor (Scriban / JSON grammars)   │
-│    ├─ ScribanRunner (LoopLimit + 250 KB output cap)   │
-│    ├─ DiffView (DiffPlex) on fail                     │
+│    ├─ CodeMirror 6 editor — one pre-bundled module,   │
+│    │    mounted lazily, read at submit time           │
+│    ├─ ScribanRunner (LoopLimit + in-flight 250 KB     │
+│    │    output cap + 2 s render budget)               │
+│    ├─ Submit runs visible check + every hidden case   │
+│    ├─ DiffView (lazy-loaded DiffPlex) on fail         │
 │    └─ Show solution / Reset buttons                   │
 └───────────────────────────────────────────────────────┘
 ```
+
+Boot and caching, briefly: `index.html` uses fingerprint placeholders the
+build rewrites to hashed asset names, and `js/boot.js` starts Blazor with a
+`loadBootResource` that fetches the `.br` precompressed assets and decodes
+them with a vendored Brotli decoder (dev builds fall back automatically). A
+hand-rolled service worker plus `site.webmanifest` make the site installable
+and offline-capable. Details in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
+Publish ships only generated content (`.html`, `bundle.json`, `toc.json`,
+indexes) plus the editor bundle — lesson source files (`.md` / `.txt` /
+`02-datamodel.json` / `06-cases.json`) and the unbundled editor sources stay
+repo-only.
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the detailed map —
 services, components, file layout, and where each piece lives.
@@ -80,14 +107,17 @@ services, components, file layout, and where each piece lives.
 dotnet test
 ```
 
-xUnit project under `tests/ScribanTutorial.Tests/`. Six test classes (83 cases — most are the per-exercise solution checks):
+xUnit project under `tests/ScribanTutorial.Tests/`. Nine test classes (476 cases — most are the per-exercise and per-example solution checks):
 
 - `ContentNormalizeTests` — CRLF / trailing-newline normalisation.
 - `JsonToScribanTests` — JSON → ScriptObject conversion (incl. the int-vs-float fix).
-- `ScribanRunnerTests` — render path, parse errors, JSON-error friendly message, the 250 KB output cap.
-- `ExerciseSolutionTests` — data-driven from the manifest; every exercise's canonical solution runs against its data model and is compared to expected. Add an exercise → it gets a test for free.
-- `ContentBuilderTests` — MarkdownRenderer's `:::example` blocks emit the right three-panel layout; the sanitiser strips `<script>`, `on*=`, `javascript:`, `<iframe>`; per-edge grammar regression locks; TextMateHighlighter colours a known Scriban snippet correctly.
-- `BuildTargetTest` — every lesson `.md` has a fresh `.html` sibling; every exercise has a fresh `bundle.json`. Catches "BuildContent MSBuild target stopped running" without a full publish.
+- `ScribanRunnerTests` — render path, parse errors, JSON-error friendly message, the in-flight 250 KB output cap (runaway templates are stopped mid-render).
+- `ExerciseSolutionTests` — data-driven from the manifest; every exercise's canonical solution runs against its data model and is compared to expected, and every hidden validation case in an optional `06-cases.json` must render cleanly too. Add an exercise → it gets a test for free.
+- `ExampleSolutionTests` — data-driven from the theory files; every `:::example` with an Output panel is re-rendered and compared. Add an example → same deal.
+- `ContentBuilderTests` — MarkdownRenderer's `:::example` blocks emit the right three-panel layout plus the "Try in playground" link; theory headings get GitHub-style ids that survive the sanitiser; the sanitiser strips `<script>`, `on*=`, `javascript:`, `<iframe>`; per-edge grammar regression locks; TextMateHighlighter colours a known Scriban snippet correctly.
+- `SearchIndexQueryTests` — the pure search ranking: AND across terms, hits inside solution code, title boosts, snippet/highlight correctness.
+- `ReferenceIndexBuilderTests` — the built-in tables in lessons 10–17 parse into the right function / property / specifier entries, with section slugs matching Markdig's GitHub auto-identifiers.
+- `BuildTargetTest` — every lesson `.md` has a fresh `.html` sibling and `01-theory.toc.json` sidecar; every exercise has a fresh `bundle.json` (an exercise's optional `06-cases.json` counts as a staleness source); `search-index.json`, `reference.json`, and `sitemap.xml` are no staler than their sources. Catches "BuildContent MSBuild target stopped running" without a full publish.
 
 CI gates the deploy on `dotnet test` going green.
 

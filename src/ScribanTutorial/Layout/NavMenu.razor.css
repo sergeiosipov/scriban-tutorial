@@ -23,6 +23,13 @@
     gap: 0.5rem;
 }
 
+.nav-menu__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
 .nav-menu__theme {
     background: transparent;
     border: 1px solid var(--border, #e5e7eb);
@@ -43,6 +50,33 @@
     color: var(--accent, #2563eb);
 }
 
+/* Disclosure toggle for the small-screen layout, where MainLayout stacks the
+   sidebar above the content. Hidden on desktop (the nav is always expanded
+   there); shown only inside the 860px media query below. */
+.nav-menu__toggle {
+    display: none;
+    background: transparent;
+    border: 1px solid var(--border, #e5e7eb);
+    color: var(--fg, #1a1a1a);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.nav-menu__toggle:hover {
+    border-color: var(--accent, #2563eb);
+    color: var(--accent, #2563eb);
+}
+.nav-menu__toggle:focus-visible {
+    outline: 2px solid var(--accent, #2563eb);
+    outline-offset: 1px;
+}
+
 .nav-menu__title {
     font-size: 1.05rem;
     font-weight: 600;
@@ -54,6 +88,17 @@
     color: var(--muted, #6b7280);
     margin-top: 0.2rem;
     line-height: 1.4;
+}
+
+/* Wrapper around the list + footer so the whole disclosure can be hidden with
+   one rule on small screens. On desktop it is a transparent flex passthrough:
+   it takes over the nav's flex slot and hands the same column layout down, so
+   the list still scrolls internally and the footer still pins to the bottom. */
+.nav-menu__panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
 }
 
 .nav-menu__list {
@@ -183,4 +228,24 @@
 .nav-menu__reset:focus-visible {
     outline: 2px solid var(--accent, #2563eb);
     outline-offset: 1px;
+}
+
+/* Small screens: MainLayout stacks the sidebar above the content, so the nav
+   becomes a collapsed disclosure — brand row always visible, list/footer
+   hidden until the toggle expands them. Breakpoint must match
+   MainLayout.razor.css's 860px stack point. */
+@media (max-width: 860px) {
+    .nav-menu__toggle {
+        display: inline-flex;
+    }
+    .nav-menu--collapsed .nav-menu__panel {
+        display: none;
+    }
+    /* With nothing below it, the brand's separator + spacing would just pad
+       out the collapsed bar. */
+    .nav-menu--collapsed .nav-menu__brand {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
 }

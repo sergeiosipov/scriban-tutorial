@@ -5,227 +5,261 @@
     {
       "id": "01-blocks",
       "title": "Blocks",
+      "description": "How Scriban switches between literal text, code blocks, and escaped output — plus whitespace control.",
       "theoryPath": "lessons/01-blocks/01-theory",
       "exercises": [
-        { "id": "code-block-inline",     "path": "lessons/01-blocks/02-exercises/code-block-inline" },
-        { "id": "escape-block",          "path": "lessons/01-blocks/02-exercises/escape-block" },
-        { "id": "whitespace-strip",      "path": "lessons/01-blocks/02-exercises/whitespace-strip" },
-        { "id": "whitespace-non-greedy", "path": "lessons/01-blocks/02-exercises/whitespace-non-greedy" }
+        { "id": "code-block-inline",     "title": "Two outputs from one block",      "path": "lessons/01-blocks/02-exercises/code-block-inline" },
+        { "id": "escape-block",          "title": "Render curly braces literally",   "path": "lessons/01-blocks/02-exercises/escape-block" },
+        { "id": "whitespace-strip",      "title": "Greedy whitespace stripping",     "path": "lessons/01-blocks/02-exercises/whitespace-strip" },
+        { "id": "whitespace-non-greedy", "title": "Non-greedy whitespace control",   "path": "lessons/01-blocks/02-exercises/whitespace-non-greedy" }
       ]
     },
     {
       "id": "02-comments",
       "title": "Comments",
+      "description": "Single-line and multi-line comments — and the unclosed-comment trap that swallows templates.",
       "theoryPath": "lessons/02-comments/01-theory",
       "exercises": [
-        { "id": "single-line-comment", "path": "lessons/02-comments/02-exercises/single-line-comment" },
-        { "id": "multi-line-comment",  "path": "lessons/02-comments/02-exercises/multi-line-comment" }
+        { "id": "single-line-comment",  "title": "Comment out a remark",       "path": "lessons/02-comments/02-exercises/single-line-comment" },
+        { "id": "multi-line-comment",   "title": "Silence a whole paragraph",  "path": "lessons/02-comments/02-exercises/multi-line-comment" },
+        { "id": "unclosed-comment-fix", "title": "Fix an unclosed comment",    "path": "lessons/02-comments/02-exercises/unclosed-comment-fix" }
       ]
     },
     {
       "id": "03-literals",
       "title": "Literals",
+      "description": "Strings, numbers, booleans, and null — every way to write a fixed value.",
       "theoryPath": "lessons/03-literals/01-theory",
       "exercises": [
-        { "id": "string-basic",         "path": "lessons/03-literals/02-exercises/string-basic" },
-        { "id": "string-interpolation", "path": "lessons/03-literals/02-exercises/string-interpolation" },
-        { "id": "string-verbatim",      "path": "lessons/03-literals/02-exercises/string-verbatim" },
-        { "id": "number-hex-literal",   "path": "lessons/03-literals/02-exercises/number-hex-literal" },
-        { "id": "boolean-logic",        "path": "lessons/03-literals/02-exercises/boolean-logic" },
-        { "id": "null-fallback",        "path": "lessons/03-literals/02-exercises/null-fallback" }
+        { "id": "string-basic",         "title": "Print a string literal",         "path": "lessons/03-literals/02-exercises/string-basic" },
+        { "id": "string-interpolation", "title": "Compute inside a string",        "path": "lessons/03-literals/02-exercises/string-interpolation" },
+        { "id": "string-verbatim",      "title": "Backslashes without escaping",   "path": "lessons/03-literals/02-exercises/string-verbatim" },
+        { "id": "number-hex-literal",   "title": "Hex in, decimal out",            "path": "lessons/03-literals/02-exercises/number-hex-literal" },
+        { "id": "boolean-logic",        "title": "Build XOR with operators",       "path": "lessons/03-literals/02-exercises/boolean-logic" },
+        { "id": "null-fallback",        "title": "Pick the non-null email",        "path": "lessons/03-literals/02-exercises/null-fallback" }
       ]
     },
     {
       "id": "04-variables",
       "title": "Variables",
+      "description": "Global and local variables, assignment, scope rules, and the special this object.",
       "theoryPath": "lessons/04-variables/01-theory",
       "exercises": [
-        { "id": "hello",           "path": "lessons/04-variables/02-exercises/hello" },
-        { "id": "local-variable",  "path": "lessons/04-variables/02-exercises/local-variable" },
-        { "id": "this-access",     "path": "lessons/04-variables/02-exercises/this-access" },
-        { "id": "this-with-build", "path": "lessons/04-variables/02-exercises/this-with-build" }
+        { "id": "hello",          "title": "Greet with a global",      "path": "lessons/04-variables/02-exercises/hello" },
+        { "id": "local-variable", "title": "Locals start with dollar", "path": "lessons/04-variables/02-exercises/local-variable" },
+        { "id": "this-access",    "title": "Two names, one slot",      "path": "lessons/04-variables/02-exercises/this-access" }
       ]
     },
     {
       "id": "05-objects",
       "title": "Objects",
+      "description": "Reading, adding, and safely navigating object members — including optional chaining.",
       "theoryPath": "lessons/05-objects/01-theory",
       "exercises": [
-        { "id": "member-access",  "path": "lessons/05-objects/02-exercises/member-access" },
-        { "id": "add-member",     "path": "lessons/05-objects/02-exercises/add-member" },
-        { "id": "optional-chain", "path": "lessons/05-objects/02-exercises/optional-chain" },
-        { "id": "empty-check",    "path": "lessons/05-objects/02-exercises/empty-check" }
+        { "id": "member-access",  "title": "Dot versus bracket access",         "path": "lessons/05-objects/02-exercises/member-access" },
+        { "id": "add-member",     "title": "Add globals and members",           "path": "lessons/05-objects/02-exercises/add-member" },
+        { "id": "optional-chain", "title": "Chain fallbacks without errors",    "path": "lessons/05-objects/02-exercises/optional-chain" },
+        { "id": "empty-check",    "title": "Compare against the empty sentinel","path": "lessons/05-objects/02-exercises/empty-check" }
       ]
     },
     {
       "id": "06-arrays",
       "title": "Arrays",
+      "description": "Indexing, appending, mutating, and reshaping lists of values.",
       "theoryPath": "lessons/06-arrays/01-theory",
       "exercises": [
-        { "id": "array-index",         "path": "lessons/06-arrays/02-exercises/array-index" },
-        { "id": "array-append",        "path": "lessons/06-arrays/02-exercises/array-append" },
-        { "id": "array-with-property", "path": "lessons/06-arrays/02-exercises/array-with-property" }
+        { "id": "array-index",         "title": "Pick items by index",        "path": "lessons/06-arrays/02-exercises/array-index" },
+        { "id": "array-append",        "title": "Fill and reverse an array",  "path": "lessons/06-arrays/02-exercises/array-append" },
+        { "id": "array-with-property", "title": "Attach metadata to arrays",  "path": "lessons/06-arrays/02-exercises/array-with-property" },
+        { "id": "set-element",         "title": "Replace an element",         "path": "lessons/06-arrays/02-exercises/set-element" }
       ]
     },
     {
       "id": "07-functions",
       "title": "Functions",
+      "description": "Declaring reusable template functions in four styles — plus pipes and function pointers.",
       "theoryPath": "lessons/07-functions/01-theory",
       "exercises": [
-        { "id": "func-simple",     "path": "lessons/07-functions/02-exercises/func-simple" },
-        { "id": "func-parametric", "path": "lessons/07-functions/02-exercises/func-parametric" },
-        { "id": "func-inline",     "path": "lessons/07-functions/02-exercises/func-inline" },
-        { "id": "func-anonymous",  "path": "lessons/07-functions/02-exercises/func-anonymous" },
-        { "id": "pipe-chain",      "path": "lessons/07-functions/02-exercises/pipe-chain" },
-        { "id": "func-pointer",    "path": "lessons/07-functions/02-exercises/func-pointer" },
-        { "id": "format-users",    "path": "lessons/07-functions/02-exercises/format-users" }
+        { "id": "func-simple",     "title": "Fill in function keywords",     "path": "lessons/07-functions/02-exercises/func-simple" },
+        { "id": "func-parametric", "title": "Defaults and named arguments",  "path": "lessons/07-functions/02-exercises/func-parametric" },
+        { "id": "func-inline",     "title": "One-line function definitions", "path": "lessons/07-functions/02-exercises/func-inline" },
+        { "id": "func-anonymous",  "title": "Square items with do blocks",   "path": "lessons/07-functions/02-exercises/func-anonymous" },
+        { "id": "pipe-chain",      "title": "Build a marquee with pipes",    "path": "lessons/07-functions/02-exercises/pipe-chain" },
+        { "id": "func-pointer",    "title": "Function pointers with alias",  "path": "lessons/07-functions/02-exercises/func-pointer" },
+        { "id": "private-counter", "title": "Private function locals",       "path": "lessons/07-functions/02-exercises/private-counter" },
+        { "id": "format-users",    "title": "Format and join user records",  "path": "lessons/07-functions/02-exercises/format-users" }
       ]
     },
     {
       "id": "08-expressions",
       "title": "Expressions",
+      "description": "Operators, ternaries, ranges, precedence, and how expressions combine.",
       "theoryPath": "lessons/08-expressions/01-theory",
       "exercises": [
-        { "id": "math",             "path": "lessons/08-expressions/02-exercises/math" },
-        { "id": "upcase",           "path": "lessons/08-expressions/02-exercises/upcase" },
-        { "id": "string-repeat",    "path": "lessons/08-expressions/02-exercises/string-repeat" },
-        { "id": "string-vs-number", "path": "lessons/08-expressions/02-exercises/string-vs-number" },
-        { "id": "ternary",          "path": "lessons/08-expressions/02-exercises/ternary" },
-        { "id": "range",            "path": "lessons/08-expressions/02-exercises/range" },
-        { "id": "null-coalesce",    "path": "lessons/08-expressions/02-exercises/null-coalesce" },
-        { "id": "unary",            "path": "lessons/08-expressions/02-exercises/unary" },
-        { "id": "func-call",        "path": "lessons/08-expressions/02-exercises/func-call" },
-        { "id": "order-summary",    "path": "lessons/08-expressions/02-exercises/order-summary" }
+        { "id": "math",             "title": "Discounts, VAT, and precedence",   "path": "lessons/08-expressions/02-exercises/math" },
+        { "id": "to-int",           "title": "Convert strings before adding",    "path": "lessons/08-expressions/02-exercises/to-int" },
+        { "id": "string-repeat",    "title": "Banner from concat and repeat",    "path": "lessons/08-expressions/02-exercises/string-repeat" },
+        { "id": "string-vs-number", "title": "String coercion in action",        "path": "lessons/08-expressions/02-exercises/string-vs-number" },
+        { "id": "ternary",          "title": "Nested ternary decisions",         "path": "lessons/08-expressions/02-exercises/ternary" },
+        { "id": "range",            "title": "Ranges as first-class values",     "path": "lessons/08-expressions/02-exercises/range" },
+        { "id": "precedence",       "title": "Fix precedence with parentheses",  "path": "lessons/08-expressions/02-exercises/precedence" },
+        { "id": "unary",            "title": "Three unary operators at once",    "path": "lessons/08-expressions/02-exercises/unary" },
+        { "id": "func-call",        "title": "Use calls inside expressions",     "path": "lessons/08-expressions/02-exercises/func-call" },
+        { "id": "order-summary",    "title": "One-line order summary",           "path": "lessons/08-expressions/02-exercises/order-summary" }
       ]
     },
     {
       "id": "09-statements",
       "title": "Statements",
+      "description": "Control flow: if and case, every flavour of for loop, while, capture, and the scope statements.",
       "theoryPath": "lessons/09-statements/01-theory",
       "exercises": [
-        { "id": "compound-assign", "path": "lessons/09-statements/02-exercises/compound-assign" },
-        { "id": "conditional",     "path": "lessons/09-statements/02-exercises/conditional" },
-        { "id": "case-when",       "path": "lessons/09-statements/02-exercises/case-when" },
-        { "id": "list-loop",       "path": "lessons/09-statements/02-exercises/list-loop" },
-        { "id": "for-range",       "path": "lessons/09-statements/02-exercises/for-range" },
-        { "id": "for-limit",       "path": "lessons/09-statements/02-exercises/for-limit" },
-        { "id": "for-last",        "path": "lessons/09-statements/02-exercises/for-last" },
-        { "id": "while-loop",      "path": "lessons/09-statements/02-exercises/while-loop" },
-        { "id": "break-continue",  "path": "lessons/09-statements/02-exercises/break-continue" },
-        { "id": "capture",         "path": "lessons/09-statements/02-exercises/capture" },
-        { "id": "scoreboard",      "path": "lessons/09-statements/02-exercises/scoreboard" }
+        { "id": "compound-assign",     "title": "Update stats in place",        "path": "lessons/09-statements/02-exercises/compound-assign" },
+        { "id": "conditional",         "title": "Grade with if chains",         "path": "lessons/09-statements/02-exercises/conditional" },
+        { "id": "case-when",           "title": "Region lookup with case",      "path": "lessons/09-statements/02-exercises/case-when" },
+        { "id": "list-loop",           "title": "Bulleted list from a loop",    "path": "lessons/09-statements/02-exercises/list-loop" },
+        { "id": "for-range",           "title": "Numbers from a range loop",    "path": "lessons/09-statements/02-exercises/for-range" },
+        { "id": "for-reversed-offset", "title": "Reversed with offset",         "path": "lessons/09-statements/02-exercises/for-reversed-offset" },
+        { "id": "for-last",            "title": "Drop the trailing comma",      "path": "lessons/09-statements/02-exercises/for-last" },
+        { "id": "for-else-empty",      "title": "Empty loop fallback",          "path": "lessons/09-statements/02-exercises/for-else-empty" },
+        { "id": "while-loop",          "title": "Manual counting with while",   "path": "lessons/09-statements/02-exercises/while-loop" },
+        { "id": "tablerow-grid",       "title": "Tablerow product grid",        "path": "lessons/09-statements/02-exercises/tablerow-grid" },
+        { "id": "break-continue",      "title": "Skip and exit early",          "path": "lessons/09-statements/02-exercises/break-continue" },
+        { "id": "capture",             "title": "Capture output for piping",    "path": "lessons/09-statements/02-exercises/capture" },
+        { "id": "this-with-build",     "title": "Build fields with 'with'",     "path": "lessons/09-statements/02-exercises/this-with-build" },
+        { "id": "import-settings",     "title": "Import settings object",       "path": "lessons/09-statements/02-exercises/import-settings" },
+        { "id": "scoreboard",          "title": "Build a filtered scoreboard",  "path": "lessons/09-statements/02-exercises/scoreboard" }
       ]
     },
     {
       "id": "10-math",
       "title": "Built-in: math",
+      "description": "Rounding, number formatting, and arithmetic helpers from the math module.",
       "theoryPath": "lessons/10-math/01-theory",
       "exercises": [
-        { "id": "arithmetic-chain", "path": "lessons/10-math/02-exercises/arithmetic-chain" },
-        { "id": "format-hex",       "path": "lessons/10-math/02-exercises/format-hex" },
-        { "id": "round-direction",  "path": "lessons/10-math/02-exercises/round-direction" },
-        { "id": "price-with-tax",   "path": "lessons/10-math/02-exercises/price-with-tax" },
-        { "id": "uuid-id",          "path": "lessons/10-math/02-exercises/uuid-id" }
+        { "id": "arithmetic-chain", "title": "Pipe math step by step",          "path": "lessons/10-math/02-exercises/arithmetic-chain" },
+        { "id": "format-hex",       "title": "CSS hex color formatting",        "path": "lessons/10-math/02-exercises/format-hex" },
+        { "id": "round-direction",  "title": "Ceil, floor, and round",          "path": "lessons/10-math/02-exercises/round-direction" },
+        { "id": "abs-delta",        "title": "Absolute delta and parity",       "path": "lessons/10-math/02-exercises/abs-delta" },
+        { "id": "price-with-tax",   "title": "Tax-inclusive price formatting",  "path": "lessons/10-math/02-exercises/price-with-tax" },
+        { "id": "uuid-id",          "title": "Inspect a generated UUID",        "path": "lessons/10-math/02-exercises/uuid-id" }
       ]
     },
     {
       "id": "11-string",
       "title": "Built-in: string",
+      "description": "The string toolbox: case, trim, split, slice, search, pad, and hashing.",
       "theoryPath": "lessons/11-string/01-theory",
       "exercises": [
-        { "id": "slug",            "path": "lessons/11-string/02-exercises/slug" },
-        { "id": "trim-and-pad",    "path": "lessons/11-string/02-exercises/trim-and-pad" },
-        { "id": "find-replace",    "path": "lessons/11-string/02-exercises/find-replace" },
-        { "id": "extract-slice",   "path": "lessons/11-string/02-exercises/extract-slice" },
-        { "id": "parse-numbers",   "path": "lessons/11-string/02-exercises/parse-numbers" },
-        { "id": "sha256-checksum", "path": "lessons/11-string/02-exercises/sha256-checksum" }
+        { "id": "slug",                "title": "Slugify a messy title",         "path": "lessons/11-string/02-exercises/slug" },
+        { "id": "trim-and-pad",        "title": "Right-align in a column",       "path": "lessons/11-string/02-exercises/trim-and-pad" },
+        { "id": "area-code",           "title": "Slice a phone number",          "path": "lessons/11-string/02-exercises/area-code" },
+        { "id": "find-replace",        "title": "Mask digits in a loop",         "path": "lessons/11-string/02-exercises/find-replace" },
+        { "id": "extract-slice",       "title": "Pull out the file extension",   "path": "lessons/11-string/02-exercises/extract-slice" },
+        { "id": "parse-numbers",       "title": "Average two numeric strings",   "path": "lessons/11-string/02-exercises/parse-numbers" },
+        { "id": "starts-with-routing", "title": "Prefix and suffix routing",     "path": "lessons/11-string/02-exercises/starts-with-routing" },
+        { "id": "sha256-checksum",     "title": "Hash and verify length",        "path": "lessons/11-string/02-exercises/sha256-checksum" },
+        { "id": "hmac-sign",           "title": "Sign with HMAC",                "path": "lessons/11-string/02-exercises/hmac-sign" }
       ]
     },
     {
       "id": "12-regex",
       "title": "Built-in: regex",
+      "description": "Pattern matching, extraction, and replacement with regular expressions.",
       "theoryPath": "lessons/12-regex/01-theory",
       "exercises": [
-        { "id": "extract-groups", "path": "lessons/12-regex/02-exercises/extract-groups" },
-        { "id": "count-matches",  "path": "lessons/12-regex/02-exercises/count-matches" },
-        { "id": "swap-names",     "path": "lessons/12-regex/02-exercises/swap-names" },
-        { "id": "split-csv",      "path": "lessons/12-regex/02-exercises/split-csv" },
-        { "id": "escape-input",   "path": "lessons/12-regex/02-exercises/escape-input" }
+        { "id": "extract-groups", "title": "Capture phone number groups",      "path": "lessons/12-regex/02-exercises/extract-groups" },
+        { "id": "count-matches",  "title": "Count digit-bearing words",        "path": "lessons/12-regex/02-exercises/count-matches" },
+        { "id": "swap-names",     "title": "Reorder names with backreferences","path": "lessons/12-regex/02-exercises/swap-names" },
+        { "id": "split-csv",      "title": "Split commas, tolerate spaces",    "path": "lessons/12-regex/02-exercises/split-csv" },
+        { "id": "escape-input",   "title": "Highlight a literal query",        "path": "lessons/12-regex/02-exercises/escape-input" }
       ]
     },
     {
       "id": "13-date",
       "title": "Built-in: date",
+      "description": "Parsing, shifting, comparing, and formatting dates.",
       "theoryPath": "lessons/13-date/01-theory",
       "exercises": [
-        { "id": "parse-iso",     "path": "lessons/13-date/02-exercises/parse-iso" },
-        { "id": "add-days",      "path": "lessons/13-date/02-exercises/add-days" },
-        { "id": "format-pretty", "path": "lessons/13-date/02-exercises/format-pretty" },
-        { "id": "date-fields",   "path": "lessons/13-date/02-exercises/date-fields" },
-        { "id": "weekday-name",  "path": "lessons/13-date/02-exercises/weekday-name" }
+        { "id": "parse-iso",      "title": "Reformat an ISO timestamp",    "path": "lessons/13-date/02-exercises/parse-iso" },
+        { "id": "add-days",       "title": "Shift a date forward",         "path": "lessons/13-date/02-exercises/add-days" },
+        { "id": "meeting-shift",  "title": "Shift a meeting",              "path": "lessons/13-date/02-exercises/meeting-shift" },
+        { "id": "format-pretty",  "title": "Human-friendly date headers",  "path": "lessons/13-date/02-exercises/format-pretty" },
+        { "id": "date-fields",    "title": "Read PascalCase date parts",   "path": "lessons/13-date/02-exercises/date-fields" },
+        { "id": "weekday-name",   "title": "Weekday and day of year",      "path": "lessons/13-date/02-exercises/weekday-name" },
+        { "id": "days-until",     "title": "Days until deadline",          "path": "lessons/13-date/02-exercises/days-until" },
+        { "id": "now-structural", "title": "Structural now check",         "path": "lessons/13-date/02-exercises/now-structural" }
       ]
     },
     {
       "id": "14-timespan",
       "title": "Built-in: timespan",
+      "description": "Durations: building, parsing, and reading timespan components.",
       "theoryPath": "lessons/14-timespan/01-theory",
       "exercises": [
-        { "id": "duration-format",    "path": "lessons/14-timespan/02-exercises/duration-format" },
-        { "id": "total-vs-component", "path": "lessons/14-timespan/02-exercises/total-vs-component" },
-        { "id": "combine-times",      "path": "lessons/14-timespan/02-exercises/combine-times" },
-        { "id": "parse-duration",     "path": "lessons/14-timespan/02-exercises/parse-duration" }
+        { "id": "duration-format",    "title": "Zero-padded duration display",   "path": "lessons/14-timespan/02-exercises/duration-format" },
+        { "id": "total-vs-component", "title": "Component versus total views",   "path": "lessons/14-timespan/02-exercises/total-vs-component" },
+        { "id": "combine-times",      "title": "Add timespans via seconds",      "path": "lessons/14-timespan/02-exercises/combine-times" },
+        { "id": "parse-duration",     "title": "Spell out a parsed duration",    "path": "lessons/14-timespan/02-exercises/parse-duration" },
+        { "id": "sla-deadline",       "title": "SLA due date",                   "path": "lessons/14-timespan/02-exercises/sla-deadline" }
       ]
     },
     {
       "id": "15-object",
       "title": "Built-in: object",
+      "description": "Inspecting values: types, keys, defaults, sizes, and JSON round-trips.",
       "theoryPath": "lessons/15-object/01-theory",
       "exercises": [
-        { "id": "type-inspect",     "path": "lessons/15-object/02-exercises/type-inspect" },
-        { "id": "default-value",    "path": "lessons/15-object/02-exercises/default-value" },
-        { "id": "walk-keys",        "path": "lessons/15-object/02-exercises/walk-keys" },
-        { "id": "json-roundtrip",   "path": "lessons/15-object/02-exercises/json-roundtrip" },
-        { "id": "format-versatile", "path": "lessons/15-object/02-exercises/format-versatile" }
+        { "id": "type-inspect",     "title": "Probe typeof and kind",            "path": "lessons/15-object/02-exercises/type-inspect" },
+        { "id": "default-value",    "title": "Fallbacks for empty fields",       "path": "lessons/15-object/02-exercises/default-value" },
+        { "id": "safe-config",      "title": "Null-safe config checks",          "path": "lessons/15-object/02-exercises/safe-config" },
+        { "id": "walk-keys",        "title": "Loop over unknown keys",           "path": "lessons/15-object/02-exercises/walk-keys" },
+        { "id": "json-roundtrip",   "title": "Parse, modify, re-serialise JSON", "path": "lessons/15-object/02-exercises/json-roundtrip" },
+        { "id": "format-versatile", "title": "One formatter, many types",        "path": "lessons/15-object/02-exercises/format-versatile" }
       ]
     },
     {
       "id": "16-array",
       "title": "Built-in: array",
+      "description": "The array module: sort, filter, map, join, unique, and friends.",
       "theoryPath": "lessons/16-array/01-theory",
       "exercises": [
-        { "id": "sort-and-take",   "path": "lessons/16-array/02-exercises/sort-and-take" },
-        { "id": "unique-tags",     "path": "lessons/16-array/02-exercises/unique-tags" },
-        { "id": "filter-positive", "path": "lessons/16-array/02-exercises/filter-positive" },
-        { "id": "map-extract",     "path": "lessons/16-array/02-exercises/map-extract" },
-        { "id": "csv-line",        "path": "lessons/16-array/02-exercises/csv-line" },
-        { "id": "compact-list",    "path": "lessons/16-array/02-exercises/compact-list" },
-        { "id": "row-alternation", "path": "lessons/16-array/02-exercises/row-alternation" }
+        { "id": "sort-and-take",   "title": "Three smallest after sorting",  "path": "lessons/16-array/02-exercises/sort-and-take" },
+        { "id": "recent-first",    "title": "Recent events first",           "path": "lessons/16-array/02-exercises/recent-first" },
+        { "id": "unique-tags",     "title": "Dedupe, sort, and join",        "path": "lessons/16-array/02-exercises/unique-tags" },
+        { "id": "filter-positive", "title": "Keep only positive numbers",    "path": "lessons/16-array/02-exercises/filter-positive" },
+        { "id": "map-extract",     "title": "Pluck names with map",          "path": "lessons/16-array/02-exercises/map-extract" },
+        { "id": "csv-line",        "title": "Strip cells, join commas",      "path": "lessons/16-array/02-exercises/csv-line" },
+        { "id": "compact-list",    "title": "Clean out the nulls",           "path": "lessons/16-array/02-exercises/compact-list" },
+        { "id": "row-alternation", "title": "Stripe rows with cycle",        "path": "lessons/16-array/02-exercises/row-alternation" }
       ]
     },
     {
       "id": "17-html",
       "title": "Built-in: html",
+      "description": "Escaping, stripping, and URL-encoding output for HTML contexts.",
       "theoryPath": "lessons/17-html/01-theory",
       "exercises": [
-        { "id": "escape-output",        "path": "lessons/17-html/02-exercises/escape-output" },
-        { "id": "strip-tags",           "path": "lessons/17-html/02-exercises/strip-tags" },
-        { "id": "multiline-paragraph",  "path": "lessons/17-html/02-exercises/multiline-paragraph" },
-        { "id": "encode-query",         "path": "lessons/17-html/02-exercises/encode-query" },
-        { "id": "defence-in-depth",     "path": "lessons/17-html/02-exercises/defence-in-depth" }
+        { "id": "escape-output",       "title": "Escape markup characters safely", "path": "lessons/17-html/02-exercises/escape-output" },
+        { "id": "strip-tags",          "title": "Plain text from HTML",            "path": "lessons/17-html/02-exercises/strip-tags" },
+        { "id": "multiline-paragraph", "title": "Newlines become br tags",         "path": "lessons/17-html/02-exercises/multiline-paragraph" },
+        { "id": "encode-query",        "title": "URL-encode a search query",       "path": "lessons/17-html/02-exercises/encode-query" },
+        { "id": "defence-in-depth",    "title": "Strip then escape input",         "path": "lessons/17-html/02-exercises/defence-in-depth" }
       ]
     },
     {
       "id": "18-best-practices",
       "title": "Best practices",
+      "description": "Style rules, performance habits, and capstone exercises that combine everything.",
       "theoryPath": "lessons/18-best-practices/01-theory",
       "exercises": [
-        { "id": "whitespace-list",     "path": "lessons/18-best-practices/02-exercises/whitespace-list" },
-        { "id": "for-last-separator",  "path": "lessons/18-best-practices/02-exercises/for-last-separator" },
-        { "id": "array-size-check",    "path": "lessons/18-best-practices/02-exercises/array-size-check" },
-        { "id": "invoice",             "path": "lessons/18-best-practices/02-exercises/invoice" },
-        { "id": "invoice-from-items",  "path": "lessons/18-best-practices/02-exercises/invoice-from-items" },
-        { "id": "transaction-rollup",  "path": "lessons/18-best-practices/02-exercises/transaction-rollup" },
-        { "id": "regex-redact",        "path": "lessons/18-best-practices/02-exercises/regex-redact" }
+        { "id": "whitespace-list",    "title": "Dashes for clean lists",            "path": "lessons/18-best-practices/02-exercises/whitespace-list" },
+        { "id": "for-last-separator", "title": "Separators only between items",     "path": "lessons/18-best-practices/02-exercises/for-last-separator" },
+        { "id": "array-size-check",   "title": "Guard against empty arrays",        "path": "lessons/18-best-practices/02-exercises/array-size-check" },
+        { "id": "invoice",            "title": "Render a small invoice",            "path": "lessons/18-best-practices/02-exercises/invoice" },
+        { "id": "regex-redact",       "title": "Redact IPs from logs",              "path": "lessons/18-best-practices/02-exercises/regex-redact" },
+        { "id": "invoice-from-items", "title": "Compute invoice totals in-template","path": "lessons/18-best-practices/02-exercises/invoice-from-items" },
+        { "id": "transaction-rollup", "title": "Group and sum transactions",        "path": "lessons/18-best-practices/02-exercises/transaction-rollup" }
       ]
     }
   ]

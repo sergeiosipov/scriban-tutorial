@@ -128,6 +128,7 @@
           03-expected.txt          ← byte-exact expected output
           04-template.txt          ← starter (with ??? placeholders)
           05-solution.txt          ← known-good solution
+          06-cases.json            ← optional hidden inputs (see below)
         local-variable/
           ...
     05-objects/
@@ -143,9 +144,10 @@
                 ContentBuilder also writes generated siblings into each
                 lesson and exercise directory at build time: <code>*.html</code>
                 for every <code>.md</code>, <code>02-datamodel.html</code>,
-                and a <code>bundle.json</code> collecting all six runtime
-                inputs in one fetch. These are gitignored — don't commit
-                them.
+                and a <code>bundle.json</code> collecting all the runtime
+                inputs in one fetch (six, plus the derived hidden checks when
+                <code>06-cases.json</code> is present). These are gitignored —
+                don't commit them.
             </p>
 
             <h3>Add a new exercise (quick)</h3>
@@ -162,9 +164,11 @@
                     <code>06-arrays/02-exercises/array-slice/</code>.
                 </li>
                 <li>
-                    Create <strong>all five files</strong> (encoding rules
-                    below — get this part right or the runner will reject
-                    your output):
+                    Create <strong>all five required files</strong>
+                    (encoding rules below — get this part right or the
+                    runner will reject your output), plus an optional
+                    sixth if the exercise is easy to game by hardcoding
+                    the expected output:
                     <table>
                         <thead>
                             <tr><th>File</th><th>What goes in it</th></tr>
@@ -175,6 +179,7 @@
                             <tr><td><code>03-expected.txt</code></td><td>Byte-exact expected output. CRLF collapsed to LF and trailing newlines trimmed before comparison; everything else significant.</td></tr>
                             <tr><td><code>04-template.txt</code></td><td>Starter template. Use <code>???</code> for the placeholder(s) the learner fills in.</td></tr>
                             <tr><td><code>05-solution.txt</code></td><td>The canonical, known-good solution. Verified automatically by the test suite.</td></tr>
+                            <tr><td><code>06-cases.json</code> <em>(optional)</em></td><td>JSON array of alternative data models, each the same shape as the <code>02-datamodel.json</code> root. At build time ContentBuilder renders <code>05-solution.txt</code> against every case and records the outputs as hidden checks — a submission must pass all of them, not just the visible expected output. <code>--verify</code> validates the array's shape and that every case renders.</td></tr>
                         </tbody>
                     </table>
                 </li>

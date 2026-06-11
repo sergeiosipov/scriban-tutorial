@@ -1,8 +1,9 @@
 {
   "customer": "Ada Lovelace",
+  "issued": "2026-03-15",
   "lines": [
-    { "description": "widget",   "qty": 3, "unit_price": 10 },
-    { "description": "gadget",   "qty": 2, "unit_price": 25 },
-    { "description": "sprocket", "qty": 1, "unit_price": 12 }
+    { "description": "widget",   "qty": 3, "unit_price": 9.99 },
+    { "description": "gadget",   "qty": 2, "unit_price": 24.50 },
+    { "description": "sprocket", "qty": 1, "unit_price": 12.00 }
   ]
 }

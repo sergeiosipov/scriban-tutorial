@@ -1,0 +1,1 @@
+{{ events | array.reverse | array.limit 3 | array.join ', ' }}

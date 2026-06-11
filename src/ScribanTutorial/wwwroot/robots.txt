@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sergeiosipov.github.io/scriban-tutorial/sitemap.xml

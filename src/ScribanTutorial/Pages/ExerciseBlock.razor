@@ -9,7 +9,7 @@
          aria-labelledby="@($"exercise-title-{ExerciseId}")"
          aria-busy="@(_running ? "true" : "false")">
     <header class="exercise__header">
-        <h2 class="exercise__title" id="@($"exercise-title-{ExerciseId}")">@ExerciseId</h2>
+        <h2 class="exercise__title" id="@($"exercise-title-{ExerciseId}")">@(Title ?? ExerciseId)</h2>
         <span class="exercise__badge exercise__badge--@_status.ToString().ToLowerInvariant()"
               role="status"
               aria-live="polite"
@@ -35,6 +35,10 @@
         <div class="exercise__panel">
             <div class="exercise__panel-label">Expected output</div>
             <pre class="exercise__pre exercise__pre--expected"><code>@Content.Expected</code></pre>
+            @if (Content.Cases.Count > 0)
+            {
+                <p class="exercise__hidden-note">Also checked against @Content.Cases.Count hidden input(s) — print the logic, not the literal answer.</p>
+            }
         </div>
     </div>
 
@@ -70,12 +74,14 @@
         </div>
     }
 
-    @* Three mutually-exclusive result panels:
-        - Pass:                 just the rendered output.
-        - Fail, template ran:   just the diff (each diff line carries the
-                                actual text, so a separate output panel
-                                would duplicate it).
-        - Fail, template didn't run (parse / runtime error): just the error. *@
+    @* Result panels, mutually exclusive by state:
+        - Pass (visible check AND all hidden cases): just the rendered output.
+        - Fail on the visible run: the diff — or, when the output is grossly
+          oversized, a one-line "much longer than expected" note — or the
+          parse / runtime error when the template didn't run at all.
+        - Fail on a hidden case: a lead message naming the check, the failing
+          case's data model (raw JSON — hidden cases have no highlighted HTML),
+          then the same diff / oversize note / error treatment for that case. *@
     @if (_status == Status.Pass)
     {
         <div class="exercise__result exercise__result--pass">
@@ -83,18 +89,31 @@
             <pre class="exercise__pre"><code>@_output</code></pre>
         </div>
     }
-    else if (_status == Status.Fail && _diff is not null)
+    else if (_status == Status.Fail && HasFailureDetail)
     {
         <div class="exercise__result exercise__result--fail">
-            <div class="exercise__result-label">Diff (expected vs. actual)</div>
-            <DiffView Diff="@_diff" />
-        </div>
-    }
-    else if (_status == Status.Fail && !string.IsNullOrEmpty(_errors))
-    {
-        <div class="exercise__result exercise__result--fail">
-            <div class="exercise__result-label">Parse / runtime errors</div>
-            <pre class="exercise__pre exercise__pre--err"><code>@_errors</code></pre>
+            @if (_hiddenCaseNote is not null)
+            {
+                <p class="exercise__case-note">@_hiddenCaseNote</p>
+                <div class="exercise__case-model">
+                    <div class="exercise__result-label">Hidden check's data model</div>
+                    <pre class="exercise__pre exercise__pre--case"><code>@_hiddenCaseDataModel</code></pre>
+                </div>
+            }
+            @if (_diff is not null)
+            {
+                <div class="exercise__result-label">Diff (expected vs. actual)</div>
+                <DiffView Diff="@_diff" />
+            }
+            else if (_oversizeNote is not null)
+            {
+                <p class="exercise__oversize-note">@_oversizeNote</p>
+            }
+            else if (!string.IsNullOrEmpty(_errors))
+            {
+                <div class="exercise__result-label">Parse / runtime errors</div>
+                <pre class="exercise__pre exercise__pre--err"><code>@_errors</code></pre>
+            }
         </div>
     }
 </section>
@@ -102,15 +121,31 @@
 @code {
     [Parameter, EditorRequired] public string LessonId { get; set; } = "";
     [Parameter, EditorRequired] public string ExerciseId { get; set; } = "";
+    // Human display title from the manifest; falls back to the slug when a
+    // manifest entry hasn't been given one yet.
+    [Parameter] public string? Title { get; set; }
     [Parameter, EditorRequired] public ExerciseContent Content { get; set; } = default!;
 
     enum Status { Idle, Pass, Fail }
 
+    // Diff is pointless past this size: more than this many lines AND more
+    // than OversizeRatio× the expected line count means the learner printed
+    // in a loop — say so in one line instead of rendering a huge diff.
+    private const int OversizeLineFloor = 400;
+    private const int OversizeRatio = 20;
+
     private string _editorId = "";
-    private string _userTemplate = "";
+    // Seed text for the editor mount (saved code or the starter template) and
+    // the fallback the pull path returns if the editor never mounted. NOT a
+    // live stash — after a successful mount the editor owns the text and we
+    // pull it with GetValueAsync at submit / persist time.
+    private string _initialCode = "";
     private string _output = "";
     private string? _errors;
     private DiffPaneModel? _diff;
+    private string? _oversizeNote;
+    private string? _hiddenCaseNote;
+    private string? _hiddenCaseDataModel;
     private Status _status = Status.Idle;
     private bool _running;
     private bool _revealSolution;
@@ -118,20 +153,29 @@
     private bool _restored;
 
     private CodeEditorHandle? _editor;
-    private DotNetObjectReference<ExerciseBlock>? _dotnetRef;
+    // Set only after MountAsync succeeds. Guards the pull path: until then
+    // (or if mounting failed) _initialCode is the source of truth and must
+    // not be clobbered by GetValueAsync's "" for an unmounted editor.
+    private bool _editorMounted;
     private bool _disposed;
+
+    private bool HasFailureDetail =>
+        _hiddenCaseNote is not null
+        || _diff is not null
+        || _oversizeNote is not null
+        || !string.IsNullOrEmpty(_errors);
 
     protected override async Task OnInitializedAsync()
     {
         _editorId = $"editor-{LessonId}-{ExerciseId}";
-        _userTemplate = Content.StarterTemplate;
+        _initialCode = Content.StarterTemplate;
 
         try
         {
             var saved = await Progress.GetAsync(LessonId, ExerciseId);
             if (saved is not null)
             {
-                _userTemplate = saved.LastCode;
+                _initialCode = saved.LastCode;
                 _attempts = saved.Attempts;
                 _status = saved.Passed ? Status.Pass : Status.Fail;
                 _restored = true;
@@ -149,22 +193,18 @@
         try
         {
             _editor = new CodeEditorHandle(JS);
-            _dotnetRef = DotNetObjectReference.Create(this);
             // MountAsync awaits twice (module import, then mount call). The
-            // user can navigate away between those awaits — DisposeAsync then
-            // disposes _dotnetRef, and the resumed JS-interop serialiser
-            // throws ObjectDisposedException trying to send the dead ref.
-            // The pre-await disposed-check skips the call when we already
-            // know we're gone; the catch handles the same race when the
-            // dispose lands inside the awaited interop.
+            // user can navigate away between those awaits — the pre-await
+            // disposed-check skips the call when we already know we're gone;
+            // CodeEditorHandle.DisposeAsync cleans up the JS side if the
+            // dispose lands mid-mount.
+            // lazy: a lesson mounts up to 15 of these editors, nearly all
+            // below the fold — the real CodeMirror view is deferred until the
+            // host scrolls into view or is clicked/focused. Set/GetValueAsync
+            // work transparently while the mount is pending.
             if (_disposed) return;
-            await _editor.MountAsync(_editorId, _userTemplate, _dotnetRef,
-                new { language = "scriban", callbackMethod = "OnEditorChange" });
-        }
-        catch (ObjectDisposedException)
-        {
-            // Navigation race — DisposeAsync ran mid-mount. Not an error;
-            // there's no page left to mount into.
+            await _editor.MountAsync(_editorId, "scriban", _initialCode, autoFit: true, lazy: true);
+            _editorMounted = true;
         }
         catch (Exception ex)
         {
@@ -172,27 +212,53 @@
         }
     }
 
-
-    [JSInvokable]
-    public Task OnEditorChange(string text)
+    /// <summary>
+    /// The learner's current template text, pulled from the editor on demand.
+    /// Falls back to <see cref="_initialCode"/> when the editor never mounted
+    /// so a JS failure can't silently submit or persist an empty string.
+    /// </summary>
+    private async ValueTask<string> CurrentCodeAsync()
     {
-        _userTemplate = text;
-        return Task.CompletedTask;
+        if (_editor is not null && _editorMounted)
+        {
+            try
+            {
+                return await _editor.GetValueAsync(_editorId);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"ExerciseBlock: editor getValue failed for {ExerciseId} — {ex.Message}");
+            }
+        }
+        return _initialCode;
+    }
+
+    private void ClearResultState()
+    {
+        _status = Status.Idle;
+        _errors = null;
+        _diff = null;
+        _oversizeNote = null;
+        _hiddenCaseNote = null;
+        _hiddenCaseDataModel = null;
+        _output = "";
     }
 
     private async Task RunTemplate()
     {
         _running = true;
-        _status = Status.Idle;
-        _errors = null;
-        _diff = null;
-        _output = "";
+        ClearResultState();
         _attempts++;
         StateHasChanged();
+        // Yield so the disabled/"Running…" state actually paints before the
+        // synchronous ScribanRunner.Run call blocks the single WASM thread —
+        // without this the UI freezes with a live-looking button.
+        await Task.Delay(1);
 
+        var code = await CurrentCodeAsync();
         try
         {
-            var result = ScribanRunner.Run(_userTemplate, Content.DataModelJson);
+            var result = ScribanRunner.Run(code, Content.DataModelJson);
             if (!result.Ok)
             {
                 _errors = result.Errors;
@@ -203,43 +269,104 @@
             _output = result.Output;
             var actual = ContentNormalize.Normalize(_output);
             var expected = ContentNormalize.Normalize(Content.Expected);
-            if (string.Equals(actual, expected, StringComparison.Ordinal))
-            {
-                _status = Status.Pass;
-            }
-            else
+            if (!string.Equals(actual, expected, StringComparison.Ordinal))
             {
                 _status = Status.Fail;
-                _diff = InlineDiffBuilder.Diff(expected, actual);
+                SetDiffOrOversize(expected, actual);
+                return;
             }
+
+            // Visible check passed — the hidden cases (alternative inputs
+            // derived at build time) must ALL pass too, otherwise a template
+            // that hardcodes the displayed expected output would count.
+            _status = RunHiddenCases(code) ? Status.Pass : Status.Fail;
         }
         finally
         {
             _running = false;
-            await PersistAsync();
+            await PersistAsync(code);
             StateHasChanged();
         }
     }
 
+    /// <summary>
+    /// Runs every hidden case against the learner's template. On the first
+    /// failure, records which check failed, that case's data model, and the
+    /// diff / oversize note / render error, then returns false.
+    /// </summary>
+    private bool RunHiddenCases(string code)
+    {
+        var total = Content.Cases.Count;
+        for (var i = 0; i < total; i++)
+        {
+            var c = Content.Cases[i];
+            var result = ScribanRunner.Run(code, c.DataModelJson);
+            if (!result.Ok)
+            {
+                _hiddenCaseNote = $"Your template matches the example, but hidden check {i + 1} of {total} failed for a different input.";
+                _hiddenCaseDataModel = c.DataModelJson;
+                _errors = result.Errors;
+                return false;
+            }
+
+            var actual = ContentNormalize.Normalize(result.Output);
+            var expected = ContentNormalize.Normalize(c.Expected);
+            if (!string.Equals(actual, expected, StringComparison.Ordinal))
+            {
+                _hiddenCaseNote = $"Your template matches the example, but hidden check {i + 1} of {total} failed for a different input.";
+                _hiddenCaseDataModel = c.DataModelJson;
+                SetDiffOrOversize(expected, actual);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Prepares the failure display for a mismatched output: the usual diff,
+    /// or — when the actual output is grossly oversized — a one-line note,
+    /// which teaches more than a 40,000-line diff and avoids a multi-second
+    /// render freeze.
+    /// </summary>
+    private void SetDiffOrOversize(string expected, string actual)
+    {
+        var actualLines = CountLines(actual);
+        var expectedLines = CountLines(expected);
+        if (actualLines > OversizeLineFloor && actualLines > OversizeRatio * expectedLines)
+        {
+            _oversizeNote = $"Output is much longer than expected ({actualLines} lines vs {expectedLines}).";
+            return;
+        }
+        _diff = InlineDiffBuilder.Diff(expected, actual);
+    }
+
+    private static int CountLines(string s)
+    {
+        if (s.Length == 0) return 0;
+        var lines = 1;
+        foreach (var ch in s)
+        {
+            if (ch == '\n') lines++;
+        }
+        return lines;
+    }
+
     private async Task ResetTemplate()
     {
-        _userTemplate = Content.StarterTemplate;
-        _status = Status.Idle;
-        _output = "";
-        _errors = null;
-        _diff = null;
+        _initialCode = Content.StarterTemplate;
+        ClearResultState();
         _revealSolution = false;
         if (_editor is not null)
         {
-            try { await _editor.SetValueAsync(_editorId, _userTemplate); }
+            try { await _editor.SetValueAsync(_editorId, Content.StarterTemplate); }
             catch (Exception ex) { Console.Error.WriteLine($"ExerciseBlock: editor setValue failed — {ex.Message}"); }
         }
-        await PersistAsync();
+        await PersistAsync(Content.StarterTemplate);
     }
 
     private void ToggleSolution() => _revealSolution = !_revealSolution;
 
-    private async Task PersistAsync()
+    private async Task PersistAsync(string code)
     {
         try
         {
@@ -247,7 +374,7 @@
                 new ExerciseProgress(
                     ExerciseId,
                     _status == Status.Pass,
-                    _userTemplate,
+                    code,
                     _attempts,
                     DateTimeOffset.UtcNow),
                 LessonId);
@@ -267,11 +394,10 @@
 
     public async ValueTask DisposeAsync()
     {
-        // Flip the flag before the awaits so an in-flight OnAfterRenderAsync
-        // resuming between its own awaits can bail before invoking JS interop
-        // with a soon-to-be-disposed DotNetObjectReference.
+        // Flip the flag before the await so an in-flight OnAfterRenderAsync
+        // resuming between its own awaits can bail before mounting into a
+        // page that's already gone.
         _disposed = true;
         if (_editor is not null) await _editor.DisposeAsync();
-        _dotnetRef?.Dispose();
     }
 }

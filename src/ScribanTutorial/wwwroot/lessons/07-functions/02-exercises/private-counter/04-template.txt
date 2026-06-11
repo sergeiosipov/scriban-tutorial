@@ -1,0 +1,9 @@
+{{- func tally
+     total = 0
+     for x in $0
+       total = total + x
+     end
+     ret total
+   end -}}
+Fees: {{ tally fees }}
+Grand total: {{ total }}

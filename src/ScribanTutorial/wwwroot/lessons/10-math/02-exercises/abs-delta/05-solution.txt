@@ -1,0 +1,2 @@
+{{- delta = (forecast - actual) | math.abs -}}
+delta={{ delta }} parity={{ if (delta | math.modulo 2) == 0 }}even{{ else }}odd{{ end }}

@@ -1,0 +1,2 @@
+Fees: 15
+Grand total: 100

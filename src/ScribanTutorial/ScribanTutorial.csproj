@@ -6,6 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>ScribanTutorial</RootNamespace>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Lets index.html use fingerprint placeholders (e.g. css/app#[.{fingerprint}].css)
+         that the build rewrites to the hashed asset names. -->
+    <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +16,42 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.8" PrivateAssets="all" />
     <PackageReference Include="Scriban" Version="7.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- DiffPlex is used only by ExerciseBlock/DiffView on lesson pages; keep it
+         out of the eager boot download. App.razor's OnNavigateAsync fetches it on
+         the first lesson navigation. The .wasm extension matches the default
+         webcil-in-wasm assembly packaging. -->
+    <BlazorWebAssemblyLazyLoad Include="DiffPlex.wasm" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Lesson SOURCE files are ContentBuilder inputs read from disk at build
+         time and never fetched by the app (ContentService requests only the
+         generated *.html, bundle.json and 01-theory.toc.json), so keep them out
+         of the static web assets for both build and publish. -->
+    <Content Remove="wwwroot\lessons\**\*.md" />
+    <Content Remove="wwwroot\lessons\**\03-expected.txt" />
+    <Content Remove="wwwroot\lessons\**\04-template.txt" />
+    <Content Remove="wwwroot\lessons\**\05-solution.txt" />
+    <Content Remove="wwwroot\lessons\**\02-datamodel.json" />
+    <Content Remove="wwwroot\lessons\**\06-cases.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Editor SOURCE files: at runtime the app imports only the pre-bundled
+         wwwroot\js\editor.bundle.min.js (built offline with esbuild — see
+         wwwroot\lib\codemirror\VERSION.txt for the procedure). The unminified
+         entry module, the two grammar modules and the vendored CodeMirror ESM
+         files stay in the repo as bundling inputs but must not ship. None of
+         these patterns can match editor.bundle.min.js (exact filenames under
+         wwwroot\js, plus the lib\codemirror subtree only). -->
+    <Content Remove="wwwroot\lib\codemirror\**\*.js" />
+    <Content Remove="wwwroot\lib\codemirror\VERSION.txt" />
+    <Content Remove="wwwroot\js\editor.js" />
+    <Content Remove="wwwroot\js\scriban-language.js" />
+    <Content Remove="wwwroot\js\json-language.js" />
   </ItemGroup>
 
   <!-- ContentBuilder runs before the Blazor build computes static web assets so

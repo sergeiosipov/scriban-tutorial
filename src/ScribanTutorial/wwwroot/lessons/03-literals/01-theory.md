@@ -142,8 +142,24 @@ suffixes:
 | `100.0d` | double | Explicit form; same as `100.0`. Helps when you're side-by-side with `f` and `m` literals and want to be clear. |
 | `100.0m` | decimal | Exact base-10 arithmetic. **Use for money** — `0.1 + 0.2 == 0.3` is FALSE for `double` and TRUE for `decimal`. |
 
-Mixing an integer and a float promotes the result to float. `100 / 3`
-gives `33`; `100 / 3.0` gives `33.333…`.
+Watch out for division: `/` is true division even between two ints —
+`100 / 3` gives `33.333333333333336` (a double), not `33`. Integer
+division is its own operator, `//`: `100 // 3` gives `33`.
+
+:::example
+```scriban
+{{ 7 / 2 }}
+{{ 7 // 2 }}
+{{ 1e3 }}
+{{ 0x1ef }}
+```
+```text
+3.5
+3
+1000
+495
+```
+:::
 
 For arithmetic-heavy work, the built-in `math.*` module ships ceiling,
 floor, round, abs, min/max, and similar — see

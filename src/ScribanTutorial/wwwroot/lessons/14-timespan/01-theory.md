@@ -1,6 +1,7 @@
 The `timespan.*` module wraps .NET's `TimeSpan` — an interval of time
-(not a moment), like "5 hours" or "3 days 12 minutes." Six constructor
-functions, one parser, plus per-instance properties.
+(not a moment), like "5 hours" or "3 days 12 minutes." Five `from_*`
+constructors, a parser, the `timespan.zero` constant, plus
+per-instance properties.
 
 Upstream reference:
 [scriban.github.io/docs/builtins/timespan](https://scriban.github.io/docs/builtins/timespan/).
@@ -10,9 +11,10 @@ Upstream reference:
 properties (`.Hours`, `.TotalMinutes`, etc.) return **int** for
 component accessors and **double** for total accessors.
 
-## Constructors
+## Module members
 
-Six builders that each produce a new `TimeSpan` from a single unit:
+Seven members in total: five `from_*` builders that each produce a new
+`TimeSpan` from a single unit, one parser, and one constant:
 
 | Function | Returns | Effect |
 |---|---|---|
@@ -22,6 +24,7 @@ Six builders that each produce a new `TimeSpan` from a single unit:
 | `timespan.from_seconds n` | TimeSpan | n seconds |
 | `timespan.from_milliseconds n` | TimeSpan | n milliseconds |
 | `timespan.parse text` | TimeSpan | Parse from `'d.HH:MM:SS'` or `'HH:MM:SS'` |
+| `timespan.zero` | TimeSpan | The zero-length interval (a constant, not a function) |
 
 `n` can be fractional — `timespan.from_hours 1.5` is "one and a half
 hours". Rendered directly, a `TimeSpan` prints in `HH:MM:SS` form (or
@@ -33,6 +36,22 @@ hours". Rendered directly, a `TimeSpan` prints in `HH:MM:SS` form (or
 ```
 ```text
 01:30:00 / 1.01:00:00
+```
+:::
+
+`timespan.zero` is a ready-made zero-length interval — handy as a
+default before any time has been logged, or as a numeric baseline via
+its `.Total*` properties. (Comparing two `TimeSpan` values with `>` is
+as unsupported as adding them — see *Combining timespans* below — so
+compare the numbers instead.)
+
+:::example
+```scriban
+{{ logged = timespan.zero
+   'logged=' + logged + ' billable=' + (logged.TotalSeconds > 0) }}
+```
+```text
+logged=00:00:00 billable=false
 ```
 :::
 
@@ -81,10 +100,13 @@ hours-comp=1 min-comp=30 total-min=90
 
 ## Combining timespans
 
-The arithmetic `+` and `-` operators don't work on `TimeSpan` values in
-this app — `(a + b)` raises *"Unsupported types"*. To combine intervals,
-sum their `.TotalSeconds` (or whichever unit matches your need) and
-build a new `TimeSpan` from the result:
+The arithmetic `+` and `-` operators don't work *between two
+`TimeSpan` values* in this app — `(a + b)` raises *"Unsupported
+types"*. Mixed date/timespan arithmetic is a different story:
+`date + timespan` and `date - date` both work — see the *Date
+arithmetic* section in lesson 13. To combine two intervals, sum their
+`.TotalSeconds` (or whichever unit matches your need) and build a new
+`TimeSpan` from the result:
 
 :::example
 ```scriban

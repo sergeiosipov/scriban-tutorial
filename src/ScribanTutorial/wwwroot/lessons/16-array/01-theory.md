@@ -127,6 +127,15 @@ size=4 first=10 last=40
 
 :::example
 ```scriban
+{{ [1, 2, 3, 4, 5] | array.reverse }}
+```
+```text
+[5, 4, 3, 2, 1]
+```
+:::
+
+:::example
+```scriban
 {{ [3, 1, 4, 1, 5, 9, 2, 6, 5] | array.sort }}
 {{ [3, 1, 4, 1, 5, 9, 2, 6, 5] | array.uniq }}
 {{ [{n: 3}, {n: 1}, {n: 2}] | array.sort 'n' | array.map 'n' }}

@@ -1,0 +1,1 @@
+{ "events": ["boot", "login", "upload", "deploy", "shutdown"] }

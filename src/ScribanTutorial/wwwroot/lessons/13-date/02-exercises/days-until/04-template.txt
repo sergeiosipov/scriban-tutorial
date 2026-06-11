@@ -1,0 +1,4 @@
+{{- start = date.parse today
+   due = date.parse deadline
+   left = ??? - ??? -}}
+{{ left.??? }} days left

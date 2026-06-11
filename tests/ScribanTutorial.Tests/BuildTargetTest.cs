@@ -58,6 +58,9 @@ public class BuildTargetTest
                 Path.Combine(dir, "03-expected.txt"),
                 Path.Combine(dir, "04-template.txt"),
                 Path.Combine(dir, "05-solution.txt"),
+                // Optional hidden-validation cases; the File.Exists guard below
+                // skips it for the (common) exercise that has none.
+                Path.Combine(dir, "06-cases.json"),
             };
             foreach (var src in sources)
             {
@@ -71,6 +74,58 @@ public class BuildTargetTest
 
         Assert.True(missing.Count == 0 && stale.Count == 0,
             $"missing: [{string.Join(", ", missing)}]; stale: [{string.Join(", ", stale)}]");
+    }
+
+    [Fact]
+    public void Every_theory_markdown_has_a_fresh_toc_sidecar()
+    {
+        var stale = new List<string>();
+        var missing = new List<string>();
+        foreach (var md in Directory.EnumerateFiles(RepoPaths.LessonsDir, "01-theory.md", SearchOption.AllDirectories))
+        {
+            var toc = Path.Combine(Path.GetDirectoryName(md)!, "01-theory.toc.json");
+            if (!File.Exists(toc))
+            {
+                missing.Add(toc);
+                continue;
+            }
+            if (File.GetLastWriteTimeUtc(toc) < File.GetLastWriteTimeUtc(md))
+                stale.Add(toc);
+        }
+
+        Assert.True(missing.Count == 0 && stale.Count == 0,
+            $"missing: [{string.Join(", ", missing)}]; stale: [{string.Join(", ", stale)}]");
+    }
+
+    [Fact]
+    public void Reference_index_and_sitemap_exist_and_are_fresh()
+    {
+        var wwwroot = Path.GetDirectoryName(RepoPaths.SearchIndexPath)!;
+        var reference = Path.Combine(wwwroot, "reference.json");
+        var sitemap = Path.Combine(wwwroot, "sitemap.xml");
+        Assert.True(File.Exists(reference), $"missing reference index: {reference}");
+        Assert.True(File.Exists(sitemap), $"missing sitemap: {sitemap}");
+
+        // reference.json derives from the manifest + lessons 10-17 theory;
+        // sitemap.xml from the manifest alone.
+        var referenceTime = File.GetLastWriteTimeUtc(reference);
+        var sources = new List<string> { RepoPaths.ManifestPath };
+        sources.AddRange(Directory.EnumerateFiles(RepoPaths.LessonsDir, "01-theory.md", SearchOption.AllDirectories)
+            .Where(p =>
+            {
+                var lesson = Path.GetFileName(Path.GetDirectoryName(p)!);
+                return lesson.Length >= 2
+                       && int.TryParse(lesson[..2], out var n)
+                       && n is >= 10 and <= 17;
+            }));
+        var stale = sources
+            .Where(File.Exists)
+            .Where(s => File.GetLastWriteTimeUtc(s) > referenceTime)
+            .ToList();
+        Assert.True(stale.Count == 0, $"reference index is older than: [{string.Join(", ", stale)}]");
+
+        Assert.True(File.GetLastWriteTimeUtc(sitemap) >= File.GetLastWriteTimeUtc(RepoPaths.ManifestPath),
+            "sitemap.xml is older than manifest.json");
     }
 
     [Fact]

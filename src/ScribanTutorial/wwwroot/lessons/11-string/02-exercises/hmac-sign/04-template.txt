@@ -1,0 +1,2 @@
+{{- sig = payload | string.??? secret -}}
+sig={{ sig }} length={{ sig.??? }}

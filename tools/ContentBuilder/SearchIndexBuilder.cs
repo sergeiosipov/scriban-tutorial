@@ -109,7 +109,7 @@ internal static partial class SearchIndexBuilder
                     LessonTitle: lesson.Title,
                     Kind: "exercise",
                     ExerciseId: ex.Id,
-                    Title: ex.Id,
+                    Title: string.IsNullOrWhiteSpace(ex.Title) ? ex.Id : ex.Title,
                     Url: $"lesson/{lesson.Id}#exercise-{ex.Id}",
                     Text: Clean(string.Join("\n", parts))));
             }
@@ -159,5 +159,5 @@ internal static partial class SearchIndexBuilder
 
     private sealed record ManifestDto(string CourseTitle, string CourseSubtitle, List<LessonDto> Lessons);
     private sealed record LessonDto(string Id, string Title, string TheoryPath, List<ExerciseDto> Exercises);
-    private sealed record ExerciseDto(string Id, string Path);
+    private sealed record ExerciseDto(string Id, string Path, string? Title = null);
 }

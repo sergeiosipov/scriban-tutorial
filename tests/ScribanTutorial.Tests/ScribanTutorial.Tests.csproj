@@ -35,6 +35,8 @@
              Link="Shared\SearchIndex.cs" />
     <Compile Include="..\..\tools\ContentBuilder\MarkdownRenderer.cs"
              Link="Shared\MarkdownRenderer.cs" />
+    <Compile Include="..\..\tools\ContentBuilder\ReferenceIndexBuilder.cs"
+             Link="Shared\ReferenceIndexBuilder.cs" />
     <Compile Include="..\..\tools\ContentBuilder\TextMateHighlighter.cs"
              Link="Shared\TextMateHighlighter.cs" />
   </ItemGroup>

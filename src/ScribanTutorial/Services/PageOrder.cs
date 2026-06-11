@@ -31,14 +31,16 @@ public sealed class PageOrder
         [""]           = "Home",
         ["about"]      = "About",
         ["playground"] = "Playground",
+        ["reference"]  = "Function reference",
         ["contribute"] = "Contribute a lesson",
     };
 
     // Routes that are real pages but deliberately sit outside the linear
     // prev/next walk — utilities you jump to, not steps you progress through.
-    // Search is reachable from the sidebar and home, never via Previous/Next.
+    // Search and the function reference are reachable from the sidebar and
+    // home, never via Previous/Next.
     private static readonly HashSet<string> _excludedFromLinearOrder =
-        new(StringComparer.OrdinalIgnoreCase) { "search" };
+        new(StringComparer.OrdinalIgnoreCase) { "search", "reference" };
 
     private IReadOnlyList<PageEntry>? _cached;
 

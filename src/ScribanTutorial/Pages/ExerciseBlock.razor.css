@@ -310,6 +310,41 @@
     margin-left: 0.4em;
 }
 
+/* One-line heads-up under the Expected pane that hidden inputs exist.
+   flex-shrink: 0 so when the panel hits its height cap the pre scrolls and
+   this note never gets clipped away. */
+.exercise__hidden-note {
+    margin: 0.35rem 0 0 0;
+    font-size: 0.78rem;
+    color: var(--muted, #6b7280);
+    flex-shrink: 0;
+}
+
+/* Hidden-check failure: lead message explaining the visible example matched
+   but an alternative input didn't, followed by that case's data model. */
+.exercise__case-note {
+    margin: 0 0 0.6rem 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.exercise__case-model {
+    margin-bottom: 0.75rem;
+}
+
+/* The failing case's raw-JSON input — keep it small; it's context for the
+   diff below, not the main event. (Two-class selector so it outranks the
+   .exercise__result .exercise__pre cap above.) */
+.exercise__result .exercise__pre--case {
+    max-height: 180px;
+}
+
+/* Replaces the diff when the output is grossly oversized. */
+.exercise__oversize-note {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
 /* Narrow viewport: stack the panels (each already has its own resize). */
 @media (max-width: 720px) {
     .exercise__panels {

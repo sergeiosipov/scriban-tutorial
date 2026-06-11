@@ -1,0 +1,3 @@
+size={{ config | object.??? }}
+host: has_key={{ object.??? config 'host' }} has_value={{ object.??? config 'host' }}
+proxy: has_key={{ object.??? config 'proxy' }} has_value={{ object.??? config 'proxy' }}

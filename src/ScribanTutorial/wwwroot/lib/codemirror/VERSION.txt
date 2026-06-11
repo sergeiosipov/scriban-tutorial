@@ -29,4 +29,51 @@ checkout can be diff-compared. Bump versions only when there's a reason —
 mention the reason in this file.
 
 Bare specifiers (e.g. `import { ... } from "@codemirror/state"`) are resolved
-to the local file via the <script type="importmap"> block in index.html.
+to the local files at BUNDLE time via esbuild --alias flags (see Bundling
+below). There is no importmap in index.html and these files do not ship with
+the app — they are inputs to wwwroot/js/editor.bundle.min.js, which is the
+single module the app actually loads (imported by Services/CodeEditorHandle.cs).
+After re-vendoring you MUST re-run the bundling step below.
+
+Bundling
+--------
+The runtime artifact is wwwroot/js/editor.bundle.min.js: wwwroot/js/editor.js
+plus its two relative imports (scriban-language.js, json-language.js) and the
+11 vendored ESM files above, collapsed into one minified ES module. The
+unbundled sources are excluded from static web assets via Content Remove
+entries in ScribanTutorial.csproj.
+
+Tool: esbuild 0.25.5, standalone binary (the project is deliberately
+Node-free). One-shot procedure from the repo root in PowerShell:
+
+  1. Invoke-WebRequest https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.25.5.tgz -OutFile $env:TEMP\esbuild.tgz
+  2. tar -xzf $env:TEMP\esbuild.tgz -C $env:TEMP   # exe at $env:TEMP\package\esbuild.exe
+  3. From src\ScribanTutorial\wwwroot, run:
+
+     esbuild.exe js\editor.js --bundle --minify --format=esm `
+       --outfile=js\editor.bundle.min.js `
+       --alias:@codemirror/state=lib\codemirror\codemirror_state.js `
+       --alias:@codemirror/view=lib\codemirror\codemirror_view.js `
+       --alias:@codemirror/language=lib\codemirror\codemirror_language.js `
+       --alias:@codemirror/commands=lib\codemirror\codemirror_commands.js `
+       --alias:@lezer/common=lib\codemirror\lezer_common.js `
+       --alias:@lezer/highlight=lib\codemirror\lezer_highlight.js `
+       --alias:@lezer/lr=lib\codemirror\lezer_lr.js `
+       --alias:@marijn/find-cluster-break=lib\codemirror\marijn_find-cluster-break.js `
+       --alias:style-mod=lib\codemirror\style-mod.js `
+       --alias:w3c-keyname=lib\codemirror\w3c-keyname.js `
+       --alias:crelt=lib\codemirror\crelt.js
+
+  4. Sanity-check the output: 'invokeMethodAsync' must NOT appear (the editor
+     is pull-based, no .NET callbacks); 'IntersectionObserver' SHOULD appear
+     (lazy-mount logic); the export list must be
+     count/destroy/getValue/mount/setValue.
+  5. Delete the downloaded tarball and extracted package — esbuild is not a
+     repo dependency.
+
+Last run (2026-06-11): 292,767 bytes raw / 96,111 bytes gzip.
+
+Re-run the bundling step whenever ANY input changes: wwwroot/js/editor.js,
+wwwroot/js/scriban-language.js, wwwroot/js/json-language.js, or any
+re-vendored file in this directory. Commit the regenerated
+editor.bundle.min.js together with the source change.

@@ -1,0 +1,17 @@
+{
+  "name": "Scriban Interactive Training",
+  "short_name": "Scriban",
+  "description": "Free interactive browser-based course for the Scriban templating language — hands-on lessons and exercises, nothing to install.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#f6f7f9",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ]
+}

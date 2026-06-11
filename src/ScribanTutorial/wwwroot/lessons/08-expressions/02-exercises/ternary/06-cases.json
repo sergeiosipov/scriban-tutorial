@@ -1,0 +1,5 @@
+[
+  { "is_admin": true, "account_active": true },
+  { "is_admin": false, "account_active": false },
+  { "is_admin": true, "account_active": false }
+]

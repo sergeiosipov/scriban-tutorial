@@ -1,5 +1,6 @@
 @page "/lesson/{LessonId}"
 @inject ContentService Content
+@inject ProgressService Progress
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 @implements IDisposable
@@ -22,9 +23,65 @@ else
 {
     <article class="lesson">
         <header class="lesson__header">
-            <div class="lesson__eyebrow">Lesson</div>
+            <div class="lesson__header-row">
+                <div class="lesson__eyebrow">
+                    <a class="lesson__crumb-home" href="">All lessons</a>
+                    <span class="lesson__crumb-sep" aria-hidden="true">·</span>
+                    <span>@LessonPositionLabel()</span>
+                    @if (_lesson.Exercises.Count > 0)
+                    {
+                        <span class="lesson__crumb-sep" aria-hidden="true">·</span>
+                        <span class="lesson__crumb-progress">@PassedCount()/@_lesson.Exercises.Count passed</span>
+                    }
+                </div>
+                <a class="lesson__edit-link"
+                   href="@($"https://github.com/sergeiosipov/scriban-tutorial/edit/main/src/ScribanTutorial/wwwroot/lessons/{LessonId}/01-theory.md")"
+                   target="_blank"
+                   rel="noopener">Edit this lesson on GitHub</a>
+            </div>
             <h1>@_lesson.Entry.Title</h1>
         </header>
+        <div class="lesson__top-nav">
+            <PageNav />
+        </div>
+        @if (_lesson.TheoryHeadings.Count > 0 || _lesson.Exercises.Count > 0)
+        {
+            <nav class="lesson__toc" aria-label="In this lesson">
+                <div class="lesson__toc-title">In this lesson</div>
+                <div class="lesson__toc-groups">
+                    @* Theory group is an enhancement — older deploys have no
+                       .toc.json sidecar, so the lesson must render without it. *@
+                    @if (_lesson.TheoryHeadings.Count > 0)
+                    {
+                        <div class="lesson__toc-group">
+                            <div class="lesson__toc-group-label">Theory</div>
+                            <ul class="lesson__toc-list">
+                                @foreach (var h in _lesson.TheoryHeadings)
+                                {
+                                    <li class="lesson__toc-item@(h.Level >= 3 ? " lesson__toc-item--sub" : "")">
+                                        <a href="@($"lesson/{LessonId}#{h.Id}")">@h.Text</a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                    @if (_lesson.Exercises.Count > 0)
+                    {
+                        <div class="lesson__toc-group">
+                            <div class="lesson__toc-group-label">Exercises</div>
+                            <ul class="lesson__toc-list">
+                                @foreach (var ex in _lesson.Exercises)
+                                {
+                                    <li class="lesson__toc-item">
+                                        <a href="@($"lesson/{LessonId}#exercise-{ex.Id}")">@ex.Title</a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </div>
+            </nav>
+        }
         <TheoryBlock Html="@_lesson.TheoryHtml" />
         @* @key forces a fresh ExerciseBlock instance when LessonId changes.
            Without it, Blazor diffs by position and reuses the lesson 01 hello
@@ -36,6 +93,7 @@ else
             <ExerciseBlock @key="(LessonId, ex.Id)"
                            LessonId="@LessonId"
                            ExerciseId="@ex.Id"
+                           Title="@ex.Title"
                            Content="@ex.Content" />
         }
         <PageNav />
@@ -53,12 +111,20 @@ else
         ["10-best-practices"] = "18-best-practices",
     };
 
+    private Manifest? _manifest;
     private LessonContent? _lesson;
+    private IReadOnlyDictionary<string, ExerciseProgress>? _progress;
     private string? _error;
     private CancellationTokenSource? _cts;
     // The fragment we've already scrolled to for the current lesson load, so
     // re-renders (progress saves, theme flips) don't re-jump the page.
     private string? _scrolledTo;
+
+    protected override void OnInitialized()
+    {
+        Progress.Changed += OnProgressChanged;
+        Nav.LocationChanged += OnLocationChanged;
+    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -75,12 +141,27 @@ else
         var ct = _cts.Token;
 
         _lesson = null;
+        _progress = null;
         _error = null;
         _scrolledTo = null;
         StateHasChanged();
         try
         {
+            // Cached task inside ContentService — only the first page pays
+            // for the fetch. Needed for the "Lesson NN of MM" breadcrumb.
+            _manifest ??= await Content.InitializeAsync();
             _lesson = await Content.LoadLessonAsync(LessonId, ct);
+            // Progress is cosmetic (breadcrumb counter) — a localStorage
+            // failure must not take down the lesson view.
+            try
+            {
+                var progress = await Progress.GetAllForLessonAsync(LessonId);
+                if (!ct.IsCancellationRequested) _progress = progress;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"LessonPage: progress load failed for '{LessonId}' ({ex.GetType().Name})");
+            }
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -97,15 +178,36 @@ else
         }
     }
 
-    // Honour a "#exercise-<slug>" deep link (e.g. from a search result) once the
-    // lesson's exercises have actually rendered — Blazor's own fragment handling
-    // fires at navigation time, before the async content exists.
+    // Honour a "#exercise-<slug>" or "#<heading-id>" deep link (e.g. from a
+    // search result) once the lesson's content has actually rendered — Blazor's
+    // own fragment handling fires at navigation time, before the async content
+    // exists.
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (_lesson is null) return;
         var fragment = GetFragment();
         if (string.IsNullOrEmpty(fragment) || fragment == _scrolledTo) return;
         _scrolledTo = fragment;
+        await ScrollToFragmentAsync(fragment);
+    }
+
+    // Same-page fragment clicks (the "In this lesson" links) only change the
+    // hash: the route parameter is unchanged, so the router never re-runs the
+    // lifecycle and OnAfterRenderAsync doesn't fire. Scroll explicitly here.
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (_lesson is null) return;
+        var fragment = GetFragment();
+        if (string.IsNullOrEmpty(fragment)) return;
+        // Mark it consumed so a later progress-save re-render doesn't re-jump.
+        // Cross-lesson navigations reset _scrolledTo in OnParametersSetAsync,
+        // which runs after this handler, so the deep-link path still works.
+        _scrolledTo = fragment;
+        _ = InvokeAsync(() => ScrollToFragmentAsync(fragment));
+    }
+
+    private async Task ScrollToFragmentAsync(string fragment)
+    {
         try
         {
             await JS.InvokeVoidAsync("scrollToAnchor", fragment);
@@ -114,6 +216,49 @@ else
         {
             Console.Error.WriteLine($"LessonPage: scroll to '{fragment}' failed — {ex.GetType().Name}");
         }
+    }
+
+    private void OnProgressChanged()
+    {
+        _ = InvokeAsync(async () =>
+        {
+            try
+            {
+                _progress = await Progress.GetAllForLessonAsync(LessonId);
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"LessonPage: progress refresh failed — {ex.GetType().Name}");
+            }
+        });
+    }
+
+    private string LessonPositionLabel()
+    {
+        if (_manifest is not null)
+        {
+            for (var i = 0; i < _manifest.Lessons.Count; i++)
+            {
+                if (_manifest.Lessons[i].Id == LessonId)
+                    return $"Lesson {i + 1} of {_manifest.Lessons.Count}";
+            }
+        }
+        // Manifest missing or lesson not listed (shouldn't happen once the
+        // lesson itself loaded) — fall back to the plain eyebrow word.
+        return "Lesson";
+    }
+
+    private int PassedCount()
+    {
+        // Locals, not fields, inside the lambda — nullable flow analysis
+        // resets field state in lambda bodies and would flag _progress.
+        var lesson = _lesson;
+        var progress = _progress;
+        if (lesson is null || progress is null) return 0;
+        // Count only exercises the lesson currently ships — stale progress
+        // records for renamed/removed exercises must not inflate the tally.
+        return lesson.Exercises.Count(ex => progress.TryGetValue(ex.Id, out var p) && p.Passed);
     }
 
     private string GetFragment()
@@ -125,6 +270,8 @@ else
 
     public void Dispose()
     {
+        Progress.Changed -= OnProgressChanged;
+        Nav.LocationChanged -= OnLocationChanged;
         _cts?.Cancel();
         _cts?.Dispose();
     }

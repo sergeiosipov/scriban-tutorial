@@ -75,6 +75,44 @@ public class ExerciseSolutionTests
         Assert.Equal(want, actual);
     }
 
+    /// <summary>
+    /// Hidden validation cases: an exercise dir MAY carry a 06-cases.json — a
+    /// JSON array of alternative data-model objects whose expected outputs are
+    /// derived at build time from the canonical solution. The derivation is
+    /// only sound if the solution actually renders against every case, so for
+    /// each manifest exercise that has the file we assert exactly that
+    /// (through ScribanRunner, the same engine ContentBuilder derives with).
+    /// Exercises without the file pass vacuously — the tree is allowed to
+    /// contain zero case files.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Exercises))]
+    public void Canonical_solution_renders_every_hidden_case(string lessonId, string exerciseId, string exerciseDir)
+    {
+        var casesPath = Path.Combine(exerciseDir, "06-cases.json");
+        if (!File.Exists(casesPath))
+            return; // no hidden cases for this exercise — nothing to check
+
+        var solution = File.ReadAllText(Path.Combine(exerciseDir, "05-solution.txt"));
+
+        using var doc = JsonDocument.Parse(File.ReadAllText(casesPath));
+        Assert.True(doc.RootElement.ValueKind == JsonValueKind.Array,
+            $"{lessonId}/{exerciseId}: 06-cases.json must be a JSON array of objects, not {doc.RootElement.ValueKind}");
+
+        var index = 0;
+        foreach (var element in doc.RootElement.EnumerateArray())
+        {
+            Assert.True(element.ValueKind == JsonValueKind.Object,
+                $"{lessonId}/{exerciseId}: case {index} in 06-cases.json must be a JSON object, not {element.ValueKind}");
+
+            var caseJson = JsonSerializer.Serialize(element);
+            var result = ScribanRunner.Run(solution, caseJson);
+            Assert.True(result.Ok,
+                $"{lessonId}/{exerciseId}: solution failed to render case {index} of 06-cases.json: {result.Errors}");
+            index++;
+        }
+    }
+
     [Fact]
     public void Manifest_lists_at_least_one_exercise_per_lesson_or_explicitly_empty()
     {

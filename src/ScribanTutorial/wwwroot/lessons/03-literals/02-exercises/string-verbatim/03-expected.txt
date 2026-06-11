@@ -1,1 +1,1 @@
-["this", "is", "a", "text"]
+C:\Users\you\notes.txt

@@ -1,0 +1,1 @@
+Moved to {{ start | date.parse | date.add_hours delay_hours | date.add_minutes delay_minutes | date.to_string `%H:%M` }}

@@ -1,0 +1,5 @@
+[
+  { "user": { "id": "u-1", "profile": { "preferred_name": "Grace" }, "contact": { "email": "grace@example.com" }, "login": "ghopper" } },
+  { "user": { "id": "u-2", "contact": { "email": "alan@bletchley.org" }, "login": "aturing" } },
+  { "user": { "id": "u-3", "login": "klj" } }
+]

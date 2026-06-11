@@ -1,1 +1,6 @@
-{ "items": [] }
+{
+  "lists": [
+    { "name": "Inbox", "items": ["welcome note", "build report", "retro invite"] },
+    { "name": "Archive", "items": [] }
+  ]
+}

@@ -43,9 +43,10 @@ Both return a `DateTime` value. Rendered directly it formats like
 ```
 :::
 
-(Examples in this lesson use a fixed parsed date so the expected output
-stays stable. Use `date.now` in real templates — `now` doesn't
-round-trip through the test runner.)
+(Examples in this lesson use a fixed parsed date so the recorded output
+stays stable. `date.now` itself can still be exercised — assert
+*structure* instead of an exact value, e.g. `date.now.Year >= 2024`,
+the same pattern lesson 10 uses for `math.uuid`.)
 
 ## Parsing strings
 
@@ -114,7 +115,9 @@ amount. They don't mutate the source:
 | `date.add_seconds d n` | n seconds |
 | `date.add_milliseconds d n` | n milliseconds |
 
-`n` can be negative — `add_days d -7` is "one week earlier."
+`n` can be negative — `add_days d (-7)` is "one week earlier." (The
+parentheses around `-7` matter: without them the `-` reads as
+subtraction and the call fails.)
 
 :::example
 ```scriban
@@ -126,6 +129,61 @@ amount. They don't mutate the source:
 2024-04-20
 ```
 :::
+
+## Date arithmetic
+
+Two operator forms work directly on `DateTime` values: subtracting two
+dates (`later - earlier`) returns a **TimeSpan**, and adding a
+timespan to a date (`d + interval`) returns a new, shifted
+**DateTime**. (Lesson 14 covers the `timespan.from_*` constructors.)
+
+Subtraction is the "days until deadline" computation — read
+`.TotalDays` (or `.TotalHours`, etc.) off the resulting `TimeSpan`:
+
+:::example
+```scriban
+{{ start = date.parse '2026-06-10'
+   due = date.parse '2026-07-01'
+   gap = due - start
+   gap.TotalDays }} days until launch
+```
+```text
+21 days until launch
+```
+:::
+
+Addition shifts a date by an interval:
+
+:::example
+```scriban
+{{ kickoff = date.parse '2026-06-10'
+   review = kickoff + (timespan.from_days 7)
+   review | date.to_string `%A, %Y-%m-%d` }}
+```
+```text
+Wednesday, 2026-06-17
+```
+:::
+
+Two sharp edges to know about:
+
+**`date - timespan` is not supported.** `d - (timespan.from_days 1)`
+raises *"The operator `Subtract` is not supported"*. To step a date
+backwards, add a *negative* interval — `d + (timespan.from_days (-1))`
+— or use `date.add_days d (-1)`.
+
+**Parenthesise calls on the left of an operator.** Function arguments
+parse greedily, so the inline form `date.parse a - date.parse b`
+fails — the first call swallows the rest of the line as arguments and
+one of the parses ends up with none (*"Invalid number of arguments
+`0` passed to `date.parse`"*). Either wrap every call:
+
+```scriban
+{{ ((date.parse '2026-07-01') - (date.parse '2026-06-10')).TotalDays }}
+```
+
+or assign to intermediate variables first, as in the examples above —
+that form is the clearest.
 
 ## Formatting with `date.to_string`
 

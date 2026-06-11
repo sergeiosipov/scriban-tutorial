@@ -1,0 +1,3 @@
+size=2
+host: has_key=true has_value=true
+proxy: has_key=true has_value=false

@@ -202,10 +202,36 @@ Inside the body, the `for` object exposes useful metadata:
 | Field | Meaning |
 |---|---|
 | `for.index` | 0-based iteration counter |
+| `for.rindex` | reverse counter — counts down to 0 on the last iteration |
 | `for.first` / `for.last` | `true` on first / last iteration |
 | `for.length` | total iterations |
 | `for.changed` | `true` when the current item differs from the previous |
 | `for.even` / `for.odd` | parity of `for.index` |
+
+### `for ... else`
+
+A `for` block can carry an `else` branch, which runs only when the
+iterable is empty — the loop-flavoured cousin of `if`'s `else`. It saves
+a separate `if products.size > 0` wrapper around the loop:
+
+:::example
+```scriban
+{{ for product in products ~}}
+- {{ product.name }}
+{{ else ~}}
+No products found.
+{{ end }}
+```
+```json
+{ "products": [] }
+```
+```text
+No products found.
+```
+:::
+
+With a non-empty array the body runs as usual and the `else` branch is
+skipped entirely.
 
 ### Named parameters: `offset`, `limit`, `reversed`
 

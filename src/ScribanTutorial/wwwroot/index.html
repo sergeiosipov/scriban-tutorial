@@ -4,19 +4,29 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width" />
   <title>Scriban Interactive Training</title>
+  <meta name="description" content="Free interactive browser-based course for the Scriban templating language — hands-on lessons and exercises, nothing to install." />
+  <meta name="theme-color" content="#f6f7f9" />
+  <meta property="og:title" content="Scriban Interactive Training" />
+  <meta property="og:description" content="Free interactive browser-based course for the Scriban templating language — hands-on lessons and exercises, nothing to install." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://sergeiosipov.github.io/scriban-tutorial/" />
+  <meta property="og:image" content="https://sergeiosipov.github.io/scriban-tutorial/icon-192.png" />
+  <meta name="twitter:card" content="summary" />
   <!-- Defense-in-depth CSP. We're a static SPA whose only origin is the page itself.
-       'wasm-unsafe-eval' is required for Blazor WASM's runtime. 'unsafe-inline'
-       on script-src is for the inline <script type="importmap"> below — until we
-       commit to maintaining a CSP hash for it, dropping unsafe-inline would block
-       bare specifier resolution for CodeMirror. 'unsafe-inline' on style-src is
-       needed for Blazor's scoped CSS isolation and CodeMirror's runtime style
-       injection. The two boot scripts (spa-redirect.js, theme-boot.js) are
-       external files served from 'self'. No third-party origins are whitelisted.
+       'wasm-unsafe-eval' is required for Blazor WASM's runtime. script-src has no
+       'unsafe-inline': the page carries no inline scripts — the CodeMirror import-
+       map that used to require it is gone (the editor ships as the pre-bundled
+       js/editor.bundle.min.js, see lib/codemirror/VERSION.txt). 'unsafe-inline'
+       on style-src is needed for Blazor's scoped CSS isolation and CodeMirror's
+       runtime style injection. All boot scripts (spa-redirect.js, theme-boot.js,
+       nav-scroll.js, and the js/boot.js module that starts Blazor with the
+       .br-aware loadBootResource and registers the service worker) are external
+       files served from 'self'. No third-party origins are whitelisted.
        Note: `frame-ancestors` is ignored when delivered via <meta>; if framing
        protection ever matters, set it as a server response header. -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self';
-                 script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline';
+                 script-src 'self' 'wasm-unsafe-eval';
                  style-src 'self' 'unsafe-inline';
                  img-src 'self' data:;
                  font-src 'self' data:;
@@ -27,25 +37,21 @@
   <script src="js/spa-redirect.js"></script>
   <base href="/" />
   <script src="js/theme-boot.js"></script>
+  <!-- Boot preloads. The build rewrites the #[.fingerprint]-style placeholders
+       below to real content hashes (OverrideHtmlAssetPlaceholders in the
+       csproj) — that substitution only works for .js assets, and the publish
+       output materializes _framework files ONLY under fingerprinted names.
+       The dotnet.js modulepreload is load-bearing beyond preloading: js/boot.js
+       reads its substituted href and hands it to the boot loader, because the
+       loader's own fallback imports the stable _framework/dotnet.js name,
+       which has no physical file in the publish output. manifest.json here is
+       the COURSE manifest fetched on first render — the web app manifest is
+       site.webmanifest below. -->
+  <link rel="modulepreload" id="dotnet-js-preload" href="_framework/dotnet#[.{fingerprint}].js" />
+  <link rel="preload" href="manifest.json" as="fetch" crossorigin />
+  <link rel="manifest" href="site.webmanifest" />
   <link rel="stylesheet" href="css/app.css" />
   <link rel="stylesheet" href="ScribanTutorial.styles.css" />
-  <script type="importmap">
-  {
-    "imports": {
-      "@codemirror/state":           "./lib/codemirror/codemirror_state.js",
-      "@codemirror/view":            "./lib/codemirror/codemirror_view.js",
-      "@codemirror/language":        "./lib/codemirror/codemirror_language.js",
-      "@codemirror/commands":        "./lib/codemirror/codemirror_commands.js",
-      "@lezer/common":               "./lib/codemirror/lezer_common.js",
-      "@lezer/highlight":            "./lib/codemirror/lezer_highlight.js",
-      "@lezer/lr":                   "./lib/codemirror/lezer_lr.js",
-      "@marijn/find-cluster-break":  "./lib/codemirror/marijn_find-cluster-break.js",
-      "style-mod":                   "./lib/codemirror/style-mod.js",
-      "w3c-keyname":                 "./lib/codemirror/w3c-keyname.js",
-      "crelt":                       "./lib/codemirror/crelt.js"
-    }
-  }
-  </script>
 </head>
 <body>
   <div id="app">
@@ -71,6 +77,12 @@
   </div>
 
   <script src="js/nav-scroll.js"></script>
-  <script src="_framework/blazor.webassembly.js"></script>
+  <!-- autostart=false: js/boot.js (a module, so it runs after this classic
+       script) calls Blazor.start with a loadBootResource that serves the .br
+       precompressed assets, and registers the service worker. The src uses a
+       fingerprint placeholder because the publish output ships this file only
+       under its fingerprinted name. -->
+  <script src="_framework/blazor.webassembly#[.{fingerprint}].js" autostart="false"></script>
+  <script type="module" src="js/boot.js"></script>
 </body>
 </html>

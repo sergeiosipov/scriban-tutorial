@@ -1,0 +1,135 @@
+@page "/reference"
+@inject ReferenceService Reference
+
+<PageTitle>Function reference - Scriban Interactive Training</PageTitle>
+
+<article class="reference">
+    <header class="reference__header">
+        <h1>Function reference</h1>
+        <p class="reference__intro">
+            Every built-in covered by the course, in one place. Each name links
+            to the lesson section where it is taught.
+        </p>
+    </header>
+
+    <input class="reference__filter"
+           type="search"
+           autocomplete="off"
+           spellcheck="false"
+           placeholder="Filter functions..."
+           aria-label="Filter functions"
+           @bind="_filter"
+           @bind:event="oninput"
+           @bind:after="Recompute" />
+
+    @if (_loadError)
+    {
+        <p class="reference__error" role="alert">
+            The function reference couldn't be loaded. Try reloading the page.
+        </p>
+    }
+    else if (_modules is null)
+    {
+        <p class="reference__count" role="status">Loading the function reference…</p>
+    }
+    else
+    {
+        <p class="reference__count" role="status">
+            @_functionCount functions across @_visible.Count modules
+        </p>
+
+        @foreach (var (module, entries) in _visible)
+        {
+            <section class="reference__module">
+                <h2 class="reference__module-title">
+                    <a href="lesson/@module.LessonId">@module.Module — @module.LessonTitle</a>
+                </h2>
+                <table class="reference__table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Returns</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var entry in entries)
+                        {
+                            <tr class="reference__row@(IsFunction(entry) ? "" : " reference__row--minor")">
+                                <td class="reference__name">
+                                    <a href="@EntryHref(module, entry)"
+                                       title="@(string.IsNullOrWhiteSpace(entry.Signature) ? null : entry.Signature)">
+                                        <code>@entry.Name</code>
+                                    </a>
+                                </td>
+                                <td class="reference__returns"><code>@entry.Returns</code></td>
+                                <td class="reference__desc">
+                                    @entry.Description
+                                    @if (!string.IsNullOrWhiteSpace(entry.Example))
+                                    {
+                                        <code class="reference__example">@entry.Example</code>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </section>
+        }
+    }
+</article>
+
+@code {
+    private IReadOnlyList<ReferenceModule>? _modules;
+    private bool _loadError;
+    private string _filter = "";
+
+    // Modules with their currently visible (filter-matching) entries; modules
+    // whose every entry is filtered out are dropped entirely.
+    private readonly List<(ReferenceModule Module, IReadOnlyList<ReferenceEntry> Entries)> _visible = new();
+    private int _functionCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _modules = await Reference.LoadAsync();
+        }
+        catch
+        {
+            _loadError = true;
+        }
+        Recompute();
+    }
+
+    private void Recompute()
+    {
+        _visible.Clear();
+        _functionCount = 0;
+        if (_modules is null) return;
+
+        var needle = _filter.Trim();
+        foreach (var module in _modules)
+        {
+            IReadOnlyList<ReferenceEntry> entries = needle.Length == 0
+                ? module.Entries
+                : module.Entries.Where(e => Matches(e, needle)).ToArray();
+            if (entries.Count == 0) continue;
+
+            _visible.Add((module, entries));
+            _functionCount += entries.Count(IsFunction);
+        }
+    }
+
+    private static bool Matches(ReferenceEntry entry, string needle) =>
+        entry.Name.Contains(needle, StringComparison.OrdinalIgnoreCase)
+        || entry.Description.Contains(needle, StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsFunction(ReferenceEntry entry) =>
+        string.Equals(entry.Kind, "function", StringComparison.OrdinalIgnoreCase);
+
+    private static string EntryHref(ReferenceModule module, ReferenceEntry entry) =>
+        string.IsNullOrEmpty(entry.SectionId)
+            ? $"lesson/{module.LessonId}"
+            : $"lesson/{module.LessonId}#{entry.SectionId}";
+}

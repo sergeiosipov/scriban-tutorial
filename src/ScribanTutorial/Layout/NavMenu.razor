@@ -4,47 +4,65 @@
 @inject IJSRuntime JS
 @implements IDisposable
 
-<nav class="nav-menu" aria-label="Course navigation">
+<nav class="nav-menu@(_collapsed ? " nav-menu--collapsed" : "")" aria-label="Course navigation">
     <div class="nav-menu__brand">
         <div class="nav-menu__title-row">
             <div>
                 <div class="nav-menu__title">@(_manifest?.CourseTitle ?? "Scriban Tutorial")</div>
                 <div class="nav-menu__subtitle">@(_manifest?.CourseSubtitle ?? "Loading…")</div>
             </div>
-            <button class="nav-menu__theme"
-                    type="button"
-                    title="@(Theme.IsDark ? "Switch to light theme" : "Switch to dark theme")"
-                    aria-label="@(Theme.IsDark ? "Switch to light theme" : "Switch to dark theme")"
-                    @onclick="ToggleTheme">
-                @(Theme.IsDark ? "☼" : "☾")
-            </button>
+            <div class="nav-menu__actions">
+                <button class="nav-menu__theme"
+                        type="button"
+                        title="@(Theme.IsDark ? "Switch to light theme" : "Switch to dark theme")"
+                        aria-label="@(Theme.IsDark ? "Switch to light theme" : "Switch to dark theme")"
+                        @onclick="ToggleTheme">
+                    @(Theme.IsDark ? "☼" : "☾")
+                </button>
+                <button class="nav-menu__toggle"
+                        type="button"
+                        title="@(_collapsed ? "Show navigation menu" : "Hide navigation menu")"
+                        aria-label="@(_collapsed ? "Show navigation menu" : "Hide navigation menu")"
+                        aria-expanded="@(_collapsed ? "false" : "true")"
+                        aria-controls="nav-menu-panel"
+                        @onclick="ToggleNav">
+                    @(_collapsed ? "☰" : "✕")
+                </button>
+            </div>
         </div>
     </div>
+    <div class="nav-menu__panel" id="nav-menu-panel">
     @if (_manifest is not null)
     {
         <ul class="nav-menu__list">
             <li class="nav-menu__item">
-                <NavLink class="nav-menu__link" href="" Match="NavLinkMatch.All">
+                <NavLink class="nav-menu__link" href="" Match="NavLinkMatch.All" @onclick="CollapseNav">
                     <span class="nav-menu__num" aria-hidden="true">≡</span>
                     <span class="nav-menu__label">Home</span>
                 </NavLink>
             </li>
             <li class="nav-menu__item">
-                <NavLink class="nav-menu__link" href="about">
+                <NavLink class="nav-menu__link" href="about" @onclick="CollapseNav">
                     <span class="nav-menu__num" aria-hidden="true">ⓘ</span>
                     <span class="nav-menu__label">About</span>
                 </NavLink>
             </li>
             <li class="nav-menu__item">
-                <NavLink class="nav-menu__link" href="playground">
+                <NavLink class="nav-menu__link" href="playground" @onclick="CollapseNav">
                     <span class="nav-menu__num" aria-hidden="true">✎</span>
                     <span class="nav-menu__label">Playground</span>
                 </NavLink>
             </li>
             <li class="nav-menu__item">
-                <NavLink class="nav-menu__link" href="search">
+                <NavLink class="nav-menu__link" href="search" @onclick="CollapseNav">
                     <span class="nav-menu__num" aria-hidden="true">⌕</span>
                     <span class="nav-menu__label">Search</span>
+                </NavLink>
+            </li>
+            <li class="nav-menu__item">
+                <NavLink class="nav-menu__link" href="reference" @onclick="CollapseNav">
+                    <span class="nav-menu__num" aria-hidden="true">§</span>
+                    <span class="nav-menu__label">Reference</span>
                 </NavLink>
             </li>
             @foreach (var (lesson, index) in _manifest.Lessons.Select((l, i) => (l, i + 1)))
@@ -53,7 +71,8 @@
                 <li class="nav-menu__item">
                     <NavLink class="nav-menu__link"
                              href="@($"lesson/{lesson.Id}")"
-                             aria-label="@($"Lesson {index}: {lesson.Title} ({StateTitle(state)})")">
+                             aria-label="@($"Lesson {index}: {lesson.Title} ({StateTitle(state)})")"
+                             @onclick="CollapseNav">
                         <span class="nav-menu__num" aria-hidden="true">@index.ToString("D2")</span>
                         <span class="nav-menu__label">@lesson.Title</span>
                         <span class="nav-menu__progress nav-menu__progress--@state.ToString().ToLowerInvariant()"
@@ -64,7 +83,7 @@
                 </li>
             }
             <li class="nav-menu__item">
-                <NavLink class="nav-menu__link" href="contribute">
+                <NavLink class="nav-menu__link" href="contribute" @onclick="CollapseNav">
                     <span class="nav-menu__num" aria-hidden="true">✎</span>
                     <span class="nav-menu__label">Contribute a lesson</span>
                 </NavLink>
@@ -79,11 +98,21 @@
             </button>
         </div>
     }
+    </div>
 </nav>
 
 @code {
     private Manifest? _manifest;
     private Dictionary<string, IReadOnlyDictionary<string, ExerciseProgress>> _progressByLesson = new();
+
+    // Mobile disclosure state. Starts collapsed; only matters at the <=860px
+    // breakpoint — on desktop the CSS never hides the panel, so this bool has
+    // no visible effect there (the toggle button itself is display:none).
+    private bool _collapsed = true;
+
+    private void ToggleNav() => _collapsed = !_collapsed;
+
+    private void CollapseNav() => _collapsed = true;
 
     enum LessonState { NotStarted, InProgress, Complete }
 

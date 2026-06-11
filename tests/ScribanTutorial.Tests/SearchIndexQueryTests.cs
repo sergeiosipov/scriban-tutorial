@@ -9,7 +9,7 @@ namespace ScribanTutorial.Tests;
 /// </summary>
 public class SearchIndexQueryTests
 {
-    private static readonly IReadOnlyList<SearchDoc> Docs = new[]
+    private static readonly IReadOnlyList<SearchDoc> RawDocs = new[]
     {
         new SearchDoc("11-string", "Built-in: string", "theory", null,
             "Built-in: string", "lesson/11-string",
@@ -21,6 +21,23 @@ public class SearchIndexQueryTests
             "swap-names", "lesson/12-regex#exercise-swap-names",
             "use regex.replace with capture groups to swap first and last names"),
     };
+
+    // The app prepares once at index load (SearchService) and queries the
+    // prepared docs per keystroke — the tests exercise the same path.
+    private static readonly IReadOnlyList<PreparedSearchDoc> Docs = SearchIndexQuery.Prepare(RawDocs);
+
+    [Fact]
+    public void Prepare_keeps_documents_in_order_and_lowers_fields()
+    {
+        Assert.Equal(RawDocs.Count, Docs.Count);
+        for (var i = 0; i < RawDocs.Count; i++)
+        {
+            Assert.Same(RawDocs[i], Docs[i].Doc);
+            Assert.Equal(RawDocs[i].Title.ToLowerInvariant(), Docs[i].TitleLower);
+            Assert.Equal(RawDocs[i].LessonTitle.ToLowerInvariant(), Docs[i].LessonTitleLower);
+            Assert.Equal(RawDocs[i].Text.ToLowerInvariant(), Docs[i].TextLower);
+        }
+    }
 
     [Fact]
     public void Empty_query_returns_no_hits()

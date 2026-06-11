@@ -51,29 +51,54 @@ public sealed class ContentService
 
     private async Task<LessonContent> FetchLessonAsync(LessonEntry entry)
     {
-        var theoryHtml = await _http.GetStringAsync($"{entry.TheoryPath}.html");
+        var theoryTask = _http.GetStringAsync($"{entry.TheoryPath}.html");
+        var headingsTask = FetchTheoryHeadingsAsync(entry);
 
         var exercises = await Task.WhenAll(entry.Exercises.Select(async ex =>
         {
             var bundle = await _http.GetFromJsonAsync<ExerciseBundle>($"{ex.Path}/bundle.json", _bundleOpts)
                 ?? throw new InvalidOperationException($"bundle.json missing for {ex.Id}");
-            return new LessonExerciseView(ex.Id, ex.Path, new ExerciseContent(
+            return new LessonExerciseView(ex.Id, ex.Path, ex.DisplayTitle, new ExerciseContent(
                 DescriptionHtml: bundle.Description,
                 DataModelJson:   bundle.DataModel,
                 DataModelHtml:   bundle.DataModelHtml,
                 Expected:        bundle.Expected,
                 StarterTemplate: bundle.Template,
-                Solution:        bundle.Solution));
+                Solution:        bundle.Solution,
+                Cases:           bundle.Cases is null
+                    ? []
+                    : bundle.Cases.Select(c => new ExerciseCase(c.DataModel, c.Expected)).ToArray()));
         }));
 
-        return new LessonContent(entry, theoryHtml, exercises);
+        return new LessonContent(entry, await theoryTask, exercises, await headingsTask);
     }
 
+    // The .toc.json sidecar is an enhancement, not a contract — a deploy where
+    // it is missing or malformed must still render the lesson, just without
+    // the theory-section links in the "In this lesson" box.
+    private async Task<IReadOnlyList<TheoryHeading>> FetchTheoryHeadingsAsync(LessonEntry entry)
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<List<TheoryHeading>>($"{entry.TheoryPath}.toc.json", _bundleOpts)
+                   ?? [];
+        }
+        catch
+        {
+            return [];
+        }
+    }
+
+    // Cases is absent from bundles built before hidden-case support — and
+    // from the many exercises that simply have no 06-cases.json.
     private sealed record ExerciseBundle(
         string Description,
         string DataModel,
         string DataModelHtml,
         string Expected,
         string Template,
-        string Solution);
+        string Solution,
+        List<BundleCase>? Cases = null);
+
+    private sealed record BundleCase(string DataModel, string Expected);
 }

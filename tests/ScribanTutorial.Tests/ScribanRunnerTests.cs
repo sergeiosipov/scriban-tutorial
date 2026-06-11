@@ -33,14 +33,28 @@ public class ScribanRunnerTests
     }
 
     [Fact]
-    public void Caps_runaway_output_at_250_KB()
+    public void Stops_runaway_output_at_the_cap_while_rendering()
     {
-        // 50 KB per iteration × 6 iterations ≈ 300 KB, well past the 250 KB cap.
+        // 50 KB per iteration × 6 iterations ≈ 300 KB, well past the 250 KB
+        // cap. The cap is enforced IN-FLIGHT by GuardedOutput — the render is
+        // aborted with a friendly error instead of building the whole string
+        // first and truncating after (which let output-heavy loops allocate
+        // hundreds of MB before the old post-render check looked).
         var template = "{{ for i in 1..6 }}" + new string('x', 50_000) + "{{ end }}";
         var result = ScribanRunner.Run(template, "{}");
+        Assert.False(result.Ok);
+        Assert.NotNull(result.Errors);
+        Assert.Contains("250 KB", result.Errors);
+    }
+
+    [Fact]
+    public void Output_just_under_the_cap_still_renders()
+    {
+        // 60 KB total — nowhere near the cap; the guard must not interfere
+        // with legitimate large-ish outputs.
+        var template = "{{ for i in 1..6 }}" + new string('x', 10_000) + "{{ end }}";
+        var result = ScribanRunner.Run(template, "{}");
         Assert.True(result.Ok);
-        Assert.True(result.Output.Length <= 256_000 + 64,
-            $"output length {result.Output.Length} exceeded cap + suffix budget");
-        Assert.EndsWith("[output capped at 250 KB]", result.Output);
+        Assert.Equal(60_000, result.Output.Length);
     }
 }

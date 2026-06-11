@@ -133,13 +133,6 @@ The takeaway: when you see `x = x | something y` in a loop, ask whether
 in-place form (index assignment for arrays, member assignment for
 objects) before reaching for it.
 
-## Pre-compute where you can
-
-Scriban can sum, average, and multiply inside a template, but it's
-clumsy compared to doing it in the host code that produces the JSON.
-Pass per-line subtotals and grand totals in the data model and just
-print them — your templates stay readable.
-
 ## Filters you'll reach for first
 
 A short tour of the standard library worth memorising:
@@ -147,13 +140,13 @@ A short tour of the standard library worth memorising:
 | Need | Reach for |
 |---|---|
 | Make uppercase / strip spaces | `string.upcase`, `string.strip` |
-| Format a number | `math.format "0.00"`, `math.round` |
-| Format a date | `date.to_string "%Y-%m-%d"` |
+| Format a number | `math.format '0.00'`, `math.round` |
+| Format a date | `date.to_string '%Y-%m-%d'` |
 | Test "has items" | `(array.size x) > 0` |
-| Join with a separator | `array.join ", "` |
+| Join with a separator | `array.join ', '` |
 | Keys of an object | `object.keys o`, `object.size o` |
 
-The full reference: <https://scriban.github.io/docs/built-ins/>.
+The full reference: <https://scriban.github.io/docs/builtins/>.
 
 ## Pre-compute in the host — or in the template?
 
@@ -218,7 +211,7 @@ For matching (rather than replacing), `regex.match` returns the first
 match; `regex.split` slices the input on a pattern (you saw that one
 back in lesson 03's verbatim-string exercise).
 
-The full filter list is at <https://scriban.github.io/docs/built-ins/>.
+The full filter list is at <https://scriban.github.io/docs/builtins/>.
 
 ## The capstones
 
@@ -227,14 +220,18 @@ order of difficulty:
 
 1. **`invoice`** — data-model fields and member access only; subtotals
    and the grand total arrive pre-computed.
-2. **`invoice-from-items`** — same shape, but the data carries only
-   `qty` and `unit_price`. The template computes each subtotal via an
-   inline function and the grand total via a `$grand` accumulator.
-3. **`transaction-rollup`** — group-by aggregation: four fund
+2. **`regex-redact`** — strip IPv4 addresses out of a log line with
+   `regex.replace` and a verbatim pattern. A single-function drill, but
+   the pattern syntax takes a moment.
+3. **`invoice-from-items`** — same shape as `invoice`, but the data
+   carries only `qty`, a decimal `unit_price`, and an ISO `issued`
+   date. The template computes each subtotal via an inline function,
+   accumulates the grand total in `$grand`, and integrates the
+   formatting lessons: `math.format 'N2'` for the money columns,
+   `date.parse` + `date.to_string` for the header date.
+4. **`transaction-rollup`** — group-by aggregation: four fund
    transactions are filtered by status and merged by
    fund+direction into one line per group.
-4. **`regex-redact`** — strip IPv4 addresses out of a log line with
-   `regex.replace` and a verbatim pattern.
 
 If you can read all four without squinting, you're ready to write
 Scriban for real.

@@ -117,3 +117,48 @@
 .reference--error h1 {
     color: var(--fail, #dc2626);
 }
+
+/* "Your data" export/import controls */
+
+.reference__data-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1rem;
+}
+
+.reference__data-btn {
+    font: inherit;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border, #e5e7eb);
+    background: var(--bg, #fff);
+    color: var(--fg, #1a1a1a);
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.reference__data-btn:hover:not(:disabled) {
+    border-color: var(--accent, #2563eb);
+}
+
+.reference__data-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.reference__data-btn:focus-visible {
+    outline: 2px solid var(--accent, #2563eb);
+    outline-offset: 1px;
+}
+
+/* p selector keeps specificity at least at the `.reference__body ::deep p`
+   level so the margin override below actually applies. */
+p.reference__data-status {
+    margin: 0.75em 0 0;
+    font-size: 0.9rem;
+    color: var(--muted, #6b7280);
+}
+
+p.reference__data-status--error {
+    color: var(--fail, #dc2626);
+}

@@ -1,0 +1,3 @@
+{{- tablerow product in products cols:2 -}}
+{{ product }}
+{{- end -}}

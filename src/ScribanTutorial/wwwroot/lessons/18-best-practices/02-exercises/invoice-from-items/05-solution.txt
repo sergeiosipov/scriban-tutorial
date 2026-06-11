@@ -1,11 +1,12 @@
 {{- subtotal(line) = line.qty * line.unit_price
     $grand = 0 -}}
 Invoice for {{ customer }}
+Issued {{ (date.parse issued) | date.to_string '%d %b %Y' }}
 ------------------------
 {{- for line in lines
       $line_total = subtotal line
       $grand = $grand + $line_total }}
-{{ line.description }} (x{{ line.qty }}): ${{ $line_total }}
+{{ line.description }} (x{{ line.qty }}): ${{ $line_total | math.format 'N2' }}
 {{- end }}
 ------------------------
-Total: ${{ $grand }}
+Total: ${{ $grand | math.format 'N2' }}

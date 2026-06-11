@@ -125,6 +125,7 @@ read-only objects:
 | Inside `for` | Meaning |
 |---|---|
 | `for.index` | 0-based iteration counter |
+| `for.rindex` | reverse counter — counts down to 0 on the last iteration |
 | `for.first` / `for.last` | `true` on first / last iteration |
 | `for.length` | total iterations |
 | `for.changed` | `true` when the current item differs from the previous one |

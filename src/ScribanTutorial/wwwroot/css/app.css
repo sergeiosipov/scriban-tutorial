@@ -288,3 +288,27 @@ h1:focus { outline: none; }
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* "Try in playground" link ContentBuilder appends to each :::example. */
+.example__actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.example__try {
+    font-size: 0.78rem;
+    text-decoration: none;
+    color: var(--accent, #2563eb);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 6px;
+    padding: 0.2rem 0.55rem;
+    background: var(--bg, #fff);
+}
+
+.example__try:hover {
+    border-color: var(--accent, #2563eb);
+}
+
+.example__try::after {
+    content: " \2197";
+}

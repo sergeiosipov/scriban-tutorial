@@ -1,0 +1,4 @@
+[
+  { "primary_email": "grace@example.com", "backup_email": "fallback@example.com" },
+  { "primary_email": null, "backup_email": "lovelace@history.org" }
+]

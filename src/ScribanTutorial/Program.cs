@@ -2,6 +2,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.AspNetCore.Components.WebAssembly.Services;
 using ScribanTutorial;
 using ScribanTutorial.Services;
 
@@ -19,9 +20,14 @@ builder.Services.AddSingleton(sp => new HttpClient
 
 builder.Services.AddSingleton<ContentService>();
 builder.Services.AddSingleton<SearchService>();
+builder.Services.AddSingleton<ReferenceService>();
 builder.Services.AddSingleton<PageOrder>();
 builder.Services.AddSingleton<ProgressService>();
 builder.Services.AddSingleton<ThemeService>();
+
+// Fetches lazily-loaded assemblies (DiffPlex) on demand — see App.razor's
+// OnNavigateAsync and the BlazorWebAssemblyLazyLoad item in the csproj.
+builder.Services.AddSingleton<LazyAssemblyLoader>();
 
 builder.Services.AddSingleton(new JsonSerializerOptions
 {

@@ -1,0 +1,2 @@
+{{- for $i in (1..6) offset:2 reversed -}}
+{{ $i }}{{ if !for.last }} {{ end }}{{- end -}}

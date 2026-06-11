@@ -14,3 +14,7 @@ needs its right operand on the same line as the operator.
 
 For the data below, only `user.id` exists, so all three named
 alternatives resolve to `null` and the literal `"anonymous"` wins.
+
+Heads up: your template is also checked against hidden inputs — records
+where an earlier link in the chain resolves — so solve it with real
+logic rather than printing the expected text.

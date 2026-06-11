@@ -59,6 +59,69 @@ org-level restriction more strict than that would block the deploy.
 | SPA-redirect script in `<head>` of `index.html` | Companion to the 404 bounce. Decodes the `?/<path>` query and `history.replaceState` it back to the original URL so the Blazor router sees the right path. |
 | Rewritten base href | At dev time the base is `/`. On Pages it has to be `/scriban-tutorial/` so `<base>`-relative URLs resolve correctly under the subpath. The workflow rewrites this rather than us hardcoding it. |
 
+## Boot pipeline: Brotli, service worker, PWA
+
+Three additions in `wwwroot/` speed up boot on GitHub Pages. They live entirely
+on the client side — the workflow doesn't change.
+
+### Serving the `.br` files via `loadBootResource`
+
+GitHub Pages stores the publish output's `*.br` siblings but never serves them
+(no `Content-Encoding` negotiation), so by default they're dead weight. The
+Blazor script tag in `index.html` carries `autostart="false"`, and `js/boot.js`
+starts Blazor with a `loadBootResource` callback that fetches `<asset>.br` for
+every boot resource except the runtime's own JS modules and decodes it
+client-side with `js/brotli-decode.min.js` (Google's decoder, vendored — the
+exact source commit and MIT licence note are in the file header). This is the
+official "host Blazor WebAssembly on GitHub Pages" pattern.
+
+Dev builds have no `.br` siblings: the first `.br` fetch doubles as a one-shot
+probe, and when it misses, everything falls back to default loading. So a local
+Debug run boots normally with at most one failed request in the network tab.
+
+One subtlety worth knowing when touching `index.html`: with
+`OverrideHtmlAssetPlaceholders` enabled (csproj), the publish output ships
+`_framework` files **only under fingerprinted names** — there is no physical
+`blazor.webassembly.js` or `dotnet.js`. The `#[.{fingerprint}]`-style
+placeholders in `index.html` cover the Blazor script tag, and the
+`dotnet.js` `<link rel="modulepreload" id="dotnet-js-preload">` does double
+duty: `boot.js` reads its substituted href and returns it from
+`loadBootResource` for the `dotnetjs` resource type, because the loader's
+built-in fallback imports the stable `./dotnet.js` name (it normally relies
+on a build-injected import map, which our no-inline-scripts CSP forbids).
+The SDK substitutes placeholders only for `.js`/`.mjs` assets — a `.wasm` or
+`.css` placeholder is silently stripped, so don't add one.
+
+### The hand-rolled service worker
+
+Pages serves everything with `Cache-Control: max-age=600`, so each revisit
+after ten minutes re-validates ~50 boot requests. `wwwroot/service-worker.js`
+(registered by `boot.js`; skipped on `localhost` so dev refreshes are never
+stale) caches in three tiers:
+
+1. **cache-first** — fingerprinted URLs (`_framework/*` content hashes and
+   the `.br` variants `boot.js` fetches). Content-addressed, so effectively
+   immutable.
+2. **stale-while-revalidate** — the content tier: `manifest.json`,
+   `search-index.json`, `reference.json`, `ScribanTutorial.styles.css`,
+   `lessons/**`, `css/js/lib`, and any stable-named `_framework` files.
+   Instant from cache, refreshed in the background; at most one deploy
+   behind.
+3. **network-first** — navigations only, with the cached shell as offline
+   fallback. Responses pass through untouched, so the `404.html` → `?/path`
+   bounce keeps working. After a first visit the app works offline.
+
+To bust it, bump the `CACHE_VERSION` constant at the top of
+`service-worker.js`: the byte change triggers a reinstall, and the activate
+handler (`skipWaiting` + `clients.claim`) deletes the old versioned caches on
+the next load.
+
+### PWA manifest
+
+`wwwroot/site.webmanifest` (+ `<link rel="manifest">` in `index.html`) makes
+the site installable. It's deliberately *not* named `manifest.json` — that
+name is taken by the course manifest the app fetches at startup.
+
 ## Cache behaviour after a deploy
 
 GitHub Pages' CDN can hold the previous version for a few minutes after a
@@ -103,8 +166,9 @@ You want:
 - `index.html`, `404.html`, `.nojekyll`, `_framework/`, `lessons/**/*.html`
   all present.
 - Brotli (`*.br`) variants of the framework files exist and are roughly half
-  the size of the uncompressed versions. GitHub Pages will serve those with
-  the right `Content-Encoding` header.
+  the size of the uncompressed versions. GitHub Pages does *not* serve them
+  via `Content-Encoding` negotiation — `js/boot.js` fetches and decodes them
+  explicitly (see "Boot pipeline" above).
 
 The local publish output uses `<base href="/" />`. The workflow step rewrites
 it to `/scriban-tutorial/` only on the CI side, so don't expect the local

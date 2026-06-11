@@ -1,0 +1,3 @@
+{{- for f in files -}}
+{{ f }}: {{ if f | string.starts_with 'test_' }}TEST{{ else if f | string.ends_with '.md' }}DOC{{ else }}SRC{{ end }}
+{{ end -}}

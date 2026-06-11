@@ -1,4 +1,7 @@
-<Router AppAssembly="@typeof(App).Assembly">
+@using Microsoft.AspNetCore.Components.WebAssembly.Services
+@inject LazyAssemblyLoader AssemblyLoader
+
+<Router AppAssembly="@typeof(App).Assembly" OnNavigateAsync="@OnNavigateAsync">
     <Found Context="routeData">
         <ErrorBoundary>
             <ChildContent>
@@ -28,3 +31,28 @@
         </LayoutView>
     </NotFound>
 </Router>
+
+@code {
+    // DiffPlex backs only the expected-vs-actual diff in ExerciseBlock/DiffView,
+    // which render exclusively on lesson pages — so it's marked
+    // BlazorWebAssemblyLazyLoad in the csproj (kept out of the initial app
+    // download) and fetched here on the first navigation to a lesson route.
+    private bool _diffPlexLoaded;
+
+    private async Task OnNavigateAsync(NavigationContext context)
+    {
+        if (_diffPlexLoaded) return;
+        if (!context.Path.TrimStart('/').StartsWith("lesson", StringComparison.OrdinalIgnoreCase)) return;
+        try
+        {
+            await AssemblyLoader.LoadAssembliesAsync(new[] { "DiffPlex.wasm" });
+            _diffPlexLoaded = true;
+        }
+        catch (Exception ex)
+        {
+            // Swallow here: if DiffPlex really is needed the lesson page's
+            // ErrorBoundary surfaces the failure with a reload hint.
+            Console.Error.WriteLine($"App: lazy load of DiffPlex failed — {ex.Message}");
+        }
+    }
+}

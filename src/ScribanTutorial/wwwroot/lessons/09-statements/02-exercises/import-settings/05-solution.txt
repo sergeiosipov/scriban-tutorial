@@ -1,0 +1,2 @@
+{{- import settings -}}
+{{ site_name }}: {{ tagline }} ({{ year }})

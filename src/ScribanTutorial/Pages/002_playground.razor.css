@@ -58,10 +58,26 @@
     transform: translateY(-1px);
 }
 
-/* On the Playground each pane defaults to the full --pane-default-cap (350px)
+/* Share button keeps a fixed footprint so the swap to the shorter "Copied!"
+   label doesn't reflow the toolbar row. */
+.playground__btn--share {
+    min-width: 11em;
+    justify-content: center;
+}
+
+/* Brief success state after the share URL lands on the clipboard. */
+.playground__btn--copied {
+    border-color: var(--pass, #16a34a);
+    color: var(--pass, #16a34a);
+}
+.playground__btn--copied:hover {
+    border-color: var(--pass, #16a34a);
+}
+
+/* On the Playground each pane defaults to the full --pane-default-cap
    instead of content-fit, because this page IS the workspace — the user is
    meant to live in these editors. Resize handle stays so individual panes
-   can grow; min-height is the same 350 so we never shrink below the default. */
+   can grow; min-height matches the cap so we never shrink below the default. */
 .playground__panel {
     display: flex;
     flex-direction: column;

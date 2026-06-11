@@ -19,6 +19,19 @@ public sealed record SearchDoc(
 /// <summary>Top-level shape of <c>search-index.json</c>.</summary>
 public sealed record SearchIndexFile(IReadOnlyList<SearchDoc> Documents);
 
+/// <summary>
+/// A <see cref="SearchDoc"/> paired with pre-lowered copies of its searchable
+/// fields. Built once per index load via <see cref="SearchIndexQuery.Prepare"/>
+/// so the per-keystroke query path compares against cached lower-case strings
+/// instead of re-lowering every doc on every keypress. Runtime-only convenience
+/// — never serialised, so <c>search-index.json</c> keeps its shape.
+/// </summary>
+public sealed record PreparedSearchDoc(
+    SearchDoc Doc,
+    string TitleLower,
+    string LessonTitleLower,
+    string TextLower);
+
 /// <summary>A matched document with its score and a context snippet.</summary>
 public sealed record SearchHit(SearchDoc Doc, int Score, string Snippet);
 
@@ -46,7 +59,33 @@ public static class SearchIndexQuery
                    .Distinct()
                    .ToArray();
 
-    public static IReadOnlyList<SearchHit> Query(IReadOnlyList<SearchDoc> docs, string? query, int max = 50)
+    /// <summary>
+    /// Pre-lower every doc's searchable fields once, at index load, so
+    /// per-keystroke queries allocate no per-doc lowered strings.
+    /// </summary>
+    public static IReadOnlyList<PreparedSearchDoc> Prepare(IReadOnlyList<SearchDoc> docs)
+    {
+        var prepared = new PreparedSearchDoc[docs.Count];
+        for (var i = 0; i < docs.Count; i++)
+        {
+            var doc = docs[i];
+            prepared[i] = new PreparedSearchDoc(
+                doc,
+                doc.Title.ToLowerInvariant(),
+                doc.LessonTitle.ToLowerInvariant(),
+                doc.Text.ToLowerInvariant());
+        }
+        return prepared;
+    }
+
+    /// <summary>
+    /// Convenience overload for one-off queries over raw docs; hot paths
+    /// should <see cref="Prepare"/> once and use the prepared overload.
+    /// </summary>
+    public static IReadOnlyList<SearchHit> Query(IReadOnlyList<SearchDoc> docs, string? query, int max = 50) =>
+        Query(Prepare(docs), query, max);
+
+    public static IReadOnlyList<SearchHit> Query(IReadOnlyList<PreparedSearchDoc> docs, string? query, int max = 50)
     {
         var terms = SplitTerms(query);
         if (terms.Count == 0) return Array.Empty<SearchHit>();
@@ -54,17 +93,13 @@ public static class SearchIndexQuery
         var hits = new List<SearchHit>();
         foreach (var doc in docs)
         {
-            var title = doc.Title.ToLowerInvariant();
-            var lessonTitle = doc.LessonTitle.ToLowerInvariant();
-            var text = doc.Text.ToLowerInvariant();
-
             var score = 0;
             var matchedAll = true;
             foreach (var term in terms)
             {
-                var inTitle = title.Contains(term, StringComparison.Ordinal)
-                              || lessonTitle.Contains(term, StringComparison.Ordinal);
-                var bodyCount = CountOccurrences(text, term);
+                var inTitle = doc.TitleLower.Contains(term, StringComparison.Ordinal)
+                              || doc.LessonTitleLower.Contains(term, StringComparison.Ordinal);
+                var bodyCount = CountOccurrences(doc.TextLower, term);
                 if (!inTitle && bodyCount == 0)
                 {
                     matchedAll = false;
@@ -75,7 +110,7 @@ public static class SearchIndexQuery
             }
             if (!matchedAll) continue;
 
-            hits.Add(new SearchHit(doc, score, Snippet(doc.Text, terms)));
+            hits.Add(new SearchHit(doc.Doc, score, Snippet(doc.Doc.Text, terms)));
         }
 
         return hits

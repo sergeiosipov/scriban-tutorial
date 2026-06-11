@@ -14,6 +14,60 @@
     margin: 0;
 }
 
+/* "Continue where you left off" — same card shape as the lesson rows but a
+   stronger accent tint so it reads as the page's primary call to action. */
+.home__continue {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 1.25rem;
+    row-gap: 0.15rem;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding: 1.1rem 1.4rem;
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--accent) 9%, var(--bg));
+    color: var(--fg, #1a1a1a);
+    text-decoration: none;
+    box-shadow: var(--shadow);
+    transition: transform 80ms ease, box-shadow 80ms ease, border-color 80ms ease;
+}
+
+.home__continue:hover {
+    border-color: var(--accent, #2563eb);
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.home__continue-kicker {
+    grid-column: 1;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--accent, #2563eb);
+    font-weight: 600;
+}
+
+.home__continue-lesson {
+    grid-column: 1;
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.home__continue-exercise {
+    grid-column: 1;
+    font-size: 0.9rem;
+    color: var(--muted, #6b7280);
+}
+
+.home__continue-arrow {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    font-size: 1.5rem;
+    color: var(--accent, #2563eb);
+}
+
 .home__lessons {
     list-style: none;
     margin: 0;
@@ -27,6 +81,26 @@
 }
 
 .home__lesson { margin: 0; }
+
+/* Section headers between lesson groups. List items, not cards — the extra
+   top margin (on top of the grid gap) separates one group from the last. */
+.home__group {
+    margin: 1.1rem 0 0;
+}
+
+.home__group:first-child {
+    margin-top: 0;
+}
+
+.home__group-title {
+    margin: 0;
+    padding: 0 0.2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted, #6b7280);
+}
 
 .home__lesson-link {
     display: grid;
@@ -50,12 +124,13 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-/* About / Playground / Contribute cards share the lesson card's shape but
-   each gets a subtle tint so the "this isn't a numbered lesson" distinction
-   reads at a glance. */
+/* About / Playground / Search / Reference / Contribute cards share the lesson
+   card's shape but each gets a subtle tint so the "this isn't a numbered
+   lesson" distinction reads at a glance. */
 .home__lesson-link--about,
 .home__lesson-link--playground,
 .home__lesson-link--search,
+.home__lesson-link--reference,
 .home__lesson-link--contribute {
     background: color-mix(in srgb, var(--accent) 4%, var(--bg));
     border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
@@ -63,6 +138,7 @@
 .home__lesson-link--about .home__lesson-num,
 .home__lesson-link--playground .home__lesson-num,
 .home__lesson-link--search .home__lesson-num,
+.home__lesson-link--reference .home__lesson-num,
 .home__lesson-link--contribute .home__lesson-num {
     color: var(--accent, #2563eb);
 }
@@ -75,9 +151,21 @@
     font-weight: 500;
 }
 
+.home__lesson-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
 .home__lesson-title {
     font-size: 1.15rem;
     font-weight: 600;
+}
+
+.home__lesson-desc {
+    font-size: 0.9rem;
+    color: var(--muted, #6b7280);
 }
 
 .home__lesson-count {
@@ -86,12 +174,28 @@
     white-space: nowrap;
 }
 
+.home__lesson-passed::before {
+    content: '·';
+    margin: 0 0.35rem;
+}
+
+.home__lesson-passed--done {
+    color: var(--pass, #16a34a);
+}
+
 .home__loading {
     color: var(--muted, #6b7280);
     padding: 1rem 0;
 }
 
 @media (max-width: 640px) {
+    .home__continue {
+        grid-template-columns: 1fr;
+        padding: 1rem 1.1rem;
+    }
+    .home__continue-arrow {
+        display: none;
+    }
     .home__lesson-link {
         grid-template-columns: 1fr;
         gap: 0.3rem;
@@ -99,5 +203,6 @@
     }
     .home__lesson-count {
         font-size: 0.8rem;
+        white-space: normal;
     }
 }

@@ -309,6 +309,72 @@ javascript
 ```
 :::
 
+## Precedence
+
+When several operators meet without parentheses, Scriban binds them in
+a fixed order. From tightest to loosest:
+
+| Level | Operators |
+|---|---|
+| 1 (tightest) | member access `a.b`, indexing `a[i]`, call `f(...)` |
+| 2 | unary `!`, `-`, `+` |
+| 3 | ranges `..`, `..<` |
+| 4 | shifts `<<`, `>>` |
+| 5 | `*`, `/`, `//`, `%` |
+| 6 | `+`, `-` |
+| 7 | `<`, `<=`, `>`, `>=` |
+| 8 | `==`, `!=` |
+| 9 | `&&` |
+| 10 | `||` |
+| 11 | `??`, `?!` |
+| 12 | pipe `\|` |
+| 13 (loosest) | ternary `? :` |
+
+Levels 5–10 read like any C-family language. The surprises sit at the
+edges. **Ranges and shifts bind tighter than arithmetic** — `1 + 1 << 2`
+is `1 + (1 << 2)`, i.e. `5`, and `1..n+1` is `(1..n) + 1` (a runtime
+error), so write `1..(n+1)`. At the loose end, `??`/`?!`, the pipe, and
+the ternary bind after all the logic operators — which produces the two
+gotchas below.
+
+### Gotcha: the pipe grabs the whole left side
+
+The pipe binds looser than every arithmetic, comparison, and logic
+operator, so its input is **everything to its left** — not just the
+nearest value:
+
+:::example
+```scriban
+{{ 1 - 4 | math.abs }} vs. {{ 1 - (4 | math.abs) }}
+```
+```text
+3 vs. -3
+```
+:::
+
+`1 - 4 | math.abs` feeds the whole `1 - 4` into `math.abs`, giving `3`.
+To pipe a single operand, parenthesize the pipe itself.
+
+### Gotcha: space-separated arguments swallow operators
+
+[Lesson 7](/scriban-tutorial/lesson/07-functions) noted that
+`sub 10 3 * 2` is read as `sub 10 (3 * 2)`. The same applies to
+built-ins — in the space-call form each argument slot takes a full
+expression, so a trailing operator belongs to the **last argument**,
+not to the call result:
+
+:::example
+```scriban
+{{ math.minus 10 3 * 2 }} vs. {{ math.minus(10, 3) * 2 }}
+```
+```text
+4 vs. 14
+```
+:::
+
+`math.minus 10 3 * 2` computes `10 - (3 * 2)`. When a call participates
+in a bigger expression, reach for the parentheses form.
+
 ## Built-in filter modules
 
 The built-in modules each get their own lesson:

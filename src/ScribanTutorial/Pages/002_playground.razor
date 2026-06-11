@@ -1,5 +1,9 @@
 @page "/playground"
+@using System.IO
+@using System.Text
+@using System.Text.Json
 @inject IJSRuntime JS
+@inject NavigationManager Nav
 @implements IAsyncDisposable
 
 <PageTitle>Playground · Scriban Tutorial</PageTitle>
@@ -51,11 +55,18 @@
             Submit
         </button>
         <button type="button"
+                class="playground__btn playground__btn--share @(_shareCopied ? "playground__btn--copied" : null)"
+                title="Copy a link that opens the playground with the current data and template"
+                @onclick="CopyShareLink">
+            <span class="playground__btn-icon" aria-hidden="true">@(_shareCopied ? "✓" : "⧉")</span>
+            @(_shareCopied ? "Copied!" : "Copy share link")
+        </button>
+        <button type="button"
                 class="playground__btn"
-                title="Restore the default example"
+                title="Restore the default example and clear saved work"
                 @onclick="ResetToDefault">
             <span class="playground__btn-icon" aria-hidden="true">↺</span>
-            Reset
+            Reset to example
         </button>
     </div>
 
@@ -111,6 +122,13 @@
         }
         """;
 
+    // localStorage keys for the persisted workspace. Same store (and same JS
+    // module) as ProgressService, different prefix segment.
+    private const string DataStorageKey = "scriban-tutorial:playground:data";
+    private const string TemplateStorageKey = "scriban-tutorial:playground:template";
+
+    private const string TryFragmentPrefix = "try=";
+
     private readonly string _dataEditorId = "playground-data";
     private readonly string _templateEditorId = "playground-template";
 
@@ -119,18 +137,44 @@
     private string _output = "";
     private string? _errors;
 
-    private CodeEditorHandle? _editor;
-    // IDisposable rather than DotNetObjectReference<T> so we don't have to
-    // spell out the awkward "_002_playground" identifier that Razor escapes
-    // the numeric-prefixed filename to. The actual DotNetObjectReference<T>
-    // value is created locally and inferred — only disposal needs the field.
-    private IDisposable? _dotnetRef;
+    private bool _shareCopied;
+    // Monotonic token so a second click within the 2 s window doesn't have
+    // its "Copied!" state reverted early by the first click's timer.
+    private int _copyToken;
+    private bool _disposed;
 
-    protected override void OnInitialized()
+    private CodeEditorHandle? _editor;
+    // Set only after BOTH mounts succeed. Guards the pull paths: until then
+    // (or if mounting failed) the fields are the source of truth and must not
+    // be clobbered by GetValueAsync's "" for an unmounted editor.
+    private bool _editorsMounted;
+    private IJSObjectReference? _storage;
+
+    protected override async Task OnInitializedAsync()
     {
-        // Initial output uses the defaults — render once so the Output pane
-        // isn't empty before the user clicks Submit.
+        // Re-clicking a try-link while already on the playground changes only
+        // the fragment — no component re-init, so we listen for it.
+        Nav.LocationChanged += OnLocationChanged;
+
+        // A #try= payload wins over saved work. Decoding is synchronous, so
+        // the fields are set before the first render — the editors mount with
+        // the shared content directly.
+        var decoded = TryDecodeTryFragment(Nav.Uri);
+        if (decoded is not null)
+        {
+            (_data, _template) = decoded.Value;
+            Render();
+            return;
+        }
+
+        // Defaults render immediately; if saved work turns up we re-render
+        // with it (and push it into the editors if they mounted meanwhile).
         Render();
+        if (await TryRestoreSavedAsync())
+        {
+            Render();
+            await PushEditorsAsync();
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -139,12 +183,12 @@
         try
         {
             _editor = new CodeEditorHandle(JS);
-            var dotnetRef = DotNetObjectReference.Create(this);
-            _dotnetRef = dotnetRef;
-            await _editor.MountAsync(_dataEditorId, _data, dotnetRef,
-                new { language = "json", callbackMethod = "OnDataChange", autoFit = false });
-            await _editor.MountAsync(_templateEditorId, _template, dotnetRef,
-                new { language = "scriban", callbackMethod = "OnTemplateChange", autoFit = false });
+            // Eager mounts: the playground IS the workspace, so no lazy
+            // placeholder — both editors are above the fold and immediately
+            // editable.
+            await _editor.MountAsync(_dataEditorId, "json", _data, autoFit: false, lazy: false);
+            await _editor.MountAsync(_templateEditorId, "scriban", _template, autoFit: false, lazy: false);
+            _editorsMounted = true;
         }
         catch (Exception ex)
         {
@@ -152,26 +196,30 @@
         }
     }
 
-    // Callbacks stash the latest text — no auto-render. The user clicks
-    // Submit to actually run.
-    [JSInvokable]
-    public Task OnDataChange(string text)
+    private async void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
-        _data = text;
-        return Task.CompletedTask;
+        try
+        {
+            var decoded = TryDecodeTryFragment(e.Location);
+            if (decoded is null) return;
+            (_data, _template) = decoded.Value;
+            Render();
+            await PushEditorsAsync();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Playground: try-link apply failed — {ex.GetType().Name}");
+        }
     }
 
-    [JSInvokable]
-    public Task OnTemplateChange(string text)
+    // Typing never pushes into .NET — the editors own the text and we pull
+    // it on demand. The user clicks Submit to actually run.
+    private async Task Submit()
     {
-        _template = text;
-        return Task.CompletedTask;
-    }
-
-    private void Submit()
-    {
+        await PullEditorsAsync();
         Render();
-        StateHasChanged();
+        await SaveCurrentAsync();
     }
 
     private void Render()
@@ -186,23 +234,200 @@
         _data = DefaultData;
         _template = DefaultTemplate;
         Render();
-        if (_editor is not null)
+        await PushEditorsAsync();
+        try
         {
-            try
+            var storage = await StorageAsync();
+            await storage.InvokeVoidAsync("remove", DataStorageKey);
+            await storage.InvokeVoidAsync("remove", TemplateStorageKey);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Playground: clearing saved work failed — {ex.GetType().Name}");
+        }
+    }
+
+    private async Task CopyShareLink()
+    {
+        // Encode what's in the editors RIGHT NOW, not the last submitted text.
+        await PullEditorsAsync();
+        var url = BuildShareUrl();
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", url);
+        }
+        catch (Exception ex)
+        {
+            // Clipboard can be denied (permissions policy, insecure context).
+            Console.Error.WriteLine($"Playground: clipboard write failed — {ex.GetType().Name}");
+            return;
+        }
+        _shareCopied = true;
+        var token = ++_copyToken;
+        StateHasChanged();
+        await Task.Delay(2000);
+        if (!_disposed && token == _copyToken)
+        {
+            _shareCopied = false;
+            StateHasChanged();
+        }
+    }
+
+    /// <summary>
+    /// Absolute playground URL carrying the current editors' content as the
+    /// same padding-stripped base64url(UTF8(JSON {"t","d"})) fragment the
+    /// theory pages' try-links use.
+    /// </summary>
+    private string BuildShareUrl()
+    {
+        using var ms = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(ms))
+        {
+            writer.WriteStartObject();
+            writer.WriteString("t", _template);
+            writer.WriteString("d", _data);
+            writer.WriteEndObject();
+        }
+        var payload = Convert.ToBase64String(ms.ToArray())
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
+        return $"{Nav.BaseUri}playground#{TryFragmentPrefix}{payload}";
+    }
+
+    /// <summary>
+    /// Decodes a '#try=…' fragment into (Data, Template). Null on anything
+    /// malformed — absent fragment, bad base64url, bad JSON, missing/non-string
+    /// 't' or 'd' — so callers can ignore invalid payloads silently.
+    /// </summary>
+    private static (string Data, string Template)? TryDecodeTryFragment(string uri)
+    {
+        var hashIdx = uri.IndexOf('#');
+        if (hashIdx < 0) return null;
+        var fragment = uri[(hashIdx + 1)..];
+        if (!fragment.StartsWith(TryFragmentPrefix, StringComparison.Ordinal)) return null;
+        try
+        {
+            // base64url alphabet is never percent-encoded, but unescape
+            // defensively in case a mangled link slipped through.
+            var b64 = Uri.UnescapeDataString(fragment[TryFragmentPrefix.Length..])
+                .Replace('-', '+')
+                .Replace('_', '/');
+            switch (b64.Length % 4)
             {
-                await _editor.SetValueAsync(_dataEditorId, _data);
-                await _editor.SetValueAsync(_templateEditorId, _template);
+                case 2: b64 += "=="; break;
+                case 3: b64 += "="; break;
+                case 1: return null; // never a valid base64 length
             }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Playground: reset setValue failed — {ex.GetType().Name}");
-            }
+            var json = Encoding.UTF8.GetString(Convert.FromBase64String(b64));
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object) return null;
+            if (!doc.RootElement.TryGetProperty("t", out var t) || t.ValueKind != JsonValueKind.String) return null;
+            if (!doc.RootElement.TryGetProperty("d", out var d) || d.ValueKind != JsonValueKind.String) return null;
+            // Theory examples without a Data panel encode d as "" — render
+            // those against the empty object, same default the builder and
+            // output regenerator use.
+            var data = d.GetString() is { Length: > 0 } s && !string.IsNullOrWhiteSpace(s) ? s : "{}";
+            return (data, t.GetString() ?? "");
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private async ValueTask<IJSObjectReference> StorageAsync() =>
+        _storage ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/progress.js");
+
+    private async Task<bool> TryRestoreSavedAsync()
+    {
+        try
+        {
+            var storage = await StorageAsync();
+            var savedData = await storage.InvokeAsync<string?>("get", DataStorageKey);
+            var savedTemplate = await storage.InvokeAsync<string?>("get", TemplateStorageKey);
+            if (savedData is null && savedTemplate is null) return false;
+            _data = savedData ?? DefaultData;
+            _template = savedTemplate ?? DefaultTemplate;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Playground: restoring saved work failed — {ex.GetType().Name}");
+            return false;
+        }
+    }
+
+    private async Task SaveCurrentAsync()
+    {
+        try
+        {
+            var storage = await StorageAsync();
+            await storage.InvokeVoidAsync("set", DataStorageKey, _data);
+            await storage.InvokeVoidAsync("set", TemplateStorageKey, _template);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Playground: saving work failed — {ex.GetType().Name}");
+        }
+    }
+
+    /// <summary>
+    /// Pulls the live editor documents into <c>_data</c>/<c>_template</c>.
+    /// No-op until both editors are mounted — before that the fields are
+    /// still the source of truth (defaults, saved work, or a try-fragment).
+    /// On failure the fields keep their last-known values; both are read
+    /// before either is assigned so they never end up mismatched.
+    /// </summary>
+    private async Task PullEditorsAsync()
+    {
+        if (_editor is null || !_editorsMounted) return;
+        try
+        {
+            var data = await _editor.GetValueAsync(_dataEditorId);
+            var template = await _editor.GetValueAsync(_templateEditorId);
+            _data = data;
+            _template = template;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Playground: editor getValue failed — {ex.GetType().Name}");
+        }
+    }
+
+    /// <summary>
+    /// Pushes the current fields into the mounted CodeMirror views. No-op for
+    /// editors that aren't mounted yet — they pick the fields up at mount.
+    /// </summary>
+    private async Task PushEditorsAsync()
+    {
+        if (_editor is null) return;
+        try
+        {
+            await _editor.SetValueAsync(_dataEditorId, _data);
+            await _editor.SetValueAsync(_templateEditorId, _template);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Playground: editor setValue failed — {ex.GetType().Name}");
         }
     }
 
     public async ValueTask DisposeAsync()
     {
+        _disposed = true;
+        Nav.LocationChanged -= OnLocationChanged;
+        // Last-chance persist so in-editor work survives navigation even
+        // without a Submit. Pull BEFORE disposing the editor handle — after
+        // disposal the views (and their documents) are gone. Both helpers
+        // swallow their own failures, so a torn-down JS context still leaves
+        // the last-known fields persisted.
+        await PullEditorsAsync();
+        await SaveCurrentAsync();
         if (_editor is not null) await _editor.DisposeAsync();
-        _dotnetRef?.Dispose();
+        if (_storage is not null)
+        {
+            try { await _storage.DisposeAsync(); } catch { /* best effort */ }
+        }
     }
 }

@@ -1,4 +1,5 @@
 @page "/about"
+@inject ProgressService Progress
 
 <PageTitle>About · Scriban Tutorial</PageTitle>
 
@@ -184,6 +185,41 @@
         </div>
     </section>
 
+    <section class="reference__section" id="your-data">
+        <div class="reference__body">
+            <h2>Your data</h2>
+            <p>
+                Exercise progress — saved code, pass/fail state, attempt
+                counts — lives only in this browser's
+                <code>localStorage</code>. Clearing site data or switching
+                browsers loses it silently. To keep a backup or move it,
+                export a <code>.json</code> file here and import it on the
+                other side. Imported records <strong>overwrite</strong> any
+                existing record for the same exercise. Both operations run
+                entirely in this tab; nothing leaves the browser.
+            </p>
+            <div class="reference__data-actions">
+                <button type="button"
+                        class="reference__data-btn"
+                        disabled="@_transferBusy"
+                        @onclick="ExportProgress">
+                    Export progress (.json)
+                </button>
+                <button type="button"
+                        class="reference__data-btn"
+                        disabled="@_transferBusy"
+                        @onclick="ImportProgress">
+                    Import progress
+                </button>
+            </div>
+            @if (_transferStatus is not null)
+            {
+                <p class="reference__data-status @(_transferError ? "reference__data-status--error" : null)"
+                   role="status">@_transferStatus</p>
+            }
+        </div>
+    </section>
+
     <section class="reference__section" id="known-issues">
         <div class="reference__body">
             <h2>Known issues</h2>
@@ -257,3 +293,63 @@
     </section>
     <PageNav />
 </article>
+
+@code {
+    private bool _transferBusy;
+    private string? _transferStatus;
+    private bool _transferError;
+
+    private async Task ExportProgress()
+    {
+        _transferBusy = true;
+        _transferStatus = null;
+        try
+        {
+            await Progress.ExportAllAsync();
+            _transferStatus = "Saved as scriban-tutorial-progress.json (check your downloads).";
+            _transferError = false;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"About: export failed — {ex.GetType().Name}");
+            _transferStatus = "Export failed — see the browser console for details.";
+            _transferError = true;
+        }
+        finally
+        {
+            _transferBusy = false;
+        }
+    }
+
+    private async Task ImportProgress()
+    {
+        _transferBusy = true;
+        _transferStatus = null;
+        try
+        {
+            var result = await Progress.ImportAsync();
+            if (result is not null)
+            {
+                var (imported, skipped) = result.Value;
+                _transferStatus = $"Imported {imported} record{(imported == 1 ? "" : "s")}, skipped {skipped}.";
+                _transferError = false;
+            }
+            // null = picker cancelled; keep quiet.
+        }
+        catch (FormatException)
+        {
+            _transferStatus = "That file doesn't look like a progress export — nothing was imported.";
+            _transferError = true;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"About: import failed — {ex.GetType().Name}");
+            _transferStatus = "Import failed — see the browser console for details.";
+            _transferError = true;
+        }
+        finally
+        {
+            _transferBusy = false;
+        }
+    }
+}

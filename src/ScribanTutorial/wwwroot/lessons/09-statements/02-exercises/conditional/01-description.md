@@ -11,3 +11,7 @@ The expected output for the data below (`score = 85`) is `B`.
 Note: Scriban evaluates the chain top to bottom and uses the FIRST true
 branch — the other tests don't fire. So `>= 80` matching is enough; the
 `else` branches won't run even though `85` is also "below 90".
+
+Heads up: your template is also checked against hidden scores landing in
+the other grade branches, so solve it with real logic rather than
+printing the expected text.

@@ -1,0 +1,2 @@
+{{- sig = payload | string.hmac_sha256 secret -}}
+sig={{ sig }} length={{ sig.size }}
