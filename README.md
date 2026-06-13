@@ -7,9 +7,10 @@ evaluates the user's templates directly in the browser tab. Course content is
 plain `.md` / `.txt` / `.json` under `wwwroot/lessons/`; non-developers can add
 lessons by editing files only.
 
-[![Deploy to GitHub Pages](https://github.com/sergeiosipov/scriban-tutorial/actions/workflows/deploy.yml/badge.svg)](https://github.com/sergeiosipov/scriban-tutorial/actions/workflows/deploy.yml)
-&nbsp;
-[Live site](https://sergeiosipov.github.io/scriban-tutorial/)
+[![Deploy to GitHub Pages](https://github.com/sergeiosipov/scriban-tutorial/actions/workflows/deploy.yml/badge.svg)](https://github.com/sergeiosipov/scriban-tutorial/actions/workflows/deploy.yml) 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/sergeiosipov/scriban-tutorial)  
+[Live site](https://sergeiosipov.github.io/scriban-tutorial/)  
+
 
 ## Prerequisites
 
